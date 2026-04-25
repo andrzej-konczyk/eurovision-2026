@@ -14,6 +14,7 @@ build/
 # ML experiment tracking (tracked by MLflow locally, not Git)
 models/mlruns/
 mlruns/
+mlflow.db
 
 # DVC — raw data and model artefacts tracked by DVC, not Git
 data/raw/
@@ -46,8 +47,9 @@ data/features/
 Thumbs.db
 desktop.ini
 
-# Reports (generated outputs — not source)
-reports/
+# Reports — commit profiling/backtest .md; ignore generated PDFs
+reports/*.pdf
+reports/*.html
 
 # Node (for Puppeteer/PDF export)
 node_modules/
