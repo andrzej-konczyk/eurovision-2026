@@ -1,5 +1,6 @@
 """Unit tests for LeaveLastYearOut — verifies leakage-free temporal splits."""
 import numpy as np
+import pandas as pd
 import pytest
 
 from src.models.cv import LeaveLastYearOut
@@ -100,3 +101,20 @@ def test_groups_required():
 def test_get_n_splits_groups_required():
     with pytest.raises(ValueError, match="groups"):
         LeaveLastYearOut().get_n_splits()
+
+
+def test_groups_as_pandas_series():
+    """split() must work when groups is a pandas Series."""
+    series = pd.Series(YEARS)
+    splits = list(LeaveLastYearOut().split(X_DUMMY, groups=series))
+    assert len(splits) == len(np.unique(YEARS)) - 1
+    for train_idx, test_idx in splits:
+        assert set(YEARS[train_idx]).isdisjoint(set(YEARS[test_idx]))
+
+
+def test_min_train_years_exceeds_unique_warns():
+    """UserWarning when min_train_years > number of unique years."""
+    cv = LeaveLastYearOut(min_train_years=99)
+    with pytest.warns(UserWarning, match="min_train_years"):
+        n = cv.get_n_splits(groups=YEARS)
+    assert n == 0

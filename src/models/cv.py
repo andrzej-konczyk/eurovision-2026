@@ -8,6 +8,8 @@ Usage:
 """
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 from sklearn.model_selection import BaseCrossValidator
 
@@ -24,6 +26,17 @@ class LeaveLastYearOut(BaseCrossValidator):
     min_train_years : int
         Minimum distinct training years required to include a fold.
         Default 1 skips only the very first (oldest) year.
+        If greater than the number of unique years, all folds are skipped
+        and a UserWarning is raised.
+
+    Examples
+    --------
+    >>> cv = LeaveLastYearOut()
+    >>> for train_idx, test_idx in cv.split(X, groups=df["Year"]):
+    ...     model.fit(X[train_idx], y[train_idx])
+
+    >>> cv = LeaveLastYearOut(min_train_years=2)
+    >>> cv.get_n_splits(groups=df["Year"])
     """
 
     def __init__(self, min_train_years: int = 1) -> None:
@@ -61,7 +74,15 @@ class LeaveLastYearOut(BaseCrossValidator):
         if groups is None:
             raise ValueError("groups must be the year array")
         n_unique = len(np.unique(groups))
-        return max(0, n_unique - self.min_train_years)
+        n_splits = max(0, n_unique - self.min_train_years)
+        if n_splits == 0 and self.min_train_years > 1:
+            warnings.warn(
+                f"min_train_years={self.min_train_years} exceeds the number of "
+                f"unique years ({n_unique}); no folds will be produced.",
+                UserWarning,
+                stacklevel=2,
+            )
+        return n_splits
 
     def _iter_test_indices(self, X=None, y=None, groups=None):
-        raise NotImplementedError("use split() directly")
+        pass  # split() is overridden directly; this path is never reached
