@@ -1,0 +1,34 @@
+# ── Data & ML core ────────────────────────────────────────────────────────────
+pandas>=2.0.0
+numpy>=1.25.0
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+lightgbm>=4.0.0
+shap>=0.43.0
+scipy>=1.11.0
+
+# ── Deep learning (PyTorch — recommended per ENV-01) ──────────────────────────
+torch>=2.1.0
+# tensorflow>=2.14.0  # alternative — uncomment and comment out torch if needed
+
+# ── Dashboard ─────────────────────────────────────────────────────────────────
+streamlit>=1.28.0
+plotly>=5.17.0
+
+# ── Scenario engine API ───────────────────────────────────────────────────────
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# ── Experiment tracking & data versioning ────────────────────────────────────
+mlflow>=2.8.0
+dvc>=3.0.0
+
+# ── PDF export (OQ-10 pending — weasyprint requires GTK on Windows) ───────────
+# weasyprint>=60.0
+# pyppeteer>=2.0.0   # Puppeteer alternative — requires Node.js LTS
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+python-dotenv>=1.0.0
+pyyaml>=6.0
+requests>=2.31.0
+tqdm>=4.66.0
