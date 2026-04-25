@@ -1,0 +1,5 @@
+outs:
+- md5: 8a73d2c9c095ab6edafd730d20cc60b2
+  size: 64993
+  hash: md5
+  path: eurovision_2016_26_enriched.csv
