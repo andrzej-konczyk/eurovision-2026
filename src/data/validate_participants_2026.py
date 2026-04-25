@@ -24,15 +24,15 @@ DOCS_DIR = ROOT / "docs"
 # ── Official 2026 participant list (EBU confirmed, 35 countries) ──────────────
 # Source: Wikipedia / EurovisionWorld, verified 2026-04-25
 OFFICIAL_SF1 = {
-    "Albania", "Belgium", "Croatia", "Estonia", "Finland", "Georgia",
+    "Belgium", "Croatia", "Estonia", "Finland", "Georgia",
     "Greece", "Israel", "Lithuania", "Moldova", "Montenegro",
     "Poland", "Portugal", "San Marino", "Serbia", "Sweden",
 }
 OFFICIAL_SF2 = {
-    "Armenia", "Australia", "Azerbaijan", "Bulgaria", "Cyprus",
+    "Albania", "Armenia", "Australia", "Azerbaijan", "Bulgaria", "Cyprus",
     "Czech Republic", "Denmark", "Latvia", "Luxembourg", "Malta",
     "Norway", "Romania", "Switzerland", "Ukraine",
-    # Turkmenistan appeared in Wikipedia — confirmed error; Albania is the 35th country
+    # Turkmenistan appeared in Wikipedia — confirmed error (not EBU member)
 }
 OFFICIAL_AUTO = {
     "Austria",        # host + defending champion

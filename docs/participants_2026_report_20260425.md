@@ -1,5 +1,5 @@
 # Eurovision 2026 Participant List — Validation Report
-Generated: 2026-04-25 21:14  
+Generated: 2026-04-25 21:20  
 Reference: EBU / Wikipedia / EurovisionWorld (verified 2026-04-25)  
 
 ---
@@ -23,9 +23,9 @@ Reference: EBU / Wikipedia / EurovisionWorld (verified 2026-04-25)
 
 **Automatic qualifiers (Big 5 + host):** Austria, France, Germany, Italy, United Kingdom
 
-**Semi-Final 1:** Albania, Belgium, Croatia, Estonia, Finland, Georgia, Greece, Israel, Lithuania, Moldova, Montenegro, Poland, Portugal, San Marino, Serbia, Sweden
+**Semi-Final 1:** Belgium, Croatia, Estonia, Finland, Georgia, Greece, Israel, Lithuania, Moldova, Montenegro, Poland, Portugal, San Marino, Serbia, Sweden
 
-**Semi-Final 2:** Armenia, Australia, Azerbaijan, Bulgaria, Cyprus, Czech Republic, Denmark, Latvia, Luxembourg, Malta, Norway, Romania, Switzerland, Ukraine
+**Semi-Final 2:** Albania, Armenia, Australia, Azerbaijan, Bulgaria, Cyprus, Czech Republic, Denmark, Latvia, Luxembourg, Malta, Norway, Romania, Switzerland, Ukraine
 
 ---
 
@@ -84,22 +84,22 @@ _No discrepancies between dataset and official EBU list._
 | Cyprus | Antigoni | Jalla | SF2 | ok |
 | Czech Republic | Daniel Zizka | Crossroads | SF2 | ok |
 | Denmark | Soren Torpegaard Lund | For vi gar hjem | SF2 | ok |
-| Estonia | Vanilla Ninja | Too Epic to Be True | SF1 | ok |
-| Finland | Linda Lampenius and Pete Parkkonen | Liekinheitin | SF1 | ok |
+| Estonia | Vanilla Ninja | Too Epic To Be True | SF1 | ok |
+| Finland | Linda Lampenius & Pete Parkkonen | Liekinheitin | SF1 | ok |
 | France | Monroe | Regarde! | Auto | ok |
 | Georgia | Bzikebi | On Replay | SF1 | ok |
 | Germany | Sarah Engels | Fire | Auto | ok |
-| Greece | Aklas | Ferto | SF1 | ok |
-| Israel | Noam Bottan | Michelle | SF1 | ok |
-| Italy | Sal Dav Vinci | Per sempre si | Auto | ok |
+| Greece | Akylas | Ferto | SF1 | ok |
+| Israel | No'am Bettan | Michelle | SF1 | ok |
+| Italy | Sal da Vinci | Per sempre si | Auto | ok |
 | Latvia | Atvara | Ena | SF2 | ok |
 | Lithuania | Lion Ceccah | Solo quiero mas | SF1 | ok |
 | Luxembourg | Eva Marija | Mother Nature | SF2 | ok |
 | Malta | Aidan | Bella | SF2 | ok |
-| Moldova | Satoshi | Viva, Moldova | SF1 | ok |
+| Moldova | Satoshi | Viva, Moldova! | SF1 | ok |
 | Montenegro | Tamara Zivkovic | Nova zora | SF1 | ok |
 | Norway | Jonas Lovv | Ya Ya Ya | SF2 | ok |
-| Poland | Alicja | Pray | SF1 | ok |
+| Poland | Alicja Szemplinska | Pray | SF1 | ok |
 | Portugal | Bandidos do Cante | Rosa | SF1 | ok |
 | Romania | Alexandra Capitanescu | Choke Me  | SF2 | ok |
 | San Marino | Senhit feat. Boy George | Superstar | SF1 | ok |
@@ -107,4 +107,4 @@ _No discrepancies between dataset and official EBU list._
 | Sweden | Felicia | My System | SF1 | ok |
 | Switzerland | Veronica Fusaro | Alice | SF2 | ok |
 | Ukraine | Leleka | Ridnym | SF2 | ok |
-| United Kingdom | Look Mum No Computer | Eins, Zwei, Drei | Auto | ok |
+| United Kingdom | Look Mum No Computer | Eins, zwei, drei | Auto | ok |
