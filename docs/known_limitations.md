@@ -98,7 +98,7 @@ OGAE is a supplementary signal, not a core feature. Rows with null `OGAE_Points`
 
 ---
 
-## KL-03 — Genre coverage 46.3 % (below 90 % threshold)
+## KL-05 — Genre coverage 46.3 % (below 90 % threshold)
 
 | Field | Value |
 |-------|-------|
