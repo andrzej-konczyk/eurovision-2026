@@ -1,0 +1,53 @@
+# Python environment
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# ML experiment tracking (tracked by MLflow locally, not Git)
+models/mlruns/
+mlruns/
+
+# DVC — raw data and model artefacts tracked by DVC, not Git
+data/raw/
+data/dvc-cache/
+.dvc/tmp/
+.dvc/cache/
+
+# Model artefacts
+*.pkl
+*.pt
+*.h5
+*.onnx
+models/artefacts/
+
+# Data intermediates — only pointer files go to Git
+data/processed/
+data/features/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Reports (generated outputs — not source)
+reports/
+
+# Node (for Puppeteer/PDF export)
+node_modules/
