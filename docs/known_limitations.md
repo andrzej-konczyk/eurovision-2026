@@ -98,4 +98,45 @@ OGAE is a supplementary signal, not a core feature. Rows with null `OGAE_Points`
 
 ---
 
+## KL-03 — Genre coverage 46.3 % (below 90 % threshold)
+
+| Field | Value |
+|-------|-------|
+| **Affected dataset** | `data/features/genre.csv` |
+| **Affected column** | `broad_genre` |
+| **Status** | Open — blocks genre features in modeling if coverage < 90 % |
+| **Logged** | 2026-04-26 |
+| **Verified** | `python src/features/genre.py --fetch` (Spotify + MusicBrainz, 2026-04-26) |
+
+### Root cause
+
+The genre pipeline uses Spotify as primary source and MusicBrainz as fallback. 101 entries are absent from both APIs — mostly niche, non-English, or older Eurovision acts with minimal tagging on either platform.
+
+### Coverage breakdown (2026-04-26 run, 393 pairs — Spotify + MusicBrainz)
+
+| broad_genre | count |
+|-------------|-------|
+| pop | 152 |
+| None (unmapped) | 101 |
+| dance | 65 |
+| rock | 41 |
+| folk | 23 |
+| classical | 9 |
+| ballad | 2 |
+
+**Total covered: 292 / 393 (74.3 %)** — up from 46.3 % (MusicBrainz-only)
+
+### Impact
+
+`broad_genre` and derived binary flags (`genre_pop`, `genre_dance`, …) are unreliable for the 211 uncovered rows. Genre features should be treated as **optional / experimental** until coverage reaches ≥ 90 %.
+
+### Mitigation / path to fill
+
+1. Obtain Spotify API credentials (free — register at developer.spotify.com).
+2. Set env vars: `SPOTIPY_CLIENT_ID`, `SPOTIPY_CLIENT_SECRET`.
+3. Re-run: `python src/features/genre.py --fetch` — Spotify covers the majority of missing acts.
+4. Update this entry with new coverage figure.
+
+---
+
 *Add new limitations below following the same KL-XX format.*

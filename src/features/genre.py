@@ -166,7 +166,7 @@ def fetch_genres(
 
         broad = _map_genre(tags)
         cache[key] = {"raw_tags": tags, "broad_genre": broad}
-        print(f"  {artist} — {song}: {tags[:3]} → {broad}")
+        print(f"  {artist} - {song}: {tags[:3]} -> {broad}")
 
     return cache
 
