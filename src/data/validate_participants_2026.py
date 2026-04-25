@@ -24,7 +24,7 @@ DOCS_DIR = ROOT / "docs"
 # ── Official 2026 participant list (EBU confirmed, 35 countries) ──────────────
 # Source: Wikipedia / EurovisionWorld, verified 2026-04-25
 OFFICIAL_SF1 = {
-    "Belgium", "Croatia", "Estonia", "Finland", "Georgia",
+    "Albania", "Belgium", "Croatia", "Estonia", "Finland", "Georgia",
     "Greece", "Israel", "Lithuania", "Moldova", "Montenegro",
     "Poland", "Portugal", "San Marino", "Serbia", "Sweden",
 }
@@ -32,8 +32,7 @@ OFFICIAL_SF2 = {
     "Armenia", "Australia", "Azerbaijan", "Bulgaria", "Cyprus",
     "Czech Republic", "Denmark", "Latvia", "Luxembourg", "Malta",
     "Norway", "Romania", "Switzerland", "Ukraine",
-    # Turkmenistan listed on Wikipedia — flagged as unverified (first-time participant,
-    # not an EBU member historically; to be confirmed by official EBU source)
+    # Turkmenistan appeared in Wikipedia — confirmed error; Albania is the 35th country
 }
 OFFICIAL_AUTO = {
     "Austria",        # host + defending champion
@@ -60,9 +59,8 @@ WITHDRAWN: dict[str, str] = {
 # ── Unverified entries ────────────────────────────────────────────────────────
 # These appear in Wikipedia's SF2 list but seem anomalous
 UNVERIFIED_OFFICIAL: dict[str, str] = {
-    "Turkmenistan": "Listed in Wikipedia SF2, but Turkmenistan has never been an EBU member "
-                    "and has no prior Eurovision participation. Requires confirmation from "
-                    "official EBU source before adding to dataset.",
+    "Turkmenistan": "Appeared in Wikipedia SF2 list — confirmed error. "
+                    "Albania is the correct 35th participant (verified by client 2026-04-25).",
 }
 
 

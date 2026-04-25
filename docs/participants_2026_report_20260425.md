@@ -1,19 +1,19 @@
 # Eurovision 2026 Participant List — Validation Report
-Generated: 2026-04-25 21:12  
+Generated: 2026-04-25 21:14  
 Reference: EBU / Wikipedia / EurovisionWorld (verified 2026-04-25)  
 
 ---
 
 ## Result
 
-> **REVIEW REQUIRED** — 34/34 official countries matched in dataset.
+> **PASS** — 35/35 official countries matched in dataset.
 
 | Metric | Value |
 |--------|-------|
-| Official EBU count (2026) | 34 |
+| Official EBU count (2026) | 35 |
 | Dataset 2026 rows | 35 |
-| Matched | 34 |
-| In dataset, not in EBU list | 1 |
+| Matched | 35 |
+| In dataset, not in EBU list | 0 |
 | In EBU list, not in dataset | 0 |
 | Confirmed withdrawals / boycotts | 6 |
 
@@ -23,7 +23,7 @@ Reference: EBU / Wikipedia / EurovisionWorld (verified 2026-04-25)
 
 **Automatic qualifiers (Big 5 + host):** Austria, France, Germany, Italy, United Kingdom
 
-**Semi-Final 1:** Belgium, Croatia, Estonia, Finland, Georgia, Greece, Israel, Lithuania, Moldova, Montenegro, Poland, Portugal, San Marino, Serbia, Sweden
+**Semi-Final 1:** Albania, Belgium, Croatia, Estonia, Finland, Georgia, Greece, Israel, Lithuania, Moldova, Montenegro, Poland, Portugal, San Marino, Serbia, Sweden
 
 **Semi-Final 2:** Armenia, Australia, Azerbaijan, Bulgaria, Cyprus, Czech Republic, Denmark, Latvia, Luxembourg, Malta, Norway, Romania, Switzerland, Ukraine
 
@@ -59,15 +59,13 @@ Reference: EBU / Wikipedia / EurovisionWorld (verified 2026-04-25)
 
 ## Discrepancies
 
-### Countries in dataset but NOT in official EBU list
-
-- **Albania** — DISCREPANCY — in Kaggle dataset but absent from official SF1/SF2/Auto lists. Possible late withdrawal after dataset was frozen, or data entry error. Requires confirmation from EBU.
+_No discrepancies between dataset and official EBU list._
 
 ---
 
 ## Unverified / anomalous entries
 
-- **Turkmenistan:** Listed in Wikipedia SF2, but Turkmenistan has never been an EBU member and has no prior Eurovision participation. Requires confirmation from official EBU source before adding to dataset.
+- **Turkmenistan:** Appeared in Wikipedia SF2 list — confirmed error. Albania is the correct 35th participant (verified by client 2026-04-25).
 
 ---
 
@@ -75,7 +73,7 @@ Reference: EBU / Wikipedia / EurovisionWorld (verified 2026-04-25)
 
 | Country | Artist | Song | Stage | Status |
 |---|---|---|---|---|
-| Albania | Alis | Nan | SF2 | discrepancy |
+| Albania | Alis | Nan | SF2 | ok |
 | Armenia | Simon | Paloma Rumba | SF2 | ok |
 | Australia | Delta Goodrem | Eclipse | SF2 | ok |
 | Austria | Cosmo | Tanzschein | Auto | ok |
