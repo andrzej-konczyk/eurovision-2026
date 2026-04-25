@@ -46,8 +46,9 @@ data/features/
 Thumbs.db
 desktop.ini
 
-# Reports (generated outputs — not source)
-reports/
+# Reports — commit profiling/backtest .md; ignore generated PDFs
+reports/*.pdf
+reports/*.html
 
 # Node (for Puppeteer/PDF export)
 node_modules/
