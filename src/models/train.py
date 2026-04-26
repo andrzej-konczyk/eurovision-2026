@@ -47,8 +47,18 @@ load_dotenv(ROOT / ".env")
 RANDOM_SEED = int(os.getenv("RANDOM_SEED", "42"))
 MLFLOW_URI = os.getenv("MLFLOW_TRACKING_URI", str(ROOT / "models" / "mlruns"))
 ENRICHED_CSV = ROOT / "Dataset" / "eurovision_2016_26_enriched.csv"
+ODDS_CSV = ROOT / "Dataset" / "betting_odds_clean.csv"
 ARTEFACT_DIR = ROOT / "models" / "artefacts"
 EXPERIMENT_NAME = "eurovision-2026-ensemble"
+
+_ODDS_NAME_MAP: dict[str, str] = {
+    "UK United Kingdom": "United Kingdom",
+    "UK": "United Kingdom",
+    "Great Britain": "United Kingdom",
+    "FYR Macedonia": "North Macedonia",
+    "N.Macedonia North Macedonia": "North Macedonia",
+    "Czechia": "Czech Republic",
+}
 
 # ---------------------------------------------------------------------------
 # Feature definitions (explicit whitelist — no outcome leakage)
@@ -82,6 +92,7 @@ _ENGINEERED_FEATURES = [
     "zscore_myesb_community",
     "zscore_myesb_personal",
     "zscore_ogae_points",
+    "implied_prob_close",
 ]
 
 FEATURE_COLS: list[str] = _RAW_FEATURES + _ENGINEERED_FEATURES
@@ -112,6 +123,27 @@ LGBM_GRID: dict[str, list] = {
 # ---------------------------------------------------------------------------
 
 
+def _load_odds_feature(odds_path: Path = ODDS_CSV) -> pd.DataFrame:
+    """Load closing implied probability from the betting odds CSV.
+
+    Returns DataFrame with columns [Year, Country, implied_prob_close].
+    Normalises country names to match the enriched CSV.
+    Years 2016-2017 have no coverage → NaN (imputed downstream).
+    """
+    if not odds_path.exists():
+        return pd.DataFrame(columns=["Year", "Country", "implied_prob_close"])
+    odds = pd.read_csv(odds_path, encoding="utf-8", low_memory=False)
+    odds.columns = odds.columns.str.strip()
+    odds["Country"] = odds["country"].str.strip().replace(_ODDS_NAME_MAP)
+    odds["Year"] = odds["year"].astype(int)
+    return (
+        odds[["Year", "Country", "implied_prob"]]
+        .rename(columns={"implied_prob": "implied_prob_close"})
+        .drop_duplicates(subset=["Year", "Country"])
+        .reset_index(drop=True)
+    )
+
+
 def build_feature_matrix(df: pd.DataFrame) -> pd.DataFrame:
     """Merge all engineered features into *df* keyed on (Year, Country).
 
@@ -122,6 +154,7 @@ def build_feature_matrix(df: pd.DataFrame) -> pd.DataFrame:
     blocs = compute_voting_blocs(df)
     flags = compute_rule_flags(df)
     social = compute_social_proxy(df)
+    odds = _load_odds_feature()
 
     keep = ["Year", "Country", "Grand_Final_Ind", TARGET_COL] + [
         c for c in _RAW_FEATURES if c in df.columns
@@ -133,6 +166,7 @@ def build_feature_matrix(df: pd.DataFrame) -> pd.DataFrame:
         (blocs,  ["Year", "Country", "avg_bloc_jury_3yr", "avg_bloc_tele_3yr"]),
         (flags,  ["Year", "Country", "rule_2019_semifinal_reform", "rule_2023_jury_weight_reform"]),
         (social, ["Year", "Country", "zscore_myesb_community", "zscore_myesb_personal", "zscore_ogae_points"]),
+        (odds,   ["Year", "Country", "implied_prob_close"]),
     ]:
         merge_cols = [c for c in cols if c in fe.columns]
         out = out.merge(fe[merge_cols], on=["Year", "Country"], how="left")
