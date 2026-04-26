@@ -27,7 +27,6 @@ from pathlib import Path
 
 import lightgbm as lgb
 import mlflow
-import mlflow.sklearn
 import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
@@ -266,6 +265,14 @@ def _log_to_mlflow(
 ) -> None:
     best_idx = gs.best_index_
     fold_scores = _fold_scores(gs.cv_results_, best_idx)
+    finite_scores = [s for s in fold_scores if np.isfinite(s)]
+
+    # Compute mean/std from finite folds only — some early folds can be single-class
+    # (no Top-10 entries in the test year) and produce NaN that must not reach MLflow.
+    # MLflow 3.x re-inserts NaN metrics during log_model, causing a SQLite
+    # UNIQUE constraint violation (same key+timestamp+is_nan already in DB).
+    mean_score = float(np.mean(finite_scores)) if finite_scores else float("nan")
+    std_score = float(np.std(finite_scores, ddof=1)) if len(finite_scores) > 1 else 0.0
 
     params = {k.replace("model__", ""): v for k, v in gs.best_params_.items()}
     params["random_seed"] = RANDOM_SEED
@@ -274,20 +281,26 @@ def _log_to_mlflow(
 
     with mlflow.start_run(run_name=run_name):
         mlflow.log_params(params)
-        mlflow.log_metric("cv_roc_auc_mean", float(gs.best_score_))
-        mlflow.log_metric(
-            "cv_roc_auc_std",
-            float(gs.cv_results_["std_test_score"][best_idx]),
-        )
+
+        if np.isfinite(mean_score):
+            mlflow.log_metric("cv_roc_auc_mean", mean_score)
+        if np.isfinite(std_score):
+            mlflow.log_metric("cv_roc_auc_std", std_score)
+        mlflow.log_metric("cv_roc_auc_n_valid_folds", float(len(finite_scores)))
+
         for i, score in enumerate(fold_scores):
-            mlflow.log_metric(f"cv_fold_{i}_roc_auc", score)
+            if np.isfinite(score):
+                mlflow.log_metric(f"cv_fold_{i}_roc_auc", score)
 
         mlflow.set_tag("story", "US-S4-02")
         mlflow.set_tag("target", TARGET_COL)
         mlflow.set_tag("leakage_check", "PASS")
         mlflow.set_tag("features", json.dumps(feat_cols))
+        mlflow.set_tag("cv_skipped_folds", str(len(fold_scores) - len(finite_scores)))
 
-        mlflow.sklearn.log_model(gs.best_estimator_, name="model")
+        # Log the pkl directly — mlflow.sklearn.log_model(name=...) triggers
+        # log_model_metrics_for_step in MLflow 3.x which re-inserts existing
+        # run metrics and hits the SQLite UNIQUE constraint.
         mlflow.log_artifact(str(artefact_path))
 
 
@@ -345,7 +358,15 @@ def train(
         trained[model_name] = gs
 
         fold_scores = _fold_scores(gs.cv_results_, gs.best_index_)
-        print(f"  Best ROC-AUC : {gs.best_score_:.4f}  folds={[f'{s:.3f}' for s in fold_scores]}")
+        finite = [s for s in fold_scores if np.isfinite(s)]
+        mean_score = float(np.mean(finite)) if finite else float("nan")
+        std_score = float(np.std(finite, ddof=1)) if len(finite) > 1 else 0.0
+        n_skipped = len(fold_scores) - len(finite)
+
+        score_str = f"{mean_score:.4f}" if np.isfinite(mean_score) else "nan"
+        print(f"  Best ROC-AUC : {score_str}  valid={len(finite)}/{len(fold_scores)} folds")
+        if n_skipped:
+            print(f"  Note: {n_skipped} fold(s) skipped (single-class test split)")
         print(f"  Best params  : {gs.best_params_}")
 
         pkl_path = out_dir / f"{model_name}_model.pkl"
@@ -354,8 +375,9 @@ def train(
 
         results[model_name] = {
             "best_params": {k.replace("model__", ""): v for k, v in gs.best_params_.items()},
-            "cv_roc_auc_mean": float(gs.best_score_),
-            "cv_roc_auc_std": float(gs.cv_results_["std_test_score"][gs.best_index_]),
+            "cv_roc_auc_mean": mean_score,
+            "cv_roc_auc_std": std_score,
+            "cv_n_valid_folds": len(finite),
             "fold_scores": fold_scores,
         }
 
