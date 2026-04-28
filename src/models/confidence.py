@@ -4,7 +4,7 @@ US-S4-03 — Bootstrap confidence intervals for Top-10 predicted probabilities.
 For each model (XGBoost, LightGBM), resamples the training rows B times with
 replacement, refits using the best hyperparameters from train_meta.json, and
 records predict_proba for the *target year* entries.  The empirical distribution
-of B refits yields 80 % and 95 % percentile confidence intervals per country.
+of B refits yields 80 % and 50 % percentile confidence intervals per country.
 
 Resampling strategy: naive row-level bootstrap on the full training set (all
 Grand Final entries with known outcomes, years 2016–2025).  The best params
@@ -16,7 +16,7 @@ CLI:
                                      [--out-dir DIR]
 
 Outputs (models/artefacts/):
-    confidence_xgb.csv    — country, prob_mean, ci80_lo, ci80_hi, ci95_lo, ci95_hi
+    confidence_xgb.csv    — country, prob_mean, ci80_lo, ci80_hi, ci50_lo, ci50_hi
     confidence_lgbm.csv   — same for LightGBM
     confidence_meta.json  — run metadata (n_bootstrap, seed, train_years, timestamp)
 """
@@ -60,7 +60,7 @@ META_PATH = ARTEFACT_DIR / "train_meta.json"
 # Percentile levels → (lower_tail, upper_tail)
 _CI_LEVELS = {
     80: (10.0, 90.0),
-    95: (2.5, 97.5),
+    50: (25.0, 75.0),
 }
 
 
@@ -186,7 +186,7 @@ def compute_ci(
 
     Returns:
         DataFrame with columns:
-            country, prob_mean, ci80_lo, ci80_hi, ci95_lo, ci95_hi
+            country, prob_mean, ci80_lo, ci80_hi, ci50_lo, ci50_hi
     """
     rows = []
     for i, country in enumerate(countries):
@@ -281,11 +281,11 @@ def confidence(
         ci_df.to_csv(out_path, index=False, encoding="utf-8")
         print(f"  Saved: {out_path.relative_to(ROOT, walk_up=True)}")
 
-        avg_ci95_width = float((ci_df["ci95_hi"] - ci_df["ci95_lo"]).mean())
+        avg_ci50_width = float((ci_df["ci50_hi"] - ci_df["ci50_lo"]).mean())
         avg_ci80_width = float((ci_df["ci80_hi"] - ci_df["ci80_lo"]).mean())
         ci_stats[model_name] = {
             "avg_ci80_width": avg_ci80_width,
-            "avg_ci95_width": avg_ci95_width,
+            "avg_ci50_width": avg_ci50_width,
         }
 
         _log_model_to_mlflow(
@@ -298,14 +298,15 @@ def confidence(
             feat_cols=feat_cols,
             ci_df=ci_df,
             avg_ci80_width=avg_ci80_width,
-            avg_ci95_width=avg_ci95_width,
+            avg_ci50_width=avg_ci50_width,
         )
 
         print(f"  Top-5 predictions (by mean prob):")
         for _, row in ci_df.head(5).iterrows():
             print(f"    {row['country']:<25} "
                   f"mean={row['prob_mean']:.3f}  "
-                  f"95% CI [{row['ci95_lo']:.3f}, {row['ci95_hi']:.3f}]")
+                  f"80% CI [{row['ci80_lo']:.3f}, {row['ci80_hi']:.3f}]  "
+                  f"50% CI [{row['ci50_lo']:.3f}, {row['ci50_hi']:.3f}]")
 
     meta = {
         "story": "US-S4-03",
@@ -341,7 +342,7 @@ def _log_model_to_mlflow(
     feat_cols: list[str],
     ci_df: pd.DataFrame,
     avg_ci80_width: float,
-    avg_ci95_width: float,
+    avg_ci50_width: float,
 ) -> None:
     run_name = f"{model_name}-bootstrap-ci-{timestamp[:10]}"
     with mlflow.start_run(run_name=run_name):
@@ -354,7 +355,7 @@ def _log_model_to_mlflow(
             "n_features": len(feat_cols),
         })
         mlflow.log_metric("avg_ci80_width", avg_ci80_width)
-        mlflow.log_metric("avg_ci95_width", avg_ci95_width)
+        mlflow.log_metric("avg_ci50_width", avg_ci50_width)
         mlflow.log_metric("n_target_entries", float(len(ci_df)))
         mlflow.set_tag("story", "US-S4-03")
         mlflow.set_tag("target", TARGET_COL)

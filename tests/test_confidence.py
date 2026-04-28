@@ -139,7 +139,7 @@ class TestComputeCI:
         rng = np.random.default_rng(0)
         mat = rng.uniform(0, 1, (100, 5))
         df = compute_ci(mat, country_list)
-        for col in ["country", "prob_mean", "ci80_lo", "ci80_hi", "ci95_lo", "ci95_hi"]:
+        for col in ["country", "prob_mean", "ci80_lo", "ci80_hi", "ci50_lo", "ci50_hi"]:
             assert col in df.columns
 
     def test_row_count(self, country_list):
@@ -155,18 +155,19 @@ class TestComputeCI:
     def test_ci_ordering(self, country_list):
         mat = np.random.default_rng(5).uniform(0, 1, (500, 5))
         df = compute_ci(mat, country_list)
-        assert (df["ci95_lo"] <= df["ci80_lo"]).all()
-        assert (df["ci80_lo"] <= df["prob_mean"]).all()
-        assert (df["prob_mean"] <= df["ci80_hi"]).all()
-        assert (df["ci80_hi"] <= df["ci95_hi"]).all()
+        # 80% interval must be wider than 50% interval
+        assert (df["ci80_lo"] <= df["ci50_lo"]).all()
+        assert (df["ci50_lo"] <= df["prob_mean"]).all()
+        assert (df["prob_mean"] <= df["ci50_hi"]).all()
+        assert (df["ci50_hi"] <= df["ci80_hi"]).all()
 
     def test_degenerate_constant_proba(self, country_list):
         # All bootstrap samples predict 0.6 for everyone → zero-width CI
         mat = np.full((100, 5), 0.6)
         df = compute_ci(mat, country_list)
         np.testing.assert_allclose(df["prob_mean"], 0.6)
-        np.testing.assert_allclose(df["ci95_lo"], 0.6)
-        np.testing.assert_allclose(df["ci95_hi"], 0.6)
+        np.testing.assert_allclose(df["ci50_lo"], 0.6)
+        np.testing.assert_allclose(df["ci50_hi"], 0.6)
 
     def test_single_country(self):
         mat = np.random.default_rng(0).uniform(0, 1, (100, 1))
@@ -177,7 +178,7 @@ class TestComputeCI:
     def test_probabilities_in_unit_interval(self, country_list):
         mat = np.random.default_rng(0).uniform(0, 1, (200, 5))
         df = compute_ci(mat, country_list)
-        for col in ["prob_mean", "ci80_lo", "ci80_hi", "ci95_lo", "ci95_hi"]:
+        for col in ["prob_mean", "ci80_lo", "ci80_hi", "ci50_lo", "ci50_hi"]:
             assert (df[col] >= 0.0).all()
             assert (df[col] <= 1.0).all()
 
@@ -212,7 +213,7 @@ class TestConfidenceIntegration:
         meta = _make_dummy_meta(tmp_path)
         results = _run_confidence(tmp_path, meta, n_bootstrap=4)
         for df in results.values():
-            for col in ["country", "prob_mean", "ci80_lo", "ci80_hi", "ci95_lo", "ci95_hi"]:
+            for col in ["country", "prob_mean", "ci80_lo", "ci80_hi", "ci50_lo", "ci50_hi"]:
                 assert col in df.columns
 
     def test_target_year_not_in_training(self, tmp_path):
