@@ -273,8 +273,8 @@ def grid_search_cv(
         cv_results.append({**params, "mean_roc_auc": mean_auc, "std_roc_auc": std_auc})
         print(
             f"  hidden={params['hidden_dims']}  lr={params['lr']}  "
-            f"dropout={params['dropout']}  →  "
-            f"ROC-AUC={mean_auc:.4f} ± {std_auc:.4f}"
+            f"dropout={params['dropout']}  ->  "
+            f"ROC-AUC={mean_auc:.4f} +/- {std_auc:.4f}"
         )
         if mean_auc > best_score:
             best_score = mean_auc
