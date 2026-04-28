@@ -53,3 +53,6 @@ reports/*.html
 
 # Node (for Puppeteer/PDF export)
 node_modules/
+
+# Local session status — never push to remote
+project_status.md
