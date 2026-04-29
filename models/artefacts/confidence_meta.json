@@ -1,0 +1,54 @@
+{
+  "story": "US-S4-03",
+  "run_at": "2026-04-28T15:37:22.664738+00:00",
+  "n_bootstrap": 1000,
+  "seed": 42,
+  "target_year": 2026,
+  "train_years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "n_train_rows": 217,
+  "feature_cols": [
+    "Big6_Ind",
+    "National_Final",
+    "Solo_Artist",
+    "Returning_Artist_Ind",
+    "Number of Members",
+    "Multiple_Language",
+    "EU",
+    "NATO",
+    "Qualification_Record",
+    "Semi_Final_Num",
+    "Running_Order_Semi",
+    "Running_Order_Final",
+    "avg_final_rank_3yr",
+    "avg_jury_3yr",
+    "avg_tele_3yr",
+    "avg_bloc_jury_3yr",
+    "avg_bloc_tele_3yr",
+    "rule_2019_semifinal_reform",
+    "rule_2023_jury_weight_reform",
+    "zscore_myesb_community",
+    "zscore_myesb_personal",
+    "zscore_ogae_points",
+    "implied_prob_close"
+  ],
+  "ci_stats": {
+    "xgb": {
+      "avg_ci80_width": 0.41273514990295684,
+      "avg_ci50_width": 0.22650032618216107
+    },
+    "lgbm": {
+      "avg_ci80_width": 0.6634993076349289,
+      "avg_ci50_width": 0.36039124461611916
+    }
+  }
+}
