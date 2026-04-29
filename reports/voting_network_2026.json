@@ -1,0 +1,992 @@
+{
+  "meta": {
+    "story": "US-S5-04",
+    "generated_at": "2026-04-29T18:19:47.893544+00:00",
+    "target_year": 2026,
+    "top_n_jury": 10,
+    "min_weight": 2,
+    "n_nodes": 35,
+    "n_edges": 72,
+    "gf_years_used": [
+      2016,
+      2017,
+      2018,
+      2019,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "nodes": [
+    {
+      "id": "Albania",
+      "group": "Southern",
+      "probability": 0.0289,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 5
+    },
+    {
+      "id": "Armenia",
+      "group": "South-Eastern",
+      "probability": 0.0768,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 6
+    },
+    {
+      "id": "Australia",
+      "group": "Western",
+      "probability": 0.7135,
+      "prediction": "top10",
+      "big6": false,
+      "appearances": 6
+    },
+    {
+      "id": "Austria",
+      "group": "Central",
+      "probability": 0.6048,
+      "prediction": "top10",
+      "big6": true,
+      "appearances": 6
+    },
+    {
+      "id": "Azerbaijan",
+      "group": "South-Eastern",
+      "probability": 0.431,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 5
+    },
+    {
+      "id": "Belgium",
+      "group": "Western",
+      "probability": 0.2901,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 5
+    },
+    {
+      "id": "Bulgaria",
+      "group": "Eastern",
+      "probability": 0.1934,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 4
+    },
+    {
+      "id": "Croatia",
+      "group": "Southern",
+      "probability": 0.5309,
+      "prediction": "top10",
+      "big6": false,
+      "appearances": 4
+    },
+    {
+      "id": "Cyprus",
+      "group": "South-Eastern",
+      "probability": 0.0745,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 7
+    },
+    {
+      "id": "Czech Republic",
+      "group": "Central",
+      "probability": 0.0285,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 5
+    },
+    {
+      "id": "Denmark",
+      "group": "Northern",
+      "probability": 0.0124,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 4
+    },
+    {
+      "id": "Estonia",
+      "group": "Northern",
+      "probability": 0.4243,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 6
+    },
+    {
+      "id": "Finland",
+      "group": "Northern",
+      "probability": 0.4886,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 6
+    },
+    {
+      "id": "France",
+      "group": "Western",
+      "probability": 0.8981,
+      "prediction": "top10",
+      "big6": true,
+      "appearances": 9
+    },
+    {
+      "id": "Georgia",
+      "group": "South-Eastern",
+      "probability": 0.0633,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 2
+    },
+    {
+      "id": "Germany",
+      "group": "Central",
+      "probability": 0.0174,
+      "prediction": "outside_top10",
+      "big6": true,
+      "appearances": 9
+    },
+    {
+      "id": "Greece",
+      "group": "Southern",
+      "probability": 0.9267,
+      "prediction": "top10",
+      "big6": false,
+      "appearances": 6
+    },
+    {
+      "id": "Israel",
+      "group": "South-Eastern",
+      "probability": 0.3265,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 8
+    },
+    {
+      "id": "Italy",
+      "group": "Western",
+      "probability": 0.4571,
+      "prediction": "outside_top10",
+      "big6": true,
+      "appearances": 9
+    },
+    {
+      "id": "Latvia",
+      "group": "Northern",
+      "probability": 0.1052,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 3
+    },
+    {
+      "id": "Lithuania",
+      "group": "Northern",
+      "probability": 0.0118,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 7
+    },
+    {
+      "id": "Luxembourg",
+      "group": "Western",
+      "probability": 0.0302,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 2
+    },
+    {
+      "id": "Malta",
+      "group": "Western",
+      "probability": 0.4534,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 4
+    },
+    {
+      "id": "Moldova",
+      "group": "Eastern",
+      "probability": 0.0489,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 5
+    },
+    {
+      "id": "Montenegro",
+      "group": "Southern",
+      "probability": 0.0757,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 0
+    },
+    {
+      "id": "Norway",
+      "group": "Northern",
+      "probability": 0.0143,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 8
+    },
+    {
+      "id": "Poland",
+      "group": "Eastern",
+      "probability": 0.0096,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 5
+    },
+    {
+      "id": "Portugal",
+      "group": "Western",
+      "probability": 0.1675,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 7
+    },
+    {
+      "id": "Romania",
+      "group": "Eastern",
+      "probability": 0.0783,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 2
+    },
+    {
+      "id": "San Marino",
+      "group": "Western",
+      "probability": 0.0078,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 3
+    },
+    {
+      "id": "Serbia",
+      "group": "Southern",
+      "probability": 0.156,
+      "prediction": "outside_top10",
+      "big6": false,
+      "appearances": 7
+    },
+    {
+      "id": "Sweden",
+      "group": "Northern",
+      "probability": 0.9389,
+      "prediction": "top10",
+      "big6": false,
+      "appearances": 9
+    },
+    {
+      "id": "Switzerland",
+      "group": "Central",
+      "probability": 0.6124,
+      "prediction": "top10",
+      "big6": false,
+      "appearances": 6
+    },
+    {
+      "id": "Ukraine",
+      "group": "Eastern",
+      "probability": 0.6052,
+      "prediction": "top10",
+      "big6": false,
+      "appearances": 8
+    },
+    {
+      "id": "United Kingdom",
+      "group": "Western",
+      "probability": 0.0648,
+      "prediction": "outside_top10",
+      "big6": true,
+      "appearances": 9
+    }
+  ],
+  "links": [
+    {
+      "source": "Italy",
+      "target": "Ukraine",
+      "weight": 6,
+      "years": [
+        2018,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    {
+      "source": "Italy",
+      "target": "Sweden",
+      "weight": 5,
+      "years": [
+        2017,
+        2019,
+        2022,
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Israel",
+      "target": "Italy",
+      "weight": 4,
+      "years": [
+        2018,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    {
+      "source": "Israel",
+      "target": "Ukraine",
+      "weight": 4,
+      "years": [
+        2018,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    {
+      "source": "Italy",
+      "target": "Moldova",
+      "weight": 4,
+      "years": [
+        2017,
+        2018,
+        2022,
+        2023
+      ]
+    },
+    {
+      "source": "Lithuania",
+      "target": "Ukraine",
+      "weight": 4,
+      "years": [
+        2016,
+        2018,
+        2021,
+        2024
+      ]
+    },
+    {
+      "source": "Poland",
+      "target": "Sweden",
+      "weight": 4,
+      "years": [
+        2016,
+        2022,
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Poland",
+      "target": "Ukraine",
+      "weight": 4,
+      "years": [
+        2016,
+        2022,
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Sweden",
+      "target": "Ukraine",
+      "weight": 4,
+      "years": [
+        2016,
+        2022,
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Croatia",
+      "target": "Italy",
+      "weight": 3,
+      "years": [
+        2017,
+        2023,
+        2024
+      ]
+    },
+    {
+      "source": "Estonia",
+      "target": "Italy",
+      "weight": 3,
+      "years": [
+        2018,
+        2022,
+        2025
+      ]
+    },
+    {
+      "source": "Estonia",
+      "target": "Ukraine",
+      "weight": 3,
+      "years": [
+        2018,
+        2022,
+        2025
+      ]
+    },
+    {
+      "source": "Finland",
+      "target": "Italy",
+      "weight": 3,
+      "years": [
+        2021,
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Finland",
+      "target": "Ukraine",
+      "weight": 3,
+      "years": [
+        2021,
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "France",
+      "target": "Italy",
+      "weight": 3,
+      "years": [
+        2017,
+        2021,
+        2024
+      ]
+    },
+    {
+      "source": "France",
+      "target": "Lithuania",
+      "weight": 3,
+      "years": [
+        2016,
+        2021,
+        2024
+      ]
+    },
+    {
+      "source": "France",
+      "target": "Ukraine",
+      "weight": 3,
+      "years": [
+        2016,
+        2021,
+        2024
+      ]
+    },
+    {
+      "source": "Greece",
+      "target": "Italy",
+      "weight": 3,
+      "years": [
+        2021,
+        2024,
+        2025
+      ]
+    },
+    {
+      "source": "Greece",
+      "target": "Ukraine",
+      "weight": 3,
+      "years": [
+        2021,
+        2024,
+        2025
+      ]
+    },
+    {
+      "source": "Italy",
+      "target": "Lithuania",
+      "weight": 3,
+      "years": [
+        2018,
+        2021,
+        2024
+      ]
+    },
+    {
+      "source": "Italy",
+      "target": "Norway",
+      "weight": 3,
+      "years": [
+        2019,
+        2022,
+        2023
+      ]
+    },
+    {
+      "source": "Italy",
+      "target": "Poland",
+      "weight": 3,
+      "years": [
+        2022,
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Italy",
+      "target": "Switzerland",
+      "weight": 3,
+      "years": [
+        2019,
+        2021,
+        2024
+      ]
+    },
+    {
+      "source": "Moldova",
+      "target": "Sweden",
+      "weight": 3,
+      "years": [
+        2017,
+        2022,
+        2023
+      ]
+    },
+    {
+      "source": "Moldova",
+      "target": "Ukraine",
+      "weight": 3,
+      "years": [
+        2018,
+        2022,
+        2023
+      ]
+    },
+    {
+      "source": "Norway",
+      "target": "Sweden",
+      "weight": 3,
+      "years": [
+        2019,
+        2022,
+        2023
+      ]
+    },
+    {
+      "source": "Albania",
+      "target": "Finland",
+      "weight": 2,
+      "years": [
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Albania",
+      "target": "Israel",
+      "weight": 2,
+      "years": [
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Albania",
+      "target": "Italy",
+      "weight": 2,
+      "years": [
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Albania",
+      "target": "Poland",
+      "weight": 2,
+      "years": [
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Albania",
+      "target": "Sweden",
+      "weight": 2,
+      "years": [
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Albania",
+      "target": "Ukraine",
+      "weight": 2,
+      "years": [
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Armenia",
+      "target": "France",
+      "weight": 2,
+      "years": [
+        2016,
+        2024
+      ]
+    },
+    {
+      "source": "Armenia",
+      "target": "Lithuania",
+      "weight": 2,
+      "years": [
+        2016,
+        2024
+      ]
+    },
+    {
+      "source": "Armenia",
+      "target": "Ukraine",
+      "weight": 2,
+      "years": [
+        2016,
+        2024
+      ]
+    },
+    {
+      "source": "Australia",
+      "target": "Sweden",
+      "weight": 2,
+      "years": [
+        2016,
+        2019
+      ]
+    },
+    {
+      "source": "Austria",
+      "target": "Poland",
+      "weight": 2,
+      "years": [
+        2016,
+        2025
+      ]
+    },
+    {
+      "source": "Austria",
+      "target": "Sweden",
+      "weight": 2,
+      "years": [
+        2016,
+        2025
+      ]
+    },
+    {
+      "source": "Austria",
+      "target": "Ukraine",
+      "weight": 2,
+      "years": [
+        2016,
+        2025
+      ]
+    },
+    {
+      "source": "Bulgaria",
+      "target": "France",
+      "weight": 2,
+      "years": [
+        2016,
+        2017
+      ]
+    },
+    {
+      "source": "Bulgaria",
+      "target": "Sweden",
+      "weight": 2,
+      "years": [
+        2016,
+        2017
+      ]
+    },
+    {
+      "source": "Croatia",
+      "target": "France",
+      "weight": 2,
+      "years": [
+        2017,
+        2024
+      ]
+    },
+    {
+      "source": "Croatia",
+      "target": "Israel",
+      "weight": 2,
+      "years": [
+        2023,
+        2024
+      ]
+    },
+    {
+      "source": "Croatia",
+      "target": "Moldova",
+      "weight": 2,
+      "years": [
+        2017,
+        2023
+      ]
+    },
+    {
+      "source": "Croatia",
+      "target": "Sweden",
+      "weight": 2,
+      "years": [
+        2017,
+        2023
+      ]
+    },
+    {
+      "source": "Croatia",
+      "target": "Ukraine",
+      "weight": 2,
+      "years": [
+        2023,
+        2024
+      ]
+    },
+    {
+      "source": "Estonia",
+      "target": "Israel",
+      "weight": 2,
+      "years": [
+        2018,
+        2025
+      ]
+    },
+    {
+      "source": "Estonia",
+      "target": "Moldova",
+      "weight": 2,
+      "years": [
+        2018,
+        2022
+      ]
+    },
+    {
+      "source": "Estonia",
+      "target": "Poland",
+      "weight": 2,
+      "years": [
+        2022,
+        2025
+      ]
+    },
+    {
+      "source": "Estonia",
+      "target": "Sweden",
+      "weight": 2,
+      "years": [
+        2022,
+        2025
+      ]
+    },
+    {
+      "source": "Finland",
+      "target": "Greece",
+      "weight": 2,
+      "years": [
+        2021,
+        2025
+      ]
+    },
+    {
+      "source": "Finland",
+      "target": "Israel",
+      "weight": 2,
+      "years": [
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Finland",
+      "target": "Poland",
+      "weight": 2,
+      "years": [
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Finland",
+      "target": "Sweden",
+      "weight": 2,
+      "years": [
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "France",
+      "target": "Greece",
+      "weight": 2,
+      "years": [
+        2021,
+        2024
+      ]
+    },
+    {
+      "source": "France",
+      "target": "Sweden",
+      "weight": 2,
+      "years": [
+        2016,
+        2017
+      ]
+    },
+    {
+      "source": "France",
+      "target": "Switzerland",
+      "weight": 2,
+      "years": [
+        2021,
+        2024
+      ]
+    },
+    {
+      "source": "Greece",
+      "target": "Israel",
+      "weight": 2,
+      "years": [
+        2024,
+        2025
+      ]
+    },
+    {
+      "source": "Greece",
+      "target": "Lithuania",
+      "weight": 2,
+      "years": [
+        2021,
+        2024
+      ]
+    },
+    {
+      "source": "Greece",
+      "target": "Switzerland",
+      "weight": 2,
+      "years": [
+        2021,
+        2024
+      ]
+    },
+    {
+      "source": "Israel",
+      "target": "Lithuania",
+      "weight": 2,
+      "years": [
+        2018,
+        2024
+      ]
+    },
+    {
+      "source": "Israel",
+      "target": "Moldova",
+      "weight": 2,
+      "years": [
+        2018,
+        2023
+      ]
+    },
+    {
+      "source": "Israel",
+      "target": "Poland",
+      "weight": 2,
+      "years": [
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Israel",
+      "target": "Sweden",
+      "weight": 2,
+      "years": [
+        2023,
+        2025
+      ]
+    },
+    {
+      "source": "Italy",
+      "target": "Serbia",
+      "weight": 2,
+      "years": [
+        2021,
+        2022
+      ]
+    },
+    {
+      "source": "Lithuania",
+      "target": "Switzerland",
+      "weight": 2,
+      "years": [
+        2021,
+        2024
+      ]
+    },
+    {
+      "source": "Moldova",
+      "target": "Norway",
+      "weight": 2,
+      "years": [
+        2022,
+        2023
+      ]
+    },
+    {
+      "source": "Moldova",
+      "target": "Poland",
+      "weight": 2,
+      "years": [
+        2022,
+        2023
+      ]
+    },
+    {
+      "source": "Norway",
+      "target": "Poland",
+      "weight": 2,
+      "years": [
+        2022,
+        2023
+      ]
+    },
+    {
+      "source": "Norway",
+      "target": "Ukraine",
+      "weight": 2,
+      "years": [
+        2022,
+        2023
+      ]
+    },
+    {
+      "source": "Serbia",
+      "target": "Ukraine",
+      "weight": 2,
+      "years": [
+        2021,
+        2022
+      ]
+    },
+    {
+      "source": "Switzerland",
+      "target": "Ukraine",
+      "weight": 2,
+      "years": [
+        2021,
+        2024
+      ]
+    }
+  ]
+}
