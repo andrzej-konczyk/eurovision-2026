@@ -140,3 +140,78 @@ The genre pipeline uses Spotify as primary source and MusicBrainz as fallback. 1
 ---
 
 *Add new limitations below following the same KL-XX format.*
+
+---
+
+## KL-06 — Ensemble does not outperform best single model (open risk — RR-01)
+
+| Field | Value |
+|-------|-------|
+| **Affected component** | `src/models/ensemble.py`, `models/artefacts/ensemble_weights.json` |
+| **Status** | **Open risk** — logged in RR-01 |
+| **Logged** | 2026-04-29 |
+| **Story** | US-S5-02 |
+| **Severity** | Medium |
+
+### Observation
+
+On the 2024 Grand Final holdout the optimal blend weight is **lgbm=1.0, xgb=0.0, nn=0.0**. The ensemble top-10 accuracy equals the best individual model (70%), not above it.
+
+- XGBoost standalone: 70% (7/10)
+- LightGBM standalone: 70% (7/10)
+- MLP standalone: 50% (5/10)
+- Best blend: 70% (7/10) — KPI threshold met, but no ensemble lift
+
+The PRD stretch goal (>70%) is unmet at this stage.
+
+### Root cause
+
+The MLP (US-S5-01, CV ROC-AUC 0.615 ± 0.176) underperforms XGB/LGBM on the 2024 holdout. Any blend that includes a non-zero MLP weight reduces accuracy below 70%. XGB and LGBM predict identically on this holdout — member diversity is insufficient to generate lift.
+
+### Decision (2026-04-29)
+
+Proceed with **best blend lgbm=1.0** (or xgb=0.5, lgbm=0.5) as the production `ensemble_weights.json`. KPI threshold (≥70%) is met. Risk logged for tracking.
+
+### Mitigation paths
+
+1. **Spotify audio features (Sprint 12)** — adding energy, danceability, acousticness to the MLP feature set is expected to improve MLP standalone accuracy and increase member diversity. If MLP lifts above ~65% standalone, blending should produce >70% ensemble accuracy.
+2. **S6 backtest (2022, 2023 holdouts)** — ensemble lift may be visible on years where XGB and LGBM diverge. A lift signal there would validate the ensemble architecture even if 2024 shows no improvement.
+3. **Fine-grained weight step (0.05)** — may expose marginal improvements not visible at step=0.1.
+4. **Stacking / meta-learner** — replace weighted average with a logistic meta-learner trained on fold OOF predictions; may capture non-linear synergies between the three base models.
+
+---
+
+## KL-07 — Linear surrogate rank-delta KPI not met
+
+| Field | Value |
+|-------|-------|
+| **Affected module** | `src/models/surrogate.py` (US-S5-05) |
+| **KPI** | Mean absolute rank delta vs ensemble < 2.0 positions |
+| **Achieved** | ~6.6 positions (polynomial Ridge, in-sample distillation) |
+| **Status** | Open — structural limitation |
+| **Logged** | 2026-04-29 |
+
+### Root cause
+
+For 2026 predictions, three of the most discriminating features are constant across all 35 countries:
+
+| Feature | 2026 status | Reason |
+|---------|-------------|--------|
+| `implied_prob_close` | NaN → median-imputed (constant) | Odds CSV covers only 2018–2025 |
+| `Running_Order_Final` | NaN → median-imputed (constant) | Draw not yet held for Basel 2026 |
+| `OGAE_Points` / `zscore_ogae_points` | NaN → median-imputed (constant) | OGAE poll not yet published |
+
+The 2026 ranking is therefore determined entirely by `avg_jury_3yr`, `avg_tele_3yr`, social scores, `Big6_Ind`, etc. The LGBM ensemble exploits **non-linear tree interactions** among these features (e.g. high jury history × high community enthusiasm = disproportionate probability boost) that a linear model — even with degree-2 polynomial interactions — cannot fully replicate.
+
+### Impact
+
+- Inference KPI (**< 2 s**): **PASS** (< 2 ms — 1,000× headroom)
+- Rank-delta KPI (**< 2.0**): **FAIL** — achieved ~6.6
+- Spearman rank correlation (surrogate vs ensemble on 2026): ~0.79
+- The surrogate correctly identifies the top-3 favorites (Sweden, Greece, France) within ±3 positions and is directionally useful for scenario exploration, but should not replace the full ensemble for final-ranking output.
+
+### Mitigation paths
+
+1. **Load 2026 betting odds** — once closing odds are available (typically ~2–4 weeks before the contest), re-run `src/data/process_odds.py` and re-train the surrogate. With real `implied_prob_close` values, rank delta is expected to drop significantly.
+2. **Use a depth-2 XGBoost surrogate** — a shallow boosted tree (max_depth=2, 50 estimators) produces ~100× faster inference than the full model while capturing tree interactions; expected delta < 2.
+3. **Accept achieved delta for scenario engine** — for the C-06 use case (small feature perturbations on a single country), the surrogate's directional correctness (~79% Spearman) is sufficient for "what-if" analysis.

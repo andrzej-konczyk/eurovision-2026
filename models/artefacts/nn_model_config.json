@@ -1,0 +1,171 @@
+{
+  "story": "US-S5-01",
+  "run_at": "2026-04-28T20:21:02.109885+00:00",
+  "best_params": {
+    "hidden_dims": [
+      32
+    ],
+    "lr": 0.001,
+    "dropout": 0.0
+  },
+  "cv_results": [
+    {
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "lr": 0.01,
+      "dropout": 0.0,
+      "mean_roc_auc": 0.5430833333333334,
+      "std_roc_auc": 0.2274031539896587
+    },
+    {
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "lr": 0.01,
+      "dropout": 0.2,
+      "mean_roc_auc": 0.5183333333333333,
+      "std_roc_auc": 0.13861542522789846
+    },
+    {
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "lr": 0.001,
+      "dropout": 0.0,
+      "mean_roc_auc": 0.5764166666666667,
+      "std_roc_auc": 0.2122744881829499
+    },
+    {
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "lr": 0.001,
+      "dropout": 0.2,
+      "mean_roc_auc": 0.5866666666666667,
+      "std_roc_auc": 0.2265938915034266
+    },
+    {
+      "hidden_dims": [
+        128,
+        64
+      ],
+      "lr": 0.01,
+      "dropout": 0.0,
+      "mean_roc_auc": 0.5685833333333333,
+      "std_roc_auc": 0.1965168214456745
+    },
+    {
+      "hidden_dims": [
+        128,
+        64
+      ],
+      "lr": 0.01,
+      "dropout": 0.2,
+      "mean_roc_auc": 0.51675,
+      "std_roc_auc": 0.16942107306943843
+    },
+    {
+      "hidden_dims": [
+        128,
+        64
+      ],
+      "lr": 0.001,
+      "dropout": 0.0,
+      "mean_roc_auc": 0.5790833333333334,
+      "std_roc_auc": 0.1865588230142023
+    },
+    {
+      "hidden_dims": [
+        128,
+        64
+      ],
+      "lr": 0.001,
+      "dropout": 0.2,
+      "mean_roc_auc": 0.5803333333333334,
+      "std_roc_auc": 0.18938009252412052
+    },
+    {
+      "hidden_dims": [
+        32
+      ],
+      "lr": 0.01,
+      "dropout": 0.0,
+      "mean_roc_auc": 0.5998333333333333,
+      "std_roc_auc": 0.19350954613259896
+    },
+    {
+      "hidden_dims": [
+        32
+      ],
+      "lr": 0.01,
+      "dropout": 0.2,
+      "mean_roc_auc": 0.546,
+      "std_roc_auc": 0.2146535645587508
+    },
+    {
+      "hidden_dims": [
+        32
+      ],
+      "lr": 0.001,
+      "dropout": 0.0,
+      "mean_roc_auc": 0.6148333333333333,
+      "std_roc_auc": 0.1759998421716464
+    },
+    {
+      "hidden_dims": [
+        32
+      ],
+      "lr": 0.001,
+      "dropout": 0.2,
+      "mean_roc_auc": 0.6034166666666667,
+      "std_roc_auc": 0.1682451088937407
+    }
+  ],
+  "best_cv_roc_auc_mean": 0.6148333333333333,
+  "best_cv_roc_auc_std": 0.1759998421716464,
+  "train_years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "n_train_rows": 217,
+  "n_features": 23,
+  "feature_cols": [
+    "Big6_Ind",
+    "National_Final",
+    "Solo_Artist",
+    "Returning_Artist_Ind",
+    "Number of Members",
+    "Multiple_Language",
+    "EU",
+    "NATO",
+    "Qualification_Record",
+    "Semi_Final_Num",
+    "Running_Order_Semi",
+    "Running_Order_Final",
+    "avg_final_rank_3yr",
+    "avg_jury_3yr",
+    "avg_tele_3yr",
+    "avg_bloc_jury_3yr",
+    "avg_bloc_tele_3yr",
+    "rule_2019_semifinal_reform",
+    "rule_2023_jury_weight_reform",
+    "zscore_myesb_community",
+    "zscore_myesb_personal",
+    "zscore_ogae_points",
+    "implied_prob_close"
+  ],
+  "n_epochs": 300,
+  "batch_size": 32
+}

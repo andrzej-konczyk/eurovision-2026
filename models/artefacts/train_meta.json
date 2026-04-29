@@ -1,0 +1,78 @@
+{
+  "story": "US-S4-02",
+  "trained_at": "2026-04-29T17:55:19.793153+00:00",
+  "dataset_path": "Dataset\\eurovision_2016_26_enriched.csv",
+  "dataset_hash": "9ea24521a0c2a5bf39d899797298d669",
+  "random_seed": 42,
+  "target": "Top 10",
+  "n_train_rows": 217,
+  "feature_cols": [
+    "Big6_Ind",
+    "National_Final",
+    "Solo_Artist",
+    "Returning_Artist_Ind",
+    "Number of Members",
+    "Multiple_Language",
+    "EU",
+    "NATO",
+    "Qualification_Record",
+    "Semi_Final_Num",
+    "Running_Order_Semi",
+    "Running_Order_Final",
+    "avg_final_rank_3yr",
+    "avg_jury_3yr",
+    "avg_tele_3yr",
+    "avg_bloc_jury_3yr",
+    "avg_bloc_tele_3yr",
+    "rule_2019_semifinal_reform",
+    "rule_2023_jury_weight_reform",
+    "zscore_myesb_community",
+    "zscore_myesb_personal",
+    "zscore_ogae_points",
+    "implied_prob_close"
+  ],
+  "models": {
+    "xgb": {
+      "best_params": {
+        "colsample_bytree": 0.8,
+        "learning_rate": 0.05,
+        "max_depth": 3,
+        "n_estimators": 100,
+        "subsample": 0.8
+      },
+      "cv_roc_auc_mean": 0.7466666666666667,
+      "cv_roc_auc_std": 0.18808981306221179,
+      "cv_n_valid_folds": 4,
+      "fold_scores": [
+        NaN,
+        NaN,
+        0.5,
+        0.8866666666666667,
+        0.7,
+        NaN,
+        0.9
+      ]
+    },
+    "lgbm": {
+      "best_params": {
+        "learning_rate": 0.05,
+        "min_child_samples": 5,
+        "n_estimators": 100,
+        "num_leaves": 31,
+        "subsample": 0.8
+      },
+      "cv_roc_auc_mean": 0.6358333333333333,
+      "cv_roc_auc_std": 0.14168749846836248,
+      "cv_n_valid_folds": 4,
+      "fold_scores": [
+        NaN,
+        NaN,
+        0.5375,
+        0.49333333333333335,
+        0.73125,
+        NaN,
+        0.78125
+      ]
+    }
+  }
+}
