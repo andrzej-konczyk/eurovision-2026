@@ -140,3 +140,41 @@ The genre pipeline uses Spotify as primary source and MusicBrainz as fallback. 1
 ---
 
 *Add new limitations below following the same KL-XX format.*
+
+---
+
+## KL-06 — Ensemble does not outperform best single model (open risk — RR-01)
+
+| Field | Value |
+|-------|-------|
+| **Affected component** | `src/models/ensemble.py`, `models/artefacts/ensemble_weights.json` |
+| **Status** | **Open risk** — logged in RR-01 |
+| **Logged** | 2026-04-29 |
+| **Story** | US-S5-02 |
+| **Severity** | Medium |
+
+### Observation
+
+On the 2024 Grand Final holdout the optimal blend weight is **lgbm=1.0, xgb=0.0, nn=0.0**. The ensemble top-10 accuracy equals the best individual model (70%), not above it.
+
+- XGBoost standalone: 70% (7/10)
+- LightGBM standalone: 70% (7/10)
+- MLP standalone: 50% (5/10)
+- Best blend: 70% (7/10) — KPI threshold met, but no ensemble lift
+
+The PRD stretch goal (>70%) is unmet at this stage.
+
+### Root cause
+
+The MLP (US-S5-01, CV ROC-AUC 0.615 ± 0.176) underperforms XGB/LGBM on the 2024 holdout. Any blend that includes a non-zero MLP weight reduces accuracy below 70%. XGB and LGBM predict identically on this holdout — member diversity is insufficient to generate lift.
+
+### Decision (2026-04-29)
+
+Proceed with **best blend lgbm=1.0** (or xgb=0.5, lgbm=0.5) as the production `ensemble_weights.json`. KPI threshold (≥70%) is met. Risk logged for tracking.
+
+### Mitigation paths
+
+1. **Spotify audio features (Sprint 12)** — adding energy, danceability, acousticness to the MLP feature set is expected to improve MLP standalone accuracy and increase member diversity. If MLP lifts above ~65% standalone, blending should produce >70% ensemble accuracy.
+2. **S6 backtest (2022, 2023 holdouts)** — ensemble lift may be visible on years where XGB and LGBM diverge. A lift signal there would validate the ensemble architecture even if 2024 shows no improvement.
+3. **Fine-grained weight step (0.05)** — may expose marginal improvements not visible at step=0.1.
+4. **Stacking / meta-learner** — replace weighted average with a logistic meta-learner trained on fold OOF predictions; may capture non-linear synergies between the three base models.
