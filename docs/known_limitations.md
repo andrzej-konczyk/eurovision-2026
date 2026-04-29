@@ -178,3 +178,40 @@ Proceed with **best blend lgbm=1.0** (or xgb=0.5, lgbm=0.5) as the production `e
 2. **S6 backtest (2022, 2023 holdouts)** — ensemble lift may be visible on years where XGB and LGBM diverge. A lift signal there would validate the ensemble architecture even if 2024 shows no improvement.
 3. **Fine-grained weight step (0.05)** — may expose marginal improvements not visible at step=0.1.
 4. **Stacking / meta-learner** — replace weighted average with a logistic meta-learner trained on fold OOF predictions; may capture non-linear synergies between the three base models.
+
+---
+
+## KL-07 — Linear surrogate rank-delta KPI not met
+
+| Field | Value |
+|-------|-------|
+| **Affected module** | `src/models/surrogate.py` (US-S5-05) |
+| **KPI** | Mean absolute rank delta vs ensemble < 2.0 positions |
+| **Achieved** | ~6.6 positions (polynomial Ridge, in-sample distillation) |
+| **Status** | Open — structural limitation |
+| **Logged** | 2026-04-29 |
+
+### Root cause
+
+For 2026 predictions, three of the most discriminating features are constant across all 35 countries:
+
+| Feature | 2026 status | Reason |
+|---------|-------------|--------|
+| `implied_prob_close` | NaN → median-imputed (constant) | Odds CSV covers only 2018–2025 |
+| `Running_Order_Final` | NaN → median-imputed (constant) | Draw not yet held for Basel 2026 |
+| `OGAE_Points` / `zscore_ogae_points` | NaN → median-imputed (constant) | OGAE poll not yet published |
+
+The 2026 ranking is therefore determined entirely by `avg_jury_3yr`, `avg_tele_3yr`, social scores, `Big6_Ind`, etc. The LGBM ensemble exploits **non-linear tree interactions** among these features (e.g. high jury history × high community enthusiasm = disproportionate probability boost) that a linear model — even with degree-2 polynomial interactions — cannot fully replicate.
+
+### Impact
+
+- Inference KPI (**< 2 s**): **PASS** (< 2 ms — 1,000× headroom)
+- Rank-delta KPI (**< 2.0**): **FAIL** — achieved ~6.6
+- Spearman rank correlation (surrogate vs ensemble on 2026): ~0.79
+- The surrogate correctly identifies the top-3 favorites (Sweden, Greece, France) within ±3 positions and is directionally useful for scenario exploration, but should not replace the full ensemble for final-ranking output.
+
+### Mitigation paths
+
+1. **Load 2026 betting odds** — once closing odds are available (typically ~2–4 weeks before the contest), re-run `src/data/process_odds.py` and re-train the surrogate. With real `implied_prob_close` values, rank delta is expected to drop significantly.
+2. **Use a depth-2 XGBoost surrogate** — a shallow boosted tree (max_depth=2, 50 estimators) produces ~100× faster inference than the full model while capturing tree interactions; expected delta < 2.
+3. **Accept achieved delta for scenario engine** — for the C-06 use case (small feature perturbations on a single country), the surrogate's directional correctness (~79% Spearman) is sufficient for "what-if" analysis.
