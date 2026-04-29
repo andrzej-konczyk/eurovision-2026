@@ -1,0 +1,5 @@
+outs:
+- md5: 6f0bb849be79207903430beeab611e3c
+  size: 7211
+  hash: md5
+  path: nn_model.pkl

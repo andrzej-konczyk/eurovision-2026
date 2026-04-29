@@ -22,12 +22,11 @@ data/dvc-cache/
 .dvc/tmp/
 .dvc/cache/
 
-# Model artefacts
+# Model artefacts — binaries excluded, .dvc pointer files git-tracked
 *.pkl
 *.pt
 *.h5
 *.onnx
-models/artefacts/
 
 # Data intermediates — only pointer files go to Git
 data/processed/
