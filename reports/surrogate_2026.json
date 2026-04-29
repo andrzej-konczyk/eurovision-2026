@@ -1,0 +1,300 @@
+{
+  "story": "US-S5-05",
+  "generated_at": "2026-04-29T18:42:47.676947+00:00",
+  "target_year": 2026,
+  "ensemble_model": "lgbm",
+  "surrogate_type": "RidgeCV poly-2 (distilled)",
+  "distillation": "in-sample",
+  "best_alpha": 1000.0,
+  "spearman_r_insample": 0.7136,
+  "mean_rank_delta": 6.6286,
+  "max_rank_delta": 18,
+  "inference_time_s": 0.001347,
+  "kpi_delta_pass": false,
+  "kpi_inference_pass": true,
+  "kpi_delta_note": "Structural limitation (KL-07): implied_prob_close, Running_Order_Final and OGAE_Points are NaN (constant) for all 2026 entries; ranking is determined by jury/tele/social features whose non-linear tree interactions cannot be replicated by a linear model.",
+  "max_delta_threshold": 2.0,
+  "max_inference_threshold": 2.0,
+  "countries": [
+    {
+      "country": "Sweden",
+      "ensemble_rank": 1,
+      "surrogate_rank": 3,
+      "rank_delta": 2,
+      "ensemble_prob": 0.9389,
+      "surrogate_prob": 0.436
+    },
+    {
+      "country": "Greece",
+      "ensemble_rank": 2,
+      "surrogate_rank": 6,
+      "rank_delta": 4,
+      "ensemble_prob": 0.9267,
+      "surrogate_prob": 0.3562
+    },
+    {
+      "country": "France",
+      "ensemble_rank": 3,
+      "surrogate_rank": 9,
+      "rank_delta": 6,
+      "ensemble_prob": 0.8981,
+      "surrogate_prob": 0.3327
+    },
+    {
+      "country": "Australia",
+      "ensemble_rank": 4,
+      "surrogate_rank": 14,
+      "rank_delta": 10,
+      "ensemble_prob": 0.7135,
+      "surrogate_prob": 0.3005
+    },
+    {
+      "country": "Switzerland",
+      "ensemble_rank": 5,
+      "surrogate_rank": 10,
+      "rank_delta": 5,
+      "ensemble_prob": 0.6124,
+      "surrogate_prob": 0.3268
+    },
+    {
+      "country": "Ukraine",
+      "ensemble_rank": 6,
+      "surrogate_rank": 2,
+      "rank_delta": 4,
+      "ensemble_prob": 0.6052,
+      "surrogate_prob": 0.4557
+    },
+    {
+      "country": "Austria",
+      "ensemble_rank": 7,
+      "surrogate_rank": 12,
+      "rank_delta": 5,
+      "ensemble_prob": 0.6048,
+      "surrogate_prob": 0.3192
+    },
+    {
+      "country": "Croatia",
+      "ensemble_rank": 8,
+      "surrogate_rank": 15,
+      "rank_delta": 7,
+      "ensemble_prob": 0.5309,
+      "surrogate_prob": 0.2979
+    },
+    {
+      "country": "Finland",
+      "ensemble_rank": 9,
+      "surrogate_rank": 5,
+      "rank_delta": 4,
+      "ensemble_prob": 0.4886,
+      "surrogate_prob": 0.3573
+    },
+    {
+      "country": "Italy",
+      "ensemble_rank": 10,
+      "surrogate_rank": 4,
+      "rank_delta": 6,
+      "ensemble_prob": 0.4571,
+      "surrogate_prob": 0.3906
+    },
+    {
+      "country": "Malta",
+      "ensemble_rank": 11,
+      "surrogate_rank": 19,
+      "rank_delta": 8,
+      "ensemble_prob": 0.4534,
+      "surrogate_prob": 0.275
+    },
+    {
+      "country": "Azerbaijan",
+      "ensemble_rank": 12,
+      "surrogate_rank": 13,
+      "rank_delta": 1,
+      "ensemble_prob": 0.431,
+      "surrogate_prob": 0.3086
+    },
+    {
+      "country": "Estonia",
+      "ensemble_rank": 13,
+      "surrogate_rank": 31,
+      "rank_delta": 18,
+      "ensemble_prob": 0.4243,
+      "surrogate_prob": 0.1788
+    },
+    {
+      "country": "Israel",
+      "ensemble_rank": 14,
+      "surrogate_rank": 1,
+      "rank_delta": 13,
+      "ensemble_prob": 0.3265,
+      "surrogate_prob": 0.5203
+    },
+    {
+      "country": "Belgium",
+      "ensemble_rank": 15,
+      "surrogate_rank": 26,
+      "rank_delta": 11,
+      "ensemble_prob": 0.2901,
+      "surrogate_prob": 0.2381
+    },
+    {
+      "country": "Bulgaria",
+      "ensemble_rank": 16,
+      "surrogate_rank": 16,
+      "rank_delta": 0,
+      "ensemble_prob": 0.1934,
+      "surrogate_prob": 0.2821
+    },
+    {
+      "country": "Portugal",
+      "ensemble_rank": 17,
+      "surrogate_rank": 34,
+      "rank_delta": 17,
+      "ensemble_prob": 0.1675,
+      "surrogate_prob": 0.09
+    },
+    {
+      "country": "Serbia",
+      "ensemble_rank": 18,
+      "surrogate_rank": 7,
+      "rank_delta": 11,
+      "ensemble_prob": 0.156,
+      "surrogate_prob": 0.3534
+    },
+    {
+      "country": "Latvia",
+      "ensemble_rank": 19,
+      "surrogate_rank": 25,
+      "rank_delta": 6,
+      "ensemble_prob": 0.1052,
+      "surrogate_prob": 0.2392
+    },
+    {
+      "country": "Romania",
+      "ensemble_rank": 20,
+      "surrogate_rank": 11,
+      "rank_delta": 9,
+      "ensemble_prob": 0.0783,
+      "surrogate_prob": 0.3227
+    },
+    {
+      "country": "Armenia",
+      "ensemble_rank": 21,
+      "surrogate_rank": 30,
+      "rank_delta": 9,
+      "ensemble_prob": 0.0768,
+      "surrogate_prob": 0.206
+    },
+    {
+      "country": "Montenegro",
+      "ensemble_rank": 22,
+      "surrogate_rank": 23,
+      "rank_delta": 1,
+      "ensemble_prob": 0.0757,
+      "surrogate_prob": 0.2502
+    },
+    {
+      "country": "Cyprus",
+      "ensemble_rank": 23,
+      "surrogate_rank": 20,
+      "rank_delta": 3,
+      "ensemble_prob": 0.0745,
+      "surrogate_prob": 0.2691
+    },
+    {
+      "country": "United Kingdom",
+      "ensemble_rank": 24,
+      "surrogate_rank": 18,
+      "rank_delta": 6,
+      "ensemble_prob": 0.0648,
+      "surrogate_prob": 0.2806
+    },
+    {
+      "country": "Georgia",
+      "ensemble_rank": 25,
+      "surrogate_rank": 28,
+      "rank_delta": 3,
+      "ensemble_prob": 0.0633,
+      "surrogate_prob": 0.2173
+    },
+    {
+      "country": "Moldova",
+      "ensemble_rank": 26,
+      "surrogate_rank": 8,
+      "rank_delta": 18,
+      "ensemble_prob": 0.0489,
+      "surrogate_prob": 0.3504
+    },
+    {
+      "country": "Luxembourg",
+      "ensemble_rank": 27,
+      "surrogate_rank": 24,
+      "rank_delta": 3,
+      "ensemble_prob": 0.0302,
+      "surrogate_prob": 0.2406
+    },
+    {
+      "country": "Albania",
+      "ensemble_rank": 28,
+      "surrogate_rank": 29,
+      "rank_delta": 1,
+      "ensemble_prob": 0.0289,
+      "surrogate_prob": 0.2143
+    },
+    {
+      "country": "Czech Republic",
+      "ensemble_rank": 29,
+      "surrogate_rank": 17,
+      "rank_delta": 12,
+      "ensemble_prob": 0.0285,
+      "surrogate_prob": 0.2821
+    },
+    {
+      "country": "Germany",
+      "ensemble_rank": 30,
+      "surrogate_rank": 21,
+      "rank_delta": 9,
+      "ensemble_prob": 0.0174,
+      "surrogate_prob": 0.2589
+    },
+    {
+      "country": "Norway",
+      "ensemble_rank": 31,
+      "surrogate_rank": 33,
+      "rank_delta": 2,
+      "ensemble_prob": 0.0143,
+      "surrogate_prob": 0.1404
+    },
+    {
+      "country": "Denmark",
+      "ensemble_rank": 32,
+      "surrogate_rank": 22,
+      "rank_delta": 10,
+      "ensemble_prob": 0.0124,
+      "surrogate_prob": 0.2562
+    },
+    {
+      "country": "Lithuania",
+      "ensemble_rank": 33,
+      "surrogate_rank": 27,
+      "rank_delta": 6,
+      "ensemble_prob": 0.0118,
+      "surrogate_prob": 0.2334
+    },
+    {
+      "country": "Poland",
+      "ensemble_rank": 34,
+      "surrogate_rank": 32,
+      "rank_delta": 2,
+      "ensemble_prob": 0.0096,
+      "surrogate_prob": 0.1579
+    },
+    {
+      "country": "San Marino",
+      "ensemble_rank": 35,
+      "surrogate_rank": 35,
+      "rank_delta": 0,
+      "ensemble_prob": 0.0078,
+      "surrogate_prob": 0.0464
+    }
+  ]
+}

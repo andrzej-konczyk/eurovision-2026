@@ -1,0 +1,5 @@
+outs:
+- md5: 6e1fb824b2c2480baf0a45fe6a6d61cd
+  size: 11733
+  hash: md5
+  path: surrogate_model.pkl
