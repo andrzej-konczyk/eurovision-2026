@@ -1,0 +1,1960 @@
+{
+  "story": "US-S6-01b",
+  "run_at": "2026-04-30T19:10:02.876017+00:00",
+  "n_bootstrap": 1000,
+  "seed": 42,
+  "backtest_years": [
+    2022,
+    2023,
+    2024
+  ],
+  "qualifiers_per_semi": 10,
+  "kpi_qual_threshold": 0.7,
+  "kpi_ci80_threshold": 0.8,
+  "semi_feature_cols": [
+    "Big6_Ind",
+    "National_Final",
+    "Solo_Artist",
+    "Returning_Artist_Ind",
+    "Number of Members",
+    "Multiple_Language",
+    "EU",
+    "NATO",
+    "Qualification_Record",
+    "Semi_Final_Num",
+    "Running_Order_Semi",
+    "avg_final_rank_3yr",
+    "avg_jury_3yr",
+    "avg_tele_3yr",
+    "avg_bloc_jury_3yr",
+    "avg_bloc_tele_3yr",
+    "rule_2019_semifinal_reform",
+    "rule_2023_jury_weight_reform",
+    "zscore_myesb_community",
+    "zscore_myesb_personal",
+    "zscore_ogae_points",
+    "implied_prob_close"
+  ],
+  "note_hyperparams": "Grid search re-run inside each year's training window (strict temporal isolation).",
+  "years": {
+    "2022": {
+      "year": 2022,
+      "n_train": 177,
+      "n_test": 35,
+      "train_years": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2021
+      ],
+      "models": {
+        "xgb": {
+          "best_params": {
+            "colsample_bytree": 0.8,
+            "learning_rate": 0.05,
+            "max_depth": 3,
+            "n_estimators": 100,
+            "subsample": 0.8
+          },
+          "qual_accuracy_sf1": 0.9,
+          "qual_accuracy_sf2": 1.0,
+          "qual_accuracy_overall": 0.95,
+          "ci80_empirical_coverage": 0.9142857142857143,
+          "kpi_sf1_pass": true,
+          "kpi_sf2_pass": true,
+          "kpi_ci80_pass": true,
+          "country_detail": [
+            {
+              "country": "Netherlands",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9791507720947266,
+              "ci80_lo": 0.9689265489578247,
+              "ci80_hi": 0.9878308176994324,
+              "ci80_covered": true
+            },
+            {
+              "country": "Sweden",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9724543690681458,
+              "ci80_lo": 0.956888735294342,
+              "ci80_hi": 0.9840912818908691,
+              "ci80_covered": true
+            },
+            {
+              "country": "Serbia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9639706611633301,
+              "ci80_lo": 0.9350752234458923,
+              "ci80_hi": 0.9834921956062317,
+              "ci80_covered": true
+            },
+            {
+              "country": "Czech Republic",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9637383818626404,
+              "ci80_lo": 0.939961850643158,
+              "ci80_hi": 0.9827507734298706,
+              "ci80_covered": true
+            },
+            {
+              "country": "Portugal",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9620587229728699,
+              "ci80_lo": 0.9383664727210999,
+              "ci80_hi": 0.9814924597740173,
+              "ci80_covered": true
+            },
+            {
+              "country": "Ukraine",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9607336521148682,
+              "ci80_lo": 0.9357930421829224,
+              "ci80_hi": 0.9805079698562622,
+              "ci80_covered": true
+            },
+            {
+              "country": "Australia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9601269364356995,
+              "ci80_lo": 0.9305423498153687,
+              "ci80_hi": 0.9832059144973755,
+              "ci80_covered": true
+            },
+            {
+              "country": "Greece",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9519874453544617,
+              "ci80_lo": 0.913030743598938,
+              "ci80_hi": 0.981673002243042,
+              "ci80_covered": true
+            },
+            {
+              "country": "Norway",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9431034922599792,
+              "ci80_lo": 0.9051491618156433,
+              "ci80_hi": 0.9724321365356445,
+              "ci80_covered": true
+            },
+            {
+              "country": "Poland",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9357717037200928,
+              "ci80_lo": 0.8817154765129089,
+              "ci80_hi": 0.9740245342254639,
+              "ci80_covered": true
+            },
+            {
+              "country": "Belgium",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9286069273948669,
+              "ci80_lo": 0.8816466331481934,
+              "ci80_hi": 0.9657206535339355,
+              "ci80_covered": true
+            },
+            {
+              "country": "Armenia",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9280280470848083,
+              "ci80_lo": 0.8726326823234558,
+              "ci80_hi": 0.9686559438705444,
+              "ci80_covered": true
+            },
+            {
+              "country": "Lithuania",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9019452929496765,
+              "ci80_lo": 0.8233804702758789,
+              "ci80_hi": 0.9594457149505615,
+              "ci80_covered": true
+            },
+            {
+              "country": "Finland",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.8989173769950867,
+              "ci80_lo": 0.8187184929847717,
+              "ci80_hi": 0.9584740996360779,
+              "ci80_covered": true
+            },
+            {
+              "country": "Estonia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.8954859375953674,
+              "ci80_lo": 0.8119839429855347,
+              "ci80_hi": 0.9594995975494385,
+              "ci80_covered": true
+            },
+            {
+              "country": "Romania",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.8935440182685852,
+              "ci80_lo": 0.8055567741394043,
+              "ci80_hi": 0.9579510688781738,
+              "ci80_covered": true
+            },
+            {
+              "country": "Moldova",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.8244554400444031,
+              "ci80_lo": 0.5875380039215088,
+              "ci80_hi": 0.9512771964073181,
+              "ci80_covered": true
+            },
+            {
+              "country": "Iceland",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.8138881921768188,
+              "ci80_lo": 0.6479498744010925,
+              "ci80_hi": 0.9326084852218628,
+              "ci80_covered": true
+            },
+            {
+              "country": "Azerbaijan",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.7856494188308716,
+              "ci80_lo": 0.5891380310058594,
+              "ci80_hi": 0.930493175983429,
+              "ci80_covered": true
+            },
+            {
+              "country": "Austria",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.7801909446716309,
+              "ci80_lo": 0.5968940258026123,
+              "ci80_hi": 0.9248629212379456,
+              "ci80_covered": false
+            },
+            {
+              "country": "Cyprus",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.7142096757888794,
+              "ci80_lo": 0.4911735951900482,
+              "ci80_hi": 0.9147498607635498,
+              "ci80_covered": true
+            },
+            {
+              "country": "Albania",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.7098172903060913,
+              "ci80_lo": 0.5036137104034424,
+              "ci80_hi": 0.8949053883552551,
+              "ci80_covered": false
+            },
+            {
+              "country": "Ireland",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.5116533637046814,
+              "ci80_lo": 0.294384628534317,
+              "ci80_hi": 0.7186689376831055,
+              "ci80_covered": true
+            },
+            {
+              "country": "Switzerland",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.263157457113266,
+              "ci80_lo": 0.12993445992469788,
+              "ci80_hi": 0.43205946683883667,
+              "ci80_covered": false
+            },
+            {
+              "country": "San Marino",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.09725921601057053,
+              "ci80_lo": 0.024838343262672424,
+              "ci80_hi": 0.19680894911289215,
+              "ci80_covered": true
+            },
+            {
+              "country": "Slovenia",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.07719919830560684,
+              "ci80_lo": 0.02764645591378212,
+              "ci80_hi": 0.13911886513233185,
+              "ci80_covered": true
+            },
+            {
+              "country": "Israel",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.07066311687231064,
+              "ci80_lo": 0.02939355932176113,
+              "ci80_hi": 0.12347771972417831,
+              "ci80_covered": true
+            },
+            {
+              "country": "Croatia",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.053461991250514984,
+              "ci80_lo": 0.020402532070875168,
+              "ci80_hi": 0.1000484824180603,
+              "ci80_covered": true
+            },
+            {
+              "country": "Georgia",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.039902642369270325,
+              "ci80_lo": 0.02196844294667244,
+              "ci80_hi": 0.0617494136095047,
+              "ci80_covered": true
+            },
+            {
+              "country": "Bulgaria",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.03895524516701698,
+              "ci80_lo": 0.02078644558787346,
+              "ci80_hi": 0.06239239498972893,
+              "ci80_covered": true
+            },
+            {
+              "country": "North Macedonia",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.03757663443684578,
+              "ci80_lo": 0.022205233573913574,
+              "ci80_hi": 0.05707899481058121,
+              "ci80_covered": true
+            },
+            {
+              "country": "Latvia",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.03644070401787758,
+              "ci80_lo": 0.01850743778049946,
+              "ci80_hi": 0.05926456302404404,
+              "ci80_covered": true
+            },
+            {
+              "country": "Montenegro",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.035483554005622864,
+              "ci80_lo": 0.02107544243335724,
+              "ci80_hi": 0.05269738659262657,
+              "ci80_covered": true
+            },
+            {
+              "country": "Malta",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.0349762886762619,
+              "ci80_lo": 0.02121787518262863,
+              "ci80_hi": 0.05158061534166336,
+              "ci80_covered": true
+            },
+            {
+              "country": "Denmark",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.02755805291235447,
+              "ci80_lo": 0.017001241445541382,
+              "ci80_hi": 0.04127345606684685,
+              "ci80_covered": true
+            }
+          ]
+        },
+        "lgbm": {
+          "best_params": {
+            "learning_rate": 0.1,
+            "min_child_samples": 5,
+            "n_estimators": 100,
+            "num_leaves": 31,
+            "subsample": 0.8
+          },
+          "qual_accuracy_sf1": 1.0,
+          "qual_accuracy_sf2": 1.0,
+          "qual_accuracy_overall": 1.0,
+          "ci80_empirical_coverage": 1.0,
+          "kpi_sf1_pass": true,
+          "kpi_sf2_pass": true,
+          "kpi_ci80_pass": true,
+          "country_detail": [
+            {
+              "country": "Ukraine",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.999938404274216,
+              "ci80_lo": 0.9999185822833525,
+              "ci80_hi": 0.9999813078087163,
+              "ci80_covered": true
+            },
+            {
+              "country": "Sweden",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9999216227161404,
+              "ci80_lo": 0.9999567814061184,
+              "ci80_hi": 0.9999827462606031,
+              "ci80_covered": true
+            },
+            {
+              "country": "Czech Republic",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9998796727513889,
+              "ci80_lo": 0.9998249129467177,
+              "ci80_hi": 0.9999813767951133,
+              "ci80_covered": true
+            },
+            {
+              "country": "Portugal",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9998520070284683,
+              "ci80_lo": 0.999869923379634,
+              "ci80_hi": 0.9999810715221182,
+              "ci80_covered": true
+            },
+            {
+              "country": "Netherlands",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9998342051705001,
+              "ci80_lo": 0.9999490140534195,
+              "ci80_hi": 0.999982295510885,
+              "ci80_covered": true
+            },
+            {
+              "country": "Belgium",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9997418029080954,
+              "ci80_lo": 0.9997639966562556,
+              "ci80_hi": 0.9999771773759351,
+              "ci80_covered": true
+            },
+            {
+              "country": "Australia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9996026877383342,
+              "ci80_lo": 0.9997158218498131,
+              "ci80_hi": 0.9999790316462497,
+              "ci80_covered": true
+            },
+            {
+              "country": "Norway",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9996015527793668,
+              "ci80_lo": 0.999869860337762,
+              "ci80_hi": 0.9999808519839191,
+              "ci80_covered": true
+            },
+            {
+              "country": "Armenia",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9992803282885592,
+              "ci80_lo": 0.9995778707025725,
+              "ci80_hi": 0.9999746501256783,
+              "ci80_covered": true
+            },
+            {
+              "country": "Serbia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9988820299749271,
+              "ci80_lo": 0.9997509594751667,
+              "ci80_hi": 0.9999820862960372,
+              "ci80_covered": true
+            },
+            {
+              "country": "Estonia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9977852161082205,
+              "ci80_lo": 0.9987573688287472,
+              "ci80_hi": 0.9999690597717666,
+              "ci80_covered": true
+            },
+            {
+              "country": "Finland",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.99746012499825,
+              "ci80_lo": 0.9990785443473867,
+              "ci80_hi": 0.9999718143945708,
+              "ci80_covered": true
+            },
+            {
+              "country": "Lithuania",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9973298062823164,
+              "ci80_lo": 0.9991738097343498,
+              "ci80_hi": 0.9999696282098465,
+              "ci80_covered": true
+            },
+            {
+              "country": "Romania",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9968174266285573,
+              "ci80_lo": 0.9988685168206692,
+              "ci80_hi": 0.9999698163954116,
+              "ci80_covered": true
+            },
+            {
+              "country": "Greece",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9965942781035466,
+              "ci80_lo": 0.9994653593345612,
+              "ci80_hi": 0.9999815680895187,
+              "ci80_covered": true
+            },
+            {
+              "country": "Iceland",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9904896750144961,
+              "ci80_lo": 0.9977057429107893,
+              "ci80_hi": 0.9999677924811603,
+              "ci80_covered": true
+            },
+            {
+              "country": "Azerbaijan",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9875591189830017,
+              "ci80_lo": 0.9937231083866902,
+              "ci80_hi": 0.9999541327017177,
+              "ci80_covered": true
+            },
+            {
+              "country": "Poland",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.929053008449946,
+              "ci80_lo": 0.9160374562203444,
+              "ci80_hi": 0.9999809612849723,
+              "ci80_covered": true
+            },
+            {
+              "country": "Moldova",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.827350665613446,
+              "ci80_lo": 0.009688144517813435,
+              "ci80_hi": 0.9999716765621602,
+              "ci80_covered": true
+            },
+            {
+              "country": "Austria",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.5728463106136384,
+              "ci80_lo": 0.00664544576706405,
+              "ci80_hi": 0.9991628216865064,
+              "ci80_covered": true
+            },
+            {
+              "country": "Cyprus",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.3973186345057674,
+              "ci80_lo": 0.001786158262998743,
+              "ci80_hi": 0.9953927942158803,
+              "ci80_covered": true
+            },
+            {
+              "country": "Ireland",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.27182881040011503,
+              "ci80_lo": 0.0006400052449052093,
+              "ci80_hi": 0.9648078646649181,
+              "ci80_covered": true
+            },
+            {
+              "country": "Albania",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.26557968174437246,
+              "ci80_lo": 0.0009326048421050993,
+              "ci80_hi": 0.9768731376017225,
+              "ci80_covered": true
+            },
+            {
+              "country": "Switzerland",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.253440325170253,
+              "ci80_lo": 2.918266259292773e-05,
+              "ci80_hi": 0.9951817749798628,
+              "ci80_covered": true
+            },
+            {
+              "country": "San Marino",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.04625497139156398,
+              "ci80_lo": 2.828644976729872e-05,
+              "ci80_hi": 0.05658201715942363,
+              "ci80_covered": true
+            },
+            {
+              "country": "Slovenia",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.0267947494843727,
+              "ci80_lo": 2.875971436823155e-05,
+              "ci80_hi": 0.011924166003992742,
+              "ci80_covered": true
+            },
+            {
+              "country": "Croatia",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.0078076613738668295,
+              "ci80_lo": 2.5169572287207775e-05,
+              "ci80_hi": 0.0005685682150631854,
+              "ci80_covered": true
+            },
+            {
+              "country": "Latvia",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.007703342000134038,
+              "ci80_lo": 2.4262484327670664e-05,
+              "ci80_hi": 0.00045500934527687874,
+              "ci80_covered": true
+            },
+            {
+              "country": "Israel",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.005955851614118298,
+              "ci80_lo": 2.752437720043461e-05,
+              "ci80_hi": 0.0012243604422269678,
+              "ci80_covered": true
+            },
+            {
+              "country": "Bulgaria",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.0034278910551903716,
+              "ci80_lo": 2.3902164421943755e-05,
+              "ci80_hi": 0.0001545340688518607,
+              "ci80_covered": true
+            },
+            {
+              "country": "Montenegro",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.0009515276313531673,
+              "ci80_lo": 2.4511479778674312e-05,
+              "ci80_hi": 0.00016992691322756829,
+              "ci80_covered": true
+            },
+            {
+              "country": "Georgia",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.0008203042142772175,
+              "ci80_lo": 2.3769208384690263e-05,
+              "ci80_hi": 0.00010443970773363025,
+              "ci80_covered": true
+            },
+            {
+              "country": "North Macedonia",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.0003645975859825924,
+              "ci80_lo": 2.2657303576232695e-05,
+              "ci80_hi": 7.600467314162499e-05,
+              "ci80_covered": true
+            },
+            {
+              "country": "Malta",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.0002731724888179568,
+              "ci80_lo": 2.3387558619406525e-05,
+              "ci80_hi": 5.488492655574276e-05,
+              "ci80_covered": true
+            },
+            {
+              "country": "Denmark",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 3.9000736057958256e-05,
+              "ci80_lo": 2.2497657527369617e-05,
+              "ci80_hi": 4.487720986404351e-05,
+              "ci80_covered": true
+            }
+          ]
+        }
+      }
+    },
+    "2023": {
+      "year": 2023,
+      "n_train": 212,
+      "n_test": 31,
+      "train_years": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2021,
+        2022
+      ],
+      "models": {
+        "xgb": {
+          "best_params": {
+            "colsample_bytree": 0.8,
+            "learning_rate": 0.05,
+            "max_depth": 3,
+            "n_estimators": 100,
+            "subsample": 0.8
+          },
+          "qual_accuracy_sf1": 1.0,
+          "qual_accuracy_sf2": 1.0,
+          "qual_accuracy_overall": 1.0,
+          "ci80_empirical_coverage": 1.0,
+          "kpi_sf1_pass": true,
+          "kpi_sf2_pass": true,
+          "kpi_ci80_pass": true,
+          "country_detail": [
+            {
+              "country": "Austria",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9791160821914673,
+              "ci80_lo": 0.9676205515861511,
+              "ci80_hi": 0.9881992936134338,
+              "ci80_covered": true
+            },
+            {
+              "country": "Slovenia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9777451753616333,
+              "ci80_lo": 0.9664185047149658,
+              "ci80_hi": 0.9873068332672119,
+              "ci80_covered": true
+            },
+            {
+              "country": "Finland",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9770103693008423,
+              "ci80_lo": 0.9671680331230164,
+              "ci80_hi": 0.985288679599762,
+              "ci80_covered": true
+            },
+            {
+              "country": "Sweden",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9753792881965637,
+              "ci80_lo": 0.9639611840248108,
+              "ci80_hi": 0.9847837686538696,
+              "ci80_covered": true
+            },
+            {
+              "country": "Israel",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.974614679813385,
+              "ci80_lo": 0.9622873067855835,
+              "ci80_hi": 0.9855645298957825,
+              "ci80_covered": true
+            },
+            {
+              "country": "Czech Republic",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9741953015327454,
+              "ci80_lo": 0.9613186120986938,
+              "ci80_hi": 0.9844751954078674,
+              "ci80_covered": true
+            },
+            {
+              "country": "Norway",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9732699990272522,
+              "ci80_lo": 0.9602341055870056,
+              "ci80_hi": 0.9833545088768005,
+              "ci80_covered": true
+            },
+            {
+              "country": "Armenia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9724729657173157,
+              "ci80_lo": 0.9572133421897888,
+              "ci80_hi": 0.9845435619354248,
+              "ci80_covered": true
+            },
+            {
+              "country": "Cyprus",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9644069671630859,
+              "ci80_lo": 0.9439446330070496,
+              "ci80_hi": 0.9802610874176025,
+              "ci80_covered": true
+            },
+            {
+              "country": "Australia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9638720154762268,
+              "ci80_lo": 0.9449142217636108,
+              "ci80_hi": 0.9805697798728943,
+              "ci80_covered": true
+            },
+            {
+              "country": "Serbia",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9625064134597778,
+              "ci80_lo": 0.9373141527175903,
+              "ci80_hi": 0.9809783697128296,
+              "ci80_covered": true
+            },
+            {
+              "country": "Estonia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9525438547134399,
+              "ci80_lo": 0.9220604300498962,
+              "ci80_hi": 0.9752153158187866,
+              "ci80_covered": true
+            },
+            {
+              "country": "Portugal",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9429211616516113,
+              "ci80_lo": 0.905567467212677,
+              "ci80_hi": 0.9724545478820801,
+              "ci80_covered": true
+            },
+            {
+              "country": "Moldova",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9350121021270752,
+              "ci80_lo": 0.8886465430259705,
+              "ci80_hi": 0.9705305099487305,
+              "ci80_covered": true
+            },
+            {
+              "country": "Lithuania",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9218405485153198,
+              "ci80_lo": 0.857918918132782,
+              "ci80_hi": 0.9672937393188477,
+              "ci80_covered": true
+            },
+            {
+              "country": "Switzerland",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9161677360534668,
+              "ci80_lo": 0.8537830710411072,
+              "ci80_hi": 0.9638466238975525,
+              "ci80_covered": true
+            },
+            {
+              "country": "Belgium",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.8271803259849548,
+              "ci80_lo": 0.670559823513031,
+              "ci80_hi": 0.9437377452850342,
+              "ci80_covered": true
+            },
+            {
+              "country": "Croatia",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.6937763690948486,
+              "ci80_lo": 0.3614857494831085,
+              "ci80_hi": 0.9094758033752441,
+              "ci80_covered": true
+            },
+            {
+              "country": "Albania",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.41827693581581116,
+              "ci80_lo": 0.2085369974374771,
+              "ci80_hi": 0.643324613571167,
+              "ci80_covered": true
+            },
+            {
+              "country": "Poland",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.3756536841392517,
+              "ci80_lo": 0.1511041224002838,
+              "ci80_hi": 0.6140581965446472,
+              "ci80_covered": true
+            },
+            {
+              "country": "Georgia",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.35999372601509094,
+              "ci80_lo": 0.18263353407382965,
+              "ci80_hi": 0.5594357252120972,
+              "ci80_covered": true
+            },
+            {
+              "country": "Latvia",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.27746933698654175,
+              "ci80_lo": 0.1365847885608673,
+              "ci80_hi": 0.4402531385421753,
+              "ci80_covered": true
+            },
+            {
+              "country": "Netherlands",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.08007092773914337,
+              "ci80_lo": 0.03170469030737877,
+              "ci80_hi": 0.1421211063861847,
+              "ci80_covered": true
+            },
+            {
+              "country": "Romania",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.03753286227583885,
+              "ci80_lo": 0.02039594016969204,
+              "ci80_hi": 0.059939030557870865,
+              "ci80_covered": true
+            },
+            {
+              "country": "Azerbaijan",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.03445596992969513,
+              "ci80_lo": 0.01980982907116413,
+              "ci80_hi": 0.05617193132638931,
+              "ci80_covered": true
+            },
+            {
+              "country": "San Marino",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.02836235798895359,
+              "ci80_lo": 0.01677371934056282,
+              "ci80_hi": 0.04278117045760155,
+              "ci80_covered": true
+            },
+            {
+              "country": "Malta",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.02747618407011032,
+              "ci80_lo": 0.016790037974715233,
+              "ci80_hi": 0.04086536914110184,
+              "ci80_covered": true
+            },
+            {
+              "country": "Iceland",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.026446986943483353,
+              "ci80_lo": 0.015921130776405334,
+              "ci80_hi": 0.039736565202474594,
+              "ci80_covered": true
+            },
+            {
+              "country": "Greece",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.022764291614294052,
+              "ci80_lo": 0.014956136234104633,
+              "ci80_hi": 0.03318500891327858,
+              "ci80_covered": true
+            },
+            {
+              "country": "Denmark",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.022450067102909088,
+              "ci80_lo": 0.01422571949660778,
+              "ci80_hi": 0.0328800342977047,
+              "ci80_covered": true
+            },
+            {
+              "country": "Ireland",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.018068790435791016,
+              "ci80_lo": 0.0127845024690032,
+              "ci80_hi": 0.024208620190620422,
+              "ci80_covered": true
+            }
+          ]
+        },
+        "lgbm": {
+          "best_params": {
+            "learning_rate": 0.1,
+            "min_child_samples": 5,
+            "n_estimators": 100,
+            "num_leaves": 31,
+            "subsample": 0.8
+          },
+          "qual_accuracy_sf1": 1.0,
+          "qual_accuracy_sf2": 1.0,
+          "qual_accuracy_overall": 1.0,
+          "ci80_empirical_coverage": 1.0,
+          "kpi_sf1_pass": true,
+          "kpi_sf2_pass": true,
+          "kpi_ci80_pass": true,
+          "country_detail": [
+            {
+              "country": "Finland",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.999976547912104,
+              "ci80_lo": 0.9999709156461173,
+              "ci80_hi": 0.9999824818377053,
+              "ci80_covered": true
+            },
+            {
+              "country": "Israel",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.999973664279467,
+              "ci80_lo": 0.9999682746212567,
+              "ci80_hi": 0.9999824712463805,
+              "ci80_covered": true
+            },
+            {
+              "country": "Norway",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9999725457906907,
+              "ci80_lo": 0.9999602771266634,
+              "ci80_hi": 0.9999820694124866,
+              "ci80_covered": true
+            },
+            {
+              "country": "Czech Republic",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.999970160075211,
+              "ci80_lo": 0.9999657228689983,
+              "ci80_hi": 0.9999825384279063,
+              "ci80_covered": true
+            },
+            {
+              "country": "Cyprus",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9999171383425594,
+              "ci80_lo": 0.9998819389970197,
+              "ci80_hi": 0.9999798258083064,
+              "ci80_covered": true
+            },
+            {
+              "country": "Serbia",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9999126202477826,
+              "ci80_lo": 0.9998773659136362,
+              "ci80_hi": 0.9999804602015295,
+              "ci80_covered": true
+            },
+            {
+              "country": "Portugal",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9998498331166995,
+              "ci80_lo": 0.9998341752722407,
+              "ci80_hi": 0.9999785899134205,
+              "ci80_covered": true
+            },
+            {
+              "country": "Estonia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.99983026944023,
+              "ci80_lo": 0.9998934638856526,
+              "ci80_hi": 0.9999800715322862,
+              "ci80_covered": true
+            },
+            {
+              "country": "Sweden",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9998102020414271,
+              "ci80_lo": 0.9999352784077945,
+              "ci80_hi": 0.9999822330883168,
+              "ci80_covered": true
+            },
+            {
+              "country": "Moldova",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9997288332056646,
+              "ci80_lo": 0.9996134065105329,
+              "ci80_hi": 0.9999765373114792,
+              "ci80_covered": true
+            },
+            {
+              "country": "Austria",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9996215348485178,
+              "ci80_lo": 0.9999541107161548,
+              "ci80_hi": 0.9999822791803863,
+              "ci80_covered": true
+            },
+            {
+              "country": "Switzerland",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9994355372038444,
+              "ci80_lo": 0.9993453138131685,
+              "ci80_hi": 0.9999734770256753,
+              "ci80_covered": true
+            },
+            {
+              "country": "Slovenia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9990715103350454,
+              "ci80_lo": 0.9999573198927784,
+              "ci80_hi": 0.999982448501803,
+              "ci80_covered": true
+            },
+            {
+              "country": "Armenia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9990377625273258,
+              "ci80_lo": 0.9999497143516616,
+              "ci80_hi": 0.9999823078084946,
+              "ci80_covered": true
+            },
+            {
+              "country": "Lithuania",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9985085062234765,
+              "ci80_lo": 0.9997783921427367,
+              "ci80_hi": 0.9999794344790034,
+              "ci80_covered": true
+            },
+            {
+              "country": "Australia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9976156813823249,
+              "ci80_lo": 0.999888904096951,
+              "ci80_hi": 0.9999802831444989,
+              "ci80_covered": true
+            },
+            {
+              "country": "Belgium",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9342825875971454,
+              "ci80_lo": 0.9281665495788314,
+              "ci80_hi": 0.9999616362386333,
+              "ci80_covered": true
+            },
+            {
+              "country": "Croatia",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.8238567723292267,
+              "ci80_lo": 0.0008795262814068413,
+              "ci80_hi": 0.999966858096885,
+              "ci80_covered": true
+            },
+            {
+              "country": "Albania",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.7803385695141764,
+              "ci80_lo": 0.0002694314910185351,
+              "ci80_hi": 0.999617800803868,
+              "ci80_covered": true
+            },
+            {
+              "country": "Poland",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.6989051614532378,
+              "ci80_lo": 7.06595537493321e-05,
+              "ci80_hi": 0.9996496333972916,
+              "ci80_covered": true
+            },
+            {
+              "country": "Georgia",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.15284944005091652,
+              "ci80_lo": 0.00020535937115917648,
+              "ci80_hi": 0.7490021327685934,
+              "ci80_covered": true
+            },
+            {
+              "country": "Latvia",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.06974710562002749,
+              "ci80_lo": 0.00012341706212225793,
+              "ci80_hi": 0.1733749710212529,
+              "ci80_covered": true
+            },
+            {
+              "country": "Netherlands",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.009433637160875138,
+              "ci80_lo": 2.8953189577825943e-05,
+              "ci80_hi": 0.002798536638010322,
+              "ci80_covered": true
+            },
+            {
+              "country": "Romania",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.002574528452612982,
+              "ci80_lo": 2.4159544110571923e-05,
+              "ci80_hi": 0.00013270766901704977,
+              "ci80_covered": true
+            },
+            {
+              "country": "Azerbaijan",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.00027461173170586605,
+              "ci80_lo": 2.141600517133578e-05,
+              "ci80_hi": 7.972353602651764e-05,
+              "ci80_covered": true
+            },
+            {
+              "country": "San Marino",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.00024292336285629235,
+              "ci80_lo": 2.3486587703078228e-05,
+              "ci80_hi": 6.674209938320348e-05,
+              "ci80_covered": true
+            },
+            {
+              "country": "Iceland",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 5.429340463578741e-05,
+              "ci80_lo": 2.347899216258975e-05,
+              "ci80_hi": 6.51772510013277e-05,
+              "ci80_covered": true
+            },
+            {
+              "country": "Denmark",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 4.785398723915354e-05,
+              "ci80_lo": 2.2941587111928514e-05,
+              "ci80_hi": 5.034605075943987e-05,
+              "ci80_covered": true
+            },
+            {
+              "country": "Malta",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 4.2991176800286964e-05,
+              "ci80_lo": 2.370384848730707e-05,
+              "ci80_hi": 6.176583034367808e-05,
+              "ci80_covered": true
+            },
+            {
+              "country": "Greece",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 2.9646821735574704e-05,
+              "ci80_lo": 2.245509872469491e-05,
+              "ci80_hi": 3.438705986020438e-05,
+              "ci80_covered": true
+            },
+            {
+              "country": "Ireland",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 2.6385872401211387e-05,
+              "ci80_lo": 2.270876682635021e-05,
+              "ci80_hi": 2.894869885768061e-05,
+              "ci80_covered": true
+            }
+          ]
+        }
+      }
+    },
+    "2024": {
+      "year": 2024,
+      "n_train": 243,
+      "n_test": 31,
+      "train_years": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2021,
+        2022,
+        2023
+      ],
+      "models": {
+        "xgb": {
+          "best_params": {
+            "colsample_bytree": 0.8,
+            "learning_rate": 0.05,
+            "max_depth": 3,
+            "n_estimators": 100,
+            "subsample": 0.8
+          },
+          "qual_accuracy_sf1": 1.0,
+          "qual_accuracy_sf2": 0.9,
+          "qual_accuracy_overall": 0.95,
+          "ci80_empirical_coverage": 0.967741935483871,
+          "kpi_sf1_pass": true,
+          "kpi_sf2_pass": true,
+          "kpi_ci80_pass": true,
+          "country_detail": [
+            {
+              "country": "Lithuania",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9845923781394958,
+              "ci80_lo": 0.9788045287132263,
+              "ci80_hi": 0.9894094467163086,
+              "ci80_covered": true
+            },
+            {
+              "country": "Norway",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9824730157852173,
+              "ci80_lo": 0.9749056696891785,
+              "ci80_hi": 0.9883719086647034,
+              "ci80_covered": true
+            },
+            {
+              "country": "Austria",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9804067015647888,
+              "ci80_lo": 0.9737563133239746,
+              "ci80_hi": 0.9881879687309265,
+              "ci80_covered": true
+            },
+            {
+              "country": "Croatia",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9792279005050659,
+              "ci80_lo": 0.9690788984298706,
+              "ci80_hi": 0.9876245856285095,
+              "ci80_covered": true
+            },
+            {
+              "country": "Ukraine",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9778664112091064,
+              "ci80_lo": 0.9677627086639404,
+              "ci80_hi": 0.9863359928131104,
+              "ci80_covered": true
+            },
+            {
+              "country": "Greece",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.966698408126831,
+              "ci80_lo": 0.9451035857200623,
+              "ci80_hi": 0.983431875705719,
+              "ci80_covered": true
+            },
+            {
+              "country": "Serbia",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.965229868888855,
+              "ci80_lo": 0.9455777406692505,
+              "ci80_hi": 0.9806194305419922,
+              "ci80_covered": true
+            },
+            {
+              "country": "Switzerland",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9600570797920227,
+              "ci80_lo": 0.9308130741119385,
+              "ci80_hi": 0.9838348627090454,
+              "ci80_covered": true
+            },
+            {
+              "country": "Georgia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9579776525497437,
+              "ci80_lo": 0.9358733296394348,
+              "ci80_hi": 0.9753594398498535,
+              "ci80_covered": true
+            },
+            {
+              "country": "Armenia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.953916072845459,
+              "ci80_lo": 0.9276212453842163,
+              "ci80_hi": 0.9749432802200317,
+              "ci80_covered": true
+            },
+            {
+              "country": "Cyprus",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9524208307266235,
+              "ci80_lo": 0.925200879573822,
+              "ci80_hi": 0.9730339646339417,
+              "ci80_covered": true
+            },
+            {
+              "country": "Estonia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9502289891242981,
+              "ci80_lo": 0.9239317774772644,
+              "ci80_hi": 0.9730595350265503,
+              "ci80_covered": true
+            },
+            {
+              "country": "Luxembourg",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9496451616287231,
+              "ci80_lo": 0.9214702248573303,
+              "ci80_hi": 0.9748781323432922,
+              "ci80_covered": true
+            },
+            {
+              "country": "Slovenia",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.948564887046814,
+              "ci80_lo": 0.920067310333252,
+              "ci80_hi": 0.9722898602485657,
+              "ci80_covered": true
+            },
+            {
+              "country": "Israel",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.8948065042495728,
+              "ci80_lo": 0.8138613700866699,
+              "ci80_hi": 0.9549659490585327,
+              "ci80_covered": true
+            },
+            {
+              "country": "Belgium",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.8877382278442383,
+              "ci80_lo": 0.8118618130683899,
+              "ci80_hi": 0.9496734142303467,
+              "ci80_covered": false
+            },
+            {
+              "country": "Netherlands",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.8846888542175293,
+              "ci80_lo": 0.8035191893577576,
+              "ci80_hi": 0.9483370780944824,
+              "ci80_covered": true
+            },
+            {
+              "country": "Ireland",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.7692652344703674,
+              "ci80_lo": 0.5869629383087158,
+              "ci80_hi": 0.8975106477737427,
+              "ci80_covered": true
+            },
+            {
+              "country": "Portugal",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.675540030002594,
+              "ci80_lo": 0.42742690443992615,
+              "ci80_hi": 0.8688840866088867,
+              "ci80_covered": true
+            },
+            {
+              "country": "Latvia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.4816392958164215,
+              "ci80_lo": 0.2517071068286896,
+              "ci80_hi": 0.7260511517524719,
+              "ci80_covered": true
+            },
+            {
+              "country": "Finland",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.44527173042297363,
+              "ci80_lo": 0.21724136173725128,
+              "ci80_hi": 0.6774426102638245,
+              "ci80_covered": true
+            },
+            {
+              "country": "Denmark",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.23078025877475739,
+              "ci80_lo": 0.1014920100569725,
+              "ci80_hi": 0.382085919380188,
+              "ci80_covered": true
+            },
+            {
+              "country": "Czech Republic",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.18524688482284546,
+              "ci80_lo": 0.08072111755609512,
+              "ci80_hi": 0.3199179470539093,
+              "ci80_covered": true
+            },
+            {
+              "country": "Poland",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.13785885274410248,
+              "ci80_lo": 0.055879514664411545,
+              "ci80_hi": 0.24967680871486664,
+              "ci80_covered": true
+            },
+            {
+              "country": "Moldova",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.03880249708890915,
+              "ci80_lo": 0.01772942952811718,
+              "ci80_hi": 0.06759687513113022,
+              "ci80_covered": true
+            },
+            {
+              "country": "Azerbaijan",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.03875809535384178,
+              "ci80_lo": 0.018410958349704742,
+              "ci80_hi": 0.06583141535520554,
+              "ci80_covered": true
+            },
+            {
+              "country": "San Marino",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.03277090564370155,
+              "ci80_lo": 0.01844434253871441,
+              "ci80_hi": 0.04906356334686279,
+              "ci80_covered": true
+            },
+            {
+              "country": "Australia",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.03247850760817528,
+              "ci80_lo": 0.018688753247261047,
+              "ci80_hi": 0.050007473677396774,
+              "ci80_covered": true
+            },
+            {
+              "country": "Malta",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.028255801647901535,
+              "ci80_lo": 0.01662391610443592,
+              "ci80_hi": 0.04180493950843811,
+              "ci80_covered": true
+            },
+            {
+              "country": "Albania",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.02612151764333248,
+              "ci80_lo": 0.014860816299915314,
+              "ci80_hi": 0.04069177061319351,
+              "ci80_covered": true
+            },
+            {
+              "country": "Iceland",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.023921776562929153,
+              "ci80_lo": 0.014260907657444477,
+              "ci80_hi": 0.0371122807264328,
+              "ci80_covered": true
+            }
+          ]
+        },
+        "lgbm": {
+          "best_params": {
+            "learning_rate": 0.1,
+            "min_child_samples": 5,
+            "n_estimators": 100,
+            "num_leaves": 31,
+            "subsample": 0.8
+          },
+          "qual_accuracy_sf1": 1.0,
+          "qual_accuracy_sf2": 0.9,
+          "qual_accuracy_overall": 0.95,
+          "ci80_empirical_coverage": 0.967741935483871,
+          "kpi_sf1_pass": true,
+          "kpi_sf2_pass": true,
+          "kpi_ci80_pass": true,
+          "country_detail": [
+            {
+              "country": "Lithuania",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9999777449728131,
+              "ci80_lo": 0.9999716630382051,
+              "ci80_hi": 0.9999826990445971,
+              "ci80_covered": true
+            },
+            {
+              "country": "Norway",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9999764129227905,
+              "ci80_lo": 0.9999687286332546,
+              "ci80_hi": 0.9999826986301362,
+              "ci80_covered": true
+            },
+            {
+              "country": "Croatia",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9999732308535487,
+              "ci80_lo": 0.9999680771554688,
+              "ci80_hi": 0.9999831457998745,
+              "ci80_covered": true
+            },
+            {
+              "country": "Ukraine",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9999626607660267,
+              "ci80_lo": 0.9999567362573238,
+              "ci80_hi": 0.9999825425171244,
+              "ci80_covered": true
+            },
+            {
+              "country": "Luxembourg",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9999338481503572,
+              "ci80_lo": 0.9999006462360667,
+              "ci80_hi": 0.999980755178677,
+              "ci80_covered": true
+            },
+            {
+              "country": "Georgia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9999319052064656,
+              "ci80_lo": 0.999888568772071,
+              "ci80_hi": 0.9999804252089574,
+              "ci80_covered": true
+            },
+            {
+              "country": "Serbia",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9999282906993748,
+              "ci80_lo": 0.9999079345179565,
+              "ci80_hi": 0.999980893742173,
+              "ci80_covered": true
+            },
+            {
+              "country": "Armenia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9999212466538026,
+              "ci80_lo": 0.9998638525634367,
+              "ci80_hi": 0.9999796900955515,
+              "ci80_covered": true
+            },
+            {
+              "country": "Slovenia",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9998804546938627,
+              "ci80_lo": 0.999875694925265,
+              "ci80_hi": 0.9999793557676998,
+              "ci80_covered": true
+            },
+            {
+              "country": "Estonia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.999843135148963,
+              "ci80_lo": 0.9998696035133464,
+              "ci80_hi": 0.9999799057124173,
+              "ci80_covered": true
+            },
+            {
+              "country": "Cyprus",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9998226389561458,
+              "ci80_lo": 0.999876260131436,
+              "ci80_hi": 0.9999796304420224,
+              "ci80_covered": true
+            },
+            {
+              "country": "Switzerland",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9992909144925175,
+              "ci80_lo": 0.9997860185769861,
+              "ci80_hi": 0.9999819399355262,
+              "ci80_covered": true
+            },
+            {
+              "country": "Greece",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9992194842619203,
+              "ci80_lo": 0.9997245614896535,
+              "ci80_hi": 0.9999809595580809,
+              "ci80_covered": true
+            },
+            {
+              "country": "Austria",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9984332105462433,
+              "ci80_lo": 0.9999566327004799,
+              "ci80_hi": 0.9999829645297099,
+              "ci80_covered": true
+            },
+            {
+              "country": "Israel",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9795268979129605,
+              "ci80_lo": 0.9890826764238108,
+              "ci80_hi": 0.9999486890803018,
+              "ci80_covered": true
+            },
+            {
+              "country": "Belgium",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.9761924147297373,
+              "ci80_lo": 0.9860638029983125,
+              "ci80_hi": 0.9999428112541807,
+              "ci80_covered": false
+            },
+            {
+              "country": "Netherlands",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.9757566551847799,
+              "ci80_lo": 0.986804308769739,
+              "ci80_hi": 0.9999428656939422,
+              "ci80_covered": true
+            },
+            {
+              "country": "Portugal",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9597979806217466,
+              "ci80_lo": 0.985713144301235,
+              "ci80_hi": 0.999950970093338,
+              "ci80_covered": true
+            },
+            {
+              "country": "Ireland",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.9556072447989845,
+              "ci80_lo": 0.9213440660009972,
+              "ci80_hi": 0.9998874365469557,
+              "ci80_covered": true
+            },
+            {
+              "country": "Latvia",
+              "semi_final": 2.0,
+              "y_actual": 1,
+              "prob_mean": 0.735585893690057,
+              "ci80_lo": 0.0021565576305153118,
+              "ci80_hi": 0.9998307169413929,
+              "ci80_covered": true
+            },
+            {
+              "country": "Finland",
+              "semi_final": 1.0,
+              "y_actual": 1,
+              "prob_mean": 0.5001433736899821,
+              "ci80_lo": 0.00026379597296568105,
+              "ci80_hi": 0.9978461021642744,
+              "ci80_covered": true
+            },
+            {
+              "country": "Czech Republic",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.060965061179352215,
+              "ci80_lo": 8.046096344656242e-05,
+              "ci80_hi": 0.12028862835739228,
+              "ci80_covered": true
+            },
+            {
+              "country": "Denmark",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.04849152230019696,
+              "ci80_lo": 8.171160046111326e-05,
+              "ci80_hi": 0.07312615460398354,
+              "ci80_covered": true
+            },
+            {
+              "country": "Poland",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.04061582026334206,
+              "ci80_lo": 3.43133654060477e-05,
+              "ci80_hi": 0.02270214884484774,
+              "ci80_covered": true
+            },
+            {
+              "country": "Azerbaijan",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.005186251485569325,
+              "ci80_lo": 2.5418864548325094e-05,
+              "ci80_hi": 0.00025271402628826764,
+              "ci80_covered": true
+            },
+            {
+              "country": "Albania",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.005068607157881074,
+              "ci80_lo": 2.4535448480898e-05,
+              "ci80_hi": 0.0001267163555479921,
+              "ci80_covered": true
+            },
+            {
+              "country": "Moldova",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.004669133831183409,
+              "ci80_lo": 2.5176775399728676e-05,
+              "ci80_hi": 0.0002324038695544058,
+              "ci80_covered": true
+            },
+            {
+              "country": "San Marino",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.0023314344576409957,
+              "ci80_lo": 2.5387699212429973e-05,
+              "ci80_hi": 0.00011058424213093181,
+              "ci80_covered": true
+            },
+            {
+              "country": "Malta",
+              "semi_final": 2.0,
+              "y_actual": 0,
+              "prob_mean": 0.001071302974731365,
+              "ci80_lo": 2.5196493704508726e-05,
+              "ci80_hi": 9.766085473346598e-05,
+              "ci80_covered": true
+            },
+            {
+              "country": "Iceland",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 0.00012781165232971032,
+              "ci80_lo": 2.435081537723805e-05,
+              "ci80_hi": 6.130958429032977e-05,
+              "ci80_covered": true
+            },
+            {
+              "country": "Australia",
+              "semi_final": 1.0,
+              "y_actual": 0,
+              "prob_mean": 4.717050276580657e-05,
+              "ci80_lo": 2.448561561890311e-05,
+              "ci80_hi": 6.831033956234374e-05,
+              "ci80_covered": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  "aggregate": {
+    "xgb": {
+      "avg_qual_accuracy_sf1": 0.9666666666666667,
+      "avg_qual_accuracy_sf2": 0.9666666666666667,
+      "avg_qual_accuracy_overall": 0.9666666666666667,
+      "avg_ci80_empirical_coverage": 0.9606758832565284,
+      "all_sf1_kpi_pass": true,
+      "all_sf2_kpi_pass": true,
+      "all_ci80_kpi_pass": true
+    },
+    "lgbm": {
+      "avg_qual_accuracy_sf1": 1.0,
+      "avg_qual_accuracy_sf2": 0.9666666666666667,
+      "avg_qual_accuracy_overall": 0.9833333333333334,
+      "avg_ci80_empirical_coverage": 0.989247311827957,
+      "all_sf1_kpi_pass": true,
+      "all_sf2_kpi_pass": true,
+      "all_ci80_kpi_pass": true
+    }
+  }
+}

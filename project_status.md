@@ -75,6 +75,7 @@
 | Story | Description | Status |
 |-------|-------------|--------|
 | US-S6-01 | Backtest 2022/23/24 — train < year, Top-10 acc + CI calibration per year (`src/models/backtest.py`) | Done — XGB 80/70/70% top-10; CI-80 coverage 92/88/88%; all KPIs PASS ✅ |
+| US-S6-01b | Semi-final qualification backtest 2022/23/24 — separate binary classifier, target Grand_Final_Ind (`src/models/backtest_semi.py`) | Done — XGB avg 97% qual acc; LGBM avg 98%; CI-80 coverage 96/99%; all KPIs PASS ✅ |
 
 ---
 
