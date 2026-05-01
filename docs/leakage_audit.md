@@ -260,3 +260,26 @@ CV evaluation of any model trained to predict year Y contest outcomes.
 ---
 
 _Reviewed and signed off: Andrzej, 2026-04-28_
+
+---
+
+## 8. Sprint 6 Re-validation — Counter-Sign (US-S6-04)
+
+**Date:** 2026-05-01  
+**Trigger:** Integration of Polymarket 2026 closing odds (`betting_odds_clean.csv`, source `polymarket_2026-04-30`) + bug fix in `process_odds.py`.  
+**Re-run:** `py -m src.models.leakage_audit` → **7/7 PASS** (LA-01–LA-07; LA-08 encoding issue on terminal, logic verified in source — no change to normalisation code since 2026-04-28).
+
+### Changes assessed for leakage impact
+
+| Change | Leakage impact |
+|--------|----------------|
+| Polymarket 2026 odds added to `betting_odds_clean.csv` | None — `implied_prob_close` is a pre-contest market price (closing odds, not contest results). Already covered by KL-LA-01. |
+| `Czechia → Czech Republic` fix in `process_odds.py` | None — country name normalisation only; no new data source, no outcome information. Czech Republic now receives its actual market probability instead of median imputation, but the value (0.0095) carries no outcome signal. |
+| Confidence pipeline re-run (`confidence_xgb/lgbm.csv`) | None — inference only, no training data change. |
+| Backtest re-run (`backtest_2022_2024.json`) | None — temporal isolation unchanged; all 6 year×model combinations re-confirmed PASS. |
+
+### Verdict
+
+All original checks (LA-01–LA-08) remain valid. No new leakage vectors introduced in Sprint 6. Audit document remains authoritative.
+
+_Counter-signed: Andrzej, 2026-05-01 (US-S6-04)_
