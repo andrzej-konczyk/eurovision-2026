@@ -70,6 +70,20 @@ COUNTRY_ISO3: dict[str, str] = {
     "N.Macedonia North Macedonia": "MKD",
 }
 
+# Maps source aliases → canonical name used in enriched CSV
+COUNTRY_CANONICAL: dict[str, str] = {
+    "Czechia": "Czech Republic",
+    "UK": "United Kingdom",
+    "UK United Kingdom": "United Kingdom",
+    "Great Britain": "United Kingdom",
+    "FYR Macedonia": "North Macedonia",
+    "N.Macedonia North Macedonia": "North Macedonia",
+}
+
+
+def _canonical(name: str) -> str:
+    return COUNTRY_CANONICAL.get(name, name)
+
 
 def _load_primary() -> pd.DataFrame:
     for enc in ("utf-8-sig", "utf-8", "latin-1"):
@@ -111,10 +125,11 @@ def process_primary() -> pd.DataFrame:
     records = []
     for _, row in raw.iterrows():
         odds_close, n_bk = _consensus_odds(row)
+        _name = _canonical(str(row["country"]).strip())
         records.append({
             "year":         int(row["year"]),
-            "country":      str(row["country"]).strip(),
-            "country_code": COUNTRY_ISO3.get(str(row["country"]).strip()),
+            "country":      _name,
+            "country_code": COUNTRY_ISO3.get(_name),
             "odds_open":    None,   # not available from primary source
             "odds_close":   odds_close,
             "implied_prob": None,   # filled by normalisation
@@ -146,10 +161,11 @@ def ingest_client_file(path: Path) -> tuple[pd.DataFrame, str]:
 
     records = []
     for _, row in raw.iterrows():
+        _name = _canonical(str(row["country"]).strip())
         records.append({
             "year":         int(row["year"]),
-            "country":      str(row["country"]).strip(),
-            "country_code": COUNTRY_ISO3.get(str(row["country"]).strip()),
+            "country":      _name,
+            "country_code": COUNTRY_ISO3.get(_name),
             "odds_open":    float(row["odds_open"])  if has_open  and pd.notna(row.get("odds_open"))  else None,
             "odds_close":   float(row["odds_close"]) if has_close and pd.notna(row.get("odds_close")) else None,
             "implied_prob": None,
