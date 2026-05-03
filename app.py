@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from html import escape
 from pathlib import Path
 from time import perf_counter
 from typing import Any
@@ -17,6 +18,7 @@ REPORTS_DIR = APP_ROOT / "reports"
 PREDICTIONS_JSON = REPORTS_DIR / "predictions_2026.json"
 NARRATIVES_JSON = REPORTS_DIR / "narratives_2026.json"
 BACKTEST_JSON = REPORTS_DIR / "backtest_2022_2024.json"
+SEMI_PREDICTIONS_JSON = REPORTS_DIR / "semi_predictions_2026.json"
 
 
 @st.cache_data(show_spinner=False)
@@ -40,6 +42,8 @@ def load_dashboard_data() -> dict[str, Any]:
         "narratives_path": str(NARRATIVES_JSON.relative_to(APP_ROOT)),
         "backtest": load_json(str(BACKTEST_JSON), BACKTEST_JSON.stat().st_mtime_ns),
         "backtest_path": str(BACKTEST_JSON.relative_to(APP_ROOT)),
+        "semi_predictions": load_json(str(SEMI_PREDICTIONS_JSON), SEMI_PREDICTIONS_JSON.stat().st_mtime_ns),
+        "semi_predictions_path": str(SEMI_PREDICTIONS_JSON.relative_to(APP_ROOT)),
     }
 
 
@@ -87,11 +91,12 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
     st.sidebar.title("Eurovision 2026")
     page = st.sidebar.radio(
         "Navigation",
-        ["Overview", "Predictions", "Narratives", "Backtest", "Data Health"],
+        ["Overview", "Predictions", "Semi Qualifiers", "Narratives", "Backtest", "Data Health"],
     )
     st.sidebar.divider()
     st.sidebar.caption("Loaded artifacts")
     st.sidebar.code(data["predictions_path"])
+    st.sidebar.code(data["semi_predictions_path"])
     st.sidebar.code(data["narratives_path"])
     st.sidebar.code(data["backtest_path"])
     st.sidebar.metric("Load time", f"{load_time_s:.3f}s")
@@ -199,6 +204,112 @@ def render_predictions(predictions: dict[str, Any], predictions_df: pd.DataFrame
     )
 
 
+def safe_float(value: Any) -> float | None:
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return None
+    if pd.isna(result):
+        return None
+    return result
+
+
+def probability_band(value: float | None) -> str:
+    if value is None:
+        return "missing"
+    if value >= 0.75:
+        return "high"
+    if value >= 0.4:
+        return "medium"
+    return "low"
+
+
+def render_ci_bar(lo: float | None, hi: float | None) -> str:
+    if lo is None or hi is None:
+        return '<span class="missing-text">n/a</span>'
+    left = max(0.0, min(100.0, lo * 100.0))
+    right = max(left, min(100.0, hi * 100.0))
+    width = max(1.0, right - left)
+    return (
+        '<div class="ci-track">'
+        f'<div class="ci-range" style="left:{left:.1f}%;width:{width:.1f}%"></div>'
+        "</div>"
+        f'<span class="ci-label">{lo:.2f}-{hi:.2f}</span>'
+    )
+
+
+def render_semi_table(rows: list[dict[str, Any]]) -> str:
+    table_rows = []
+    for row in rows:
+        prob = safe_float(row.get("prob_qualify"))
+        lo = safe_float(row.get("ci80_lo"))
+        hi = safe_float(row.get("ci80_hi"))
+        band = probability_band(prob)
+        prob_text = "n/a" if prob is None else f"{prob:.1%}"
+        country = escape(str(row.get("country") or "Unknown"))
+        flag = escape(str(row.get("flag") or ""))
+        rank = escape(str(row.get("rank_in_semi") or ""))
+        table_rows.append(
+            "<tr>"
+            f'<td class="rank-cell">{rank}</td>'
+            f'<td class="flag-cell">{flag}</td>'
+            f"<td>{country}</td>"
+            f'<td><span class="prob-pill {band}">{prob_text}</span></td>'
+            f"<td>{render_ci_bar(lo, hi)}</td>"
+            "</tr>"
+        )
+    return (
+        '<table class="semi-table">'
+        "<thead><tr><th>#</th><th>Flag</th><th>Country</th><th>prob_qualify</th><th>CI-80</th></tr></thead>"
+        f"<tbody>{''.join(table_rows)}</tbody>"
+        "</table>"
+    )
+
+
+def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
+    st.title("Semi Qualifiers")
+    rows = semi_predictions.get("countries", [])
+    if not isinstance(rows, list) or not rows:
+        st.warning("No semi-final qualification predictions found.")
+        return
+
+    show_all = st.toggle("Show all semi-finalists", value=False)
+    css = """
+    <style>
+    .semi-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .semi-table th { text-align: left; color: #4b5563; font-weight: 600; padding: 0.45rem 0.6rem; border-bottom: 1px solid #d1d5db; }
+    .semi-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
+    .semi-table th:nth-child(1), .semi-table td:nth-child(1) { width: 3rem; }
+    .semi-table th:nth-child(2), .semi-table td:nth-child(2) { width: 4rem; }
+    .semi-table th:nth-child(4), .semi-table td:nth-child(4) { width: 9rem; }
+    .semi-table th:nth-child(5), .semi-table td:nth-child(5) { width: 16rem; }
+    .rank-cell { color: #6b7280; font-variant-numeric: tabular-nums; }
+    .flag-cell { font-size: 1.2rem; }
+    .prob-pill { display: inline-block; min-width: 4.7rem; text-align: center; border-radius: 6px; padding: 0.18rem 0.45rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .prob-pill.high { background: #dcfce7; color: #166534; }
+    .prob-pill.medium { background: #fef3c7; color: #92400e; }
+    .prob-pill.low { background: #fee2e2; color: #991b1b; }
+    .prob-pill.missing { background: #f3f4f6; color: #6b7280; }
+    .ci-track { position: relative; display: inline-block; width: 9rem; height: 0.6rem; margin-right: 0.65rem; border-radius: 999px; background: #e5e7eb; vertical-align: middle; }
+    .ci-range { position: absolute; top: 0; height: 100%; border-radius: 999px; background: #2563eb; }
+    .ci-label { color: #4b5563; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+    .missing-text { color: #6b7280; }
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
+
+    tabs = st.tabs(["SF1", "SF2"])
+    for index, semi_final in enumerate((1, 2)):
+        with tabs[index]:
+            sf_rows = [
+                row for row in rows
+                if int(row.get("semi_final") or 0) == semi_final
+                and (show_all or bool(row.get("predicted_qualifier")))
+            ]
+            sf_rows = sorted(sf_rows, key=lambda row: row.get("rank_in_semi") or 999)
+            st.markdown(render_semi_table(sf_rows), unsafe_allow_html=True)
+
+
 def render_narratives(narratives: dict[str, Any]) -> None:
     st.title("Narratives")
     countries = narratives.get("countries", [])
@@ -245,6 +356,7 @@ def render_data_health(data: dict[str, Any], load_time_s: float) -> None:
     checks = pd.DataFrame(
         [
             {"check": "Predictions JSON", "path": data["predictions_path"], "loaded": bool(data["predictions"])},
+            {"check": "Semi predictions JSON", "path": data["semi_predictions_path"], "loaded": bool(data["semi_predictions"])},
             {"check": "Narratives JSON", "path": data["narratives_path"], "loaded": bool(data["narratives"])},
             {"check": "Backtest JSON", "path": data["backtest_path"], "loaded": bool(data["backtest"])},
             {"check": "Load KPI < 2s", "path": "runtime", "loaded": load_time_s < 2.0},
@@ -270,6 +382,8 @@ def main() -> None:
         render_overview(data, predictions_df)
     elif page == "Predictions":
         render_predictions(data["predictions"], predictions_df)
+    elif page == "Semi Qualifiers":
+        render_semi_qualifiers(data["semi_predictions"])
     elif page == "Narratives":
         render_narratives(data["narratives"])
     elif page == "Backtest":
