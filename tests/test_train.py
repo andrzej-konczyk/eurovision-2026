@@ -8,9 +8,11 @@ import pytest
 from src.models.train import (
     FEATURE_COLS,
     LGBM_GRID,
+    SEMI_ODDS_CSV,
     TARGET_COL,
     XGB_GRID,
     _ENGINEERED_FEATURES,
+    _derive_semi_odds_proxy,
     build_feature_matrix,
     run_grid_search,
     training_split,
@@ -84,6 +86,41 @@ def test_build_feature_matrix_returns_dataframe(matrix: pd.DataFrame) -> None:
 def test_build_feature_matrix_has_engineered_cols(matrix: pd.DataFrame) -> None:
     for col in _ENGINEERED_FEATURES:
         assert col in matrix.columns, f"Missing engineered column: {col}"
+
+
+def test_build_feature_matrix_has_semi_odds_col(matrix: pd.DataFrame) -> None:
+    assert "implied_prob_semi" in matrix.columns
+
+
+def test_semi_odds_is_not_gf_feature() -> None:
+    assert "implied_prob_semi" not in FEATURE_COLS
+
+
+def test_default_semi_odds_path_is_separate_from_gf_odds() -> None:
+    assert SEMI_ODDS_CSV.name == "semi_odds_clean.csv"
+
+
+def test_derive_semi_odds_proxy_scales_within_semi(sample_df: pd.DataFrame) -> None:
+    odds = pd.DataFrame(
+        {
+            "Year": [2019, 2019],
+            "Country": ["Delta", "Epsilon"],
+            "implied_prob_close": [0.30, 0.10],
+        }
+    )
+    proxy = _derive_semi_odds_proxy(sample_df, odds)
+
+    rows = (
+        proxy[
+            (proxy["Year"] == 2019)
+            & proxy["Country"].isin(["Delta", "Epsilon"])
+            & proxy["implied_prob_semi"].notna()
+        ]
+        .set_index("Country")
+    )
+
+    assert rows.loc["Delta", "implied_prob_semi"] > rows.loc["Epsilon", "implied_prob_semi"]
+    assert rows["implied_prob_semi"].between(0.0, 0.995).all()
 
 
 def test_build_feature_matrix_row_count(sample_df: pd.DataFrame, matrix: pd.DataFrame) -> None:

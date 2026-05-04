@@ -4,8 +4,10 @@ US-S6-01b — Semi-final qualification backtest 2022 / 2023 / 2024.
 For each holdout year Y in {2022, 2023, 2024}:
   - Train on semi-final entries (Semi_Final_Num not NaN), years < Y.
   - Target: Grand_Final_Ind  (1 = qualified, 0 = eliminated).
-  - Features: FEATURE_COLS minus Running_Order_Final
-    (final running order is not known when semi-finalists are still competing).
+  - Features: FEATURE_COLS minus Running_Order_Final and implied_prob_close,
+    plus implied_prob_semi from semi-final qualification markets.
+    Final running order and Grand Final winner odds are not known / not
+    semantically appropriate while semi-finalists are still competing.
   - Grid search re-run inside each training window (strict temporal isolation).
   - Evaluate per semi-final (SF1 and SF2 separately):
         qual_accuracy = |predicted_top_10 ∩ actual_qualifiers| / 10
@@ -70,8 +72,11 @@ KPI_CI80_THRESHOLD = 0.80
 N_BOOTSTRAP = 1_000
 REPORTS_DIR = ROOT / "reports"
 
-# Semi-final feature set: drop Running_Order_Final — not known during semi.
-SEMI_FEATURE_COLS: list[str] = [c for c in FEATURE_COLS if c != "Running_Order_Final"]
+# Semi-final feature set: drop Grand Final-only signals and add SF market odds.
+SEMI_FEATURE_COLS: list[str] = [
+    c for c in FEATURE_COLS
+    if c not in {"Running_Order_Final", "implied_prob_close"}
+] + ["implied_prob_semi"]
 SEMI_TARGET = "Grand_Final_Ind"
 
 
@@ -352,7 +357,8 @@ def _build_markdown(year_results: list[dict], timestamp: str) -> str:
         f"*Generated: {timestamp[:10]}  |  n_bootstrap = {N_BOOTSTRAP}  |  K = {QUALIFIERS_PER_SEMI} per semi*",
         "",
         "Target: `Grand_Final_Ind` (qualified from semi = 1).  "
-        "Feature `Running_Order_Final` excluded (not known during semi).",
+        "Features `Running_Order_Final` and `implied_prob_close` excluded. "
+        "`implied_prob_semi` is used for semi-final qualification market odds.",
         "",
         "## Qualification Accuracy",
         "",
@@ -433,7 +439,11 @@ def run_semi_backtest(
 
     timestamp = datetime.now(timezone.utc).isoformat()
     print(f"\nUS-S6-01b Semi Backtest  years={years}  n_bootstrap={n_bootstrap}  seed={seed}")
-    print(f"Features: {len(SEMI_FEATURE_COLS)} (FEATURE_COLS minus Running_Order_Final)")
+    print(
+        "Features: "
+        f"{len(SEMI_FEATURE_COLS)} "
+        "(FEATURE_COLS minus Running_Order_Final/implied_prob_close, plus implied_prob_semi)"
+    )
 
     year_results: list[dict] = []
     for year in years:

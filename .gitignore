@@ -49,6 +49,12 @@ desktop.ini
 # Reports — commit profiling/backtest .md; ignore generated PDFs
 reports/*.pdf
 reports/*.html
+reports/shap_summary_*.png
+
+# Local planning/docs exports
+Feasbility Analysis/
+PRD/
+Project_Execution_documents/
 
 # Node (for Puppeteer/PDF export)
 node_modules/

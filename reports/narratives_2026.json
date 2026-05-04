@@ -1,44 +1,15 @@
 {
   "story": "US-S5-03",
-  "generated_at": "2026-04-29T18:05:58.919488+00:00",
+  "generated_at": "2026-05-04T15:18:43.183546+00:00",
   "target_year": 2026,
-  "model": "lgbm",
+  "model": "consensus_xgb_lgbm_post_polymarket",
   "n_countries": 35,
   "countries": [
     {
-      "country": "Sweden",
-      "probability": 0.9389,
-      "prediction": "top10",
-      "narrative": "Sweden is modelled as a strong Top-10 contender (model probability: 94%). Key positive signals are consistent jury-vote accumulation in recent contests and a strong historical semi-final qualification rate.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.5595
-        },
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 1.1805
-        },
-        {
-          "feature": "avg_jury_3yr",
-          "shap_value": 1.0498
-        },
-        {
-          "feature": "Qualification_Record",
-          "shap_value": 1.0003
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": 0.4752
-        }
-      ],
-      "negative_drivers": []
-    },
-    {
       "country": "Greece",
-      "probability": 0.9267,
+      "probability": 0.95,
       "prediction": "top10",
-      "narrative": "Greece is modelled as a strong Top-10 contender (model probability: 93%). Key positive signals are a strong historical semi-final qualification rate and a favourable Grand Final running-order position.",
+      "narrative": "Greece is modelled as a strong Top-10 contender (model probability: 95%). Key positive signals are a strong historical semi-final qualification rate and a favourable Grand Final running-order position.",
       "positive_drivers": [
         {
           "feature": "rule_2019_semifinal_reform",
@@ -65,9 +36,9 @@
     },
     {
       "country": "France",
-      "probability": 0.8981,
+      "probability": 0.9202,
       "prediction": "top10",
-      "narrative": "France is modelled as a strong Top-10 contender (model probability: 90%). Key positive signals are a favourable Grand Final running-order position and strong public televote support in recent years.",
+      "narrative": "France is modelled as a strong Top-10 contender (model probability: 92%). Key positive signals are a favourable Grand Final running-order position and strong public televote support in recent years.",
       "positive_drivers": [
         {
           "feature": "rule_2019_semifinal_reform",
@@ -93,160 +64,10 @@
       "negative_drivers": []
     },
     {
-      "country": "Australia",
-      "probability": 0.7135,
-      "prediction": "top10",
-      "narrative": "Australia is modelled as a strong Top-10 contender (model probability: 71%). Key positive signals are a favourable Grand Final running-order position and strong public televote support in recent years. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 2 positive, 1 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.3853
-        },
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 0.9649
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.8957
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": 0.6533
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -0.642
-        }
-      ]
-    },
-    {
-      "country": "Switzerland",
-      "probability": 0.6124,
-      "prediction": "top10",
-      "narrative": "Switzerland is modelled as a borderline Top-10 contender (model probability: 61%). Key positive signals are a favourable Grand Final running-order position and strong public televote support in recent years. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 2 positive, 1 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 1.2619
-        },
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.2513
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 1.0537
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": 0.6878
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -0.6629
-        }
-      ]
-    },
-    {
-      "country": "Ukraine",
-      "probability": 0.6052,
-      "prediction": "top10",
-      "narrative": "Ukraine is modelled as a borderline Top-10 contender (model probability: 61%). Key positive signals are consistent jury-vote accumulation in recent contests and a strong historical semi-final qualification rate. The main limiting factor is modest pre-contest fan community enthusiasm (MyESB community score). Net signal among top-5 drivers: 2 positive, 1 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.2518
-        },
-        {
-          "feature": "avg_jury_3yr",
-          "shap_value": 1.0295
-        },
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 0.9925
-        },
-        {
-          "feature": "Qualification_Record",
-          "shap_value": 0.4789
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "zscore_myesb_community",
-          "shap_value": -0.8549
-        }
-      ]
-    },
-    {
-      "country": "Austria",
-      "probability": 0.6048,
-      "prediction": "top10",
-      "narrative": "Austria is modelled as a borderline Top-10 contender (model probability: 60%). Key positive signals are strong personal fan ratings on MyESB and a favourable Grand Final running-order position. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 2 positive, 1 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.273
-        },
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 1.1388
-        },
-        {
-          "feature": "zscore_myesb_personal",
-          "shap_value": 0.9458
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.834
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -0.8008
-        }
-      ]
-    },
-    {
-      "country": "Croatia",
-      "probability": 0.5309,
-      "prediction": "top10",
-      "narrative": "Croatia is modelled as a borderline Top-10 contender (model probability: 53%). The primary positive signal is consistent jury-vote accumulation in recent contests. Limiting factors include modest personal fan ratings on MyESB and limited backing from the betting markets. Net signal among top-5 drivers: 1 positive, 2 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.3528
-        },
-        {
-          "feature": "avg_jury_3yr",
-          "shap_value": 0.9593
-        },
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 0.9362
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "zscore_myesb_personal",
-          "shap_value": -0.5396
-        },
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -0.4927
-        }
-      ]
-    },
-    {
       "country": "Finland",
-      "probability": 0.4886,
-      "prediction": "outside_top10",
-      "narrative": "Finland is modelled as a borderline Top-10 contender (model probability: 49%). The primary positive signal is consistent jury-vote accumulation in recent contests. Limiting factors include modest personal fan ratings on MyESB and limited backing from the betting markets. Net signal among top-5 drivers: 1 positive, 2 negative.",
+      "probability": 0.9183,
+      "prediction": "top10",
+      "narrative": "Finland is modelled as a strong Top-10 contender (model probability: 92%). The primary positive signal is consistent jury-vote accumulation in recent contests. Limiting factors include modest personal fan ratings on MyESB and limited backing from the betting markets. Net signal among top-5 drivers: 1 positive, 2 negative.",
       "positive_drivers": [
         {
           "feature": "rule_2019_semifinal_reform",
@@ -273,130 +94,10 @@
       ]
     },
     {
-      "country": "Italy",
-      "probability": 0.4571,
-      "prediction": "outside_top10",
-      "narrative": "Italy is modelled as a borderline Top-10 contender (model probability: 46%). Key positive signals are a favourable Grand Final running-order position and strong public televote support in recent years. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 2 positive, 1 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.2476
-        },
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 1.1538
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 1.0025
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": 0.7142
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -0.8195
-        }
-      ]
-    },
-    {
-      "country": "Malta",
-      "probability": 0.4534,
-      "prediction": "outside_top10",
-      "narrative": "Malta is modelled as a borderline Top-10 contender (model probability: 45%). Key positive signals are a favourable Grand Final running-order position and strong public televote support in recent years. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 2 positive, 1 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.2324
-        },
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 1.0174
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.9642
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": 0.646
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -0.7699
-        }
-      ]
-    },
-    {
-      "country": "Azerbaijan",
-      "probability": 0.431,
-      "prediction": "outside_top10",
-      "narrative": "Azerbaijan is modelled as a borderline Top-10 contender (model probability: 43%). Key positive signals are high pre-contest fan community enthusiasm (MyESB community score) and strong personal fan ratings on MyESB. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 3 positive, 1 negative.",
-      "positive_drivers": [
-        {
-          "feature": "zscore_myesb_community",
-          "shap_value": 1.2959
-        },
-        {
-          "feature": "zscore_myesb_personal",
-          "shap_value": 0.8886
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.7579
-        },
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 0.7579
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -0.8152
-        }
-      ]
-    },
-    {
-      "country": "Estonia",
-      "probability": 0.4243,
-      "prediction": "outside_top10",
-      "narrative": "Estonia is modelled as a borderline Top-10 contender (model probability: 42%). Key positive signals are high pre-contest fan community enthusiasm (MyESB community score) and a favourable Grand Final running-order position. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 3 positive, 1 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 1.0455
-        },
-        {
-          "feature": "zscore_myesb_community",
-          "shap_value": 1.04
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.876
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": 0.6361
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -0.8679
-        }
-      ]
-    },
-    {
       "country": "Israel",
-      "probability": 0.3265,
-      "prediction": "outside_top10",
-      "narrative": "Israel is modelled as unlikely to reach the Top 10 at current form (model probability: 33%). The primary positive signal is consistent jury-vote accumulation in recent contests. Limiting factors include limited backing from the betting markets and modest pre-contest fan community enthusiasm (MyESB community score). Net signal among top-5 drivers: 1 positive, 2 negative.",
+      "probability": 0.8853,
+      "prediction": "top10",
+      "narrative": "Israel is modelled as a strong Top-10 contender (model probability: 89%). The primary positive signal is consistent jury-vote accumulation in recent contests. Limiting factors include limited backing from the betting markets and modest pre-contest fan community enthusiasm (MyESB community score). Net signal among top-5 drivers: 1 positive, 2 negative.",
       "positive_drivers": [
         {
           "feature": "rule_2023_jury_weight_reform",
@@ -423,40 +124,219 @@
       ]
     },
     {
-      "country": "Belgium",
-      "probability": 0.2901,
-      "prediction": "outside_top10",
-      "narrative": "Belgium is modelled as unlikely to reach the Top 10 at current form (model probability: 29%). Key positive signals are a favourable Grand Final running-order position and strong public televote support in recent years. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 2 positive, 1 negative.",
+      "country": "Sweden",
+      "probability": 0.8696,
+      "prediction": "top10",
+      "narrative": "Sweden is modelled as a strong Top-10 contender (model probability: 87%). Key positive signals are consistent jury-vote accumulation in recent contests and a strong historical semi-final qualification rate.",
       "positive_drivers": [
         {
           "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.15
+          "shap_value": 1.5595
         },
         {
           "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 1.0186
+          "shap_value": 1.1805
         },
         {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.8639
+          "feature": "avg_jury_3yr",
+          "shap_value": 1.0498
+        },
+        {
+          "feature": "Qualification_Record",
+          "shap_value": 1.0003
         },
         {
           "feature": "avg_tele_3yr",
-          "shap_value": 0.5911
+          "shap_value": 0.4752
+        }
+      ],
+      "negative_drivers": []
+    },
+    {
+      "country": "Australia",
+      "probability": 0.8642,
+      "prediction": "top10",
+      "narrative": "Australia is modelled as a strong Top-10 contender (model probability: 86%). Key positive signals are a favourable Grand Final running-order position and strong public televote support in recent years. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 2 positive, 1 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.3853
+        },
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 0.9649
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.8957
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": 0.6533
         }
       ],
       "negative_drivers": [
         {
           "feature": "implied_prob_close",
-          "shap_value": -1.0217
+          "shap_value": -0.642
+        }
+      ]
+    },
+    {
+      "country": "Denmark",
+      "probability": 0.8372,
+      "prediction": "top10",
+      "narrative": "Denmark is modelled as a strong Top-10 contender (model probability: 84%). The primary positive signal is a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and modest personal fan ratings on MyESB. Net signal among top-5 drivers: 1 positive, 3 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.0259
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.3943
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.2953
+        },
+        {
+          "feature": "zscore_myesb_personal",
+          "shap_value": -0.8771
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": -0.5266
+        }
+      ]
+    },
+    {
+      "country": "Italy",
+      "probability": 0.835,
+      "prediction": "top10",
+      "narrative": "Italy is modelled as a strong Top-10 contender (model probability: 84%). Key positive signals are a favourable Grand Final running-order position and strong public televote support in recent years. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 2 positive, 1 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.2476
+        },
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 1.1538
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 1.0025
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": 0.7142
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -0.8195
+        }
+      ]
+    },
+    {
+      "country": "Ukraine",
+      "probability": 0.7559,
+      "prediction": "top10",
+      "narrative": "Ukraine is modelled as a strong Top-10 contender (model probability: 76%). Key positive signals are consistent jury-vote accumulation in recent contests and a strong historical semi-final qualification rate. The main limiting factor is modest pre-contest fan community enthusiasm (MyESB community score). Net signal among top-5 drivers: 2 positive, 1 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.2518
+        },
+        {
+          "feature": "avg_jury_3yr",
+          "shap_value": 1.0295
+        },
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 0.9925
+        },
+        {
+          "feature": "Qualification_Record",
+          "shap_value": 0.4789
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "zscore_myesb_community",
+          "shap_value": -0.8549
+        }
+      ]
+    },
+    {
+      "country": "Romania",
+      "probability": 0.6996,
+      "prediction": "top10",
+      "narrative": "Romania is modelled as a strong Top-10 contender (model probability: 70%). The primary positive signal is consistent jury-vote accumulation in recent contests. Limiting factors include limited backing from the betting markets and modest personal fan ratings on MyESB. Net signal among top-5 drivers: 1 positive, 3 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.2638
+        },
+        {
+          "feature": "avg_jury_3yr",
+          "shap_value": 0.514
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.0282
+        },
+        {
+          "feature": "zscore_myesb_personal",
+          "shap_value": -0.6681
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": -0.6013
+        }
+      ]
+    },
+    {
+      "country": "Malta",
+      "probability": 0.5864,
+      "prediction": "top10",
+      "narrative": "Malta is modelled as a borderline Top-10 contender (model probability: 59%). Key positive signals are a favourable Grand Final running-order position and strong public televote support in recent years. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 2 positive, 1 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.2324
+        },
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 1.0174
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.9642
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": 0.646
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -0.7699
         }
       ]
     },
     {
       "country": "Bulgaria",
-      "probability": 0.1934,
-      "prediction": "outside_top10",
-      "narrative": "Bulgaria is modelled as unlikely to reach the Top 10 at current form (model probability: 19%). The primary positive signal is strong public televote support in recent years. Limiting factors include a modest historical semi-final qualification rate and limited backing from the betting markets. Net signal among top-5 drivers: 1 positive, 2 negative.",
+      "probability": 0.5315,
+      "prediction": "top10",
+      "narrative": "Bulgaria is modelled as a borderline Top-10 contender (model probability: 53%). The primary positive signal is strong public televote support in recent years. Limiting factors include a modest historical semi-final qualification rate and limited backing from the betting markets. Net signal among top-5 drivers: 1 positive, 2 negative.",
       "positive_drivers": [
         {
           "feature": "rule_2019_semifinal_reform",
@@ -483,40 +363,190 @@
       ]
     },
     {
-      "country": "Portugal",
-      "probability": 0.1675,
+      "country": "Croatia",
+      "probability": 0.4729,
       "prediction": "outside_top10",
-      "narrative": "Portugal is modelled as unlikely to reach the Top 10 at current form (model probability: 17%). Key positive signals are high pre-contest fan community enthusiasm (MyESB community score) and a favourable Grand Final running-order position. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 3 positive, 1 negative.",
+      "narrative": "Croatia is modelled as a borderline Top-10 contender (model probability: 47%). The primary positive signal is consistent jury-vote accumulation in recent contests. Limiting factors include modest personal fan ratings on MyESB and limited backing from the betting markets. Net signal among top-5 drivers: 1 positive, 2 negative.",
       "positive_drivers": [
         {
-          "feature": "zscore_myesb_community",
-          "shap_value": 1.1532
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.3528
         },
         {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.7534
+          "feature": "avg_jury_3yr",
+          "shap_value": 0.9593
         },
         {
           "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 0.6394
+          "shap_value": 0.9362
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "zscore_myesb_personal",
+          "shap_value": -0.5396
         },
         {
-          "feature": "avg_tele_3yr",
-          "shap_value": 0.5935
+          "feature": "implied_prob_close",
+          "shap_value": -0.4927
+        }
+      ]
+    },
+    {
+      "country": "Cyprus",
+      "probability": 0.3743,
+      "prediction": "outside_top10",
+      "narrative": "Cyprus is modelled as unlikely to reach the Top 10 at current form (model probability: 37%). Key positive signals are a favourable Grand Final running-order position and solid jury-vote support from the regional voting bloc. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 2 positive, 2 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.2219
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.469
+        },
+        {
+          "feature": "avg_bloc_jury_3yr",
+          "shap_value": 0.3944
         }
       ],
       "negative_drivers": [
         {
           "feature": "implied_prob_close",
-          "shap_value": -1.2038
+          "shap_value": -0.9093
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": -0.5682
+        }
+      ]
+    },
+    {
+      "country": "Switzerland",
+      "probability": 0.3141,
+      "prediction": "outside_top10",
+      "narrative": "Switzerland is modelled as unlikely to reach the Top 10 at current form (model probability: 31%). Key positive signals are a favourable Grand Final running-order position and strong public televote support in recent years. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 2 positive, 1 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 1.2619
+        },
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.2513
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 1.0537
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": 0.6878
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -0.6629
+        }
+      ]
+    },
+    {
+      "country": "Azerbaijan",
+      "probability": 0.2694,
+      "prediction": "outside_top10",
+      "narrative": "Azerbaijan is modelled as unlikely to reach the Top 10 at current form (model probability: 27%). Key positive signals are high pre-contest fan community enthusiasm (MyESB community score) and strong personal fan ratings on MyESB. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 3 positive, 1 negative.",
+      "positive_drivers": [
+        {
+          "feature": "zscore_myesb_community",
+          "shap_value": 1.2959
+        },
+        {
+          "feature": "zscore_myesb_personal",
+          "shap_value": 0.8886
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.7579
+        },
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 0.7579
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -0.8152
+        }
+      ]
+    },
+    {
+      "country": "Czech Republic",
+      "probability": 0.2572,
+      "prediction": "outside_top10",
+      "narrative": "Czech Republic is modelled as unlikely to reach the Top 10 at current form (model probability: 26%). The primary positive signal is a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and a modest historical semi-final qualification rate. Net signal among top-5 drivers: 1 positive, 2 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 0.9513
+        },
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 0.8252
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.6168
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.4115
+        },
+        {
+          "feature": "Qualification_Record",
+          "shap_value": -1.4091
+        }
+      ]
+    },
+    {
+      "country": "Moldova",
+      "probability": 0.2335,
+      "prediction": "outside_top10",
+      "narrative": "Moldova is modelled as unlikely to reach the Top 10 at current form (model probability: 23%). The primary positive signal is a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 1 positive, 3 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.1576
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.4464
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.172
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": -0.5808
+        },
+        {
+          "feature": "zscore_myesb_personal",
+          "shap_value": -0.4386
         }
       ]
     },
     {
       "country": "Serbia",
-      "probability": 0.156,
+      "probability": 0.2243,
       "prediction": "outside_top10",
-      "narrative": "Serbia is modelled as unlikely to reach the Top 10 at current form (model probability: 16%). The primary positive signal is a solo performance format. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 1 positive, 2 negative.",
+      "narrative": "Serbia is modelled as unlikely to reach the Top 10 at current form (model probability: 22%). The primary positive signal is a solo performance format. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 1 positive, 2 negative.",
       "positive_drivers": [
         {
           "feature": "rule_2019_semifinal_reform",
@@ -543,8 +573,278 @@
       ]
     },
     {
+      "country": "Austria",
+      "probability": 0.2135,
+      "prediction": "outside_top10",
+      "narrative": "Austria is modelled as unlikely to reach the Top 10 at current form (model probability: 21%). Key positive signals are strong personal fan ratings on MyESB and a favourable Grand Final running-order position. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 2 positive, 1 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.273
+        },
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 1.1388
+        },
+        {
+          "feature": "zscore_myesb_personal",
+          "shap_value": 0.9458
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.834
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -0.8008
+        }
+      ]
+    },
+    {
+      "country": "United Kingdom",
+      "probability": 0.1927,
+      "prediction": "outside_top10",
+      "narrative": "United Kingdom is modelled as unlikely to reach the Top 10 at current form (model probability: 19%). The primary positive signal is strong personal fan ratings on MyESB. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 1 positive, 3 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.2249
+        },
+        {
+          "feature": "zscore_myesb_personal",
+          "shap_value": 1.172
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.3611
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": -0.5187
+        },
+        {
+          "feature": "avg_jury_3yr",
+          "shap_value": -0.4081
+        }
+      ]
+    },
+    {
+      "country": "Estonia",
+      "probability": 0.1894,
+      "prediction": "outside_top10",
+      "narrative": "Estonia is modelled as unlikely to reach the Top 10 at current form (model probability: 19%). Key positive signals are high pre-contest fan community enthusiasm (MyESB community score) and a favourable Grand Final running-order position. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 3 positive, 1 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 1.0455
+        },
+        {
+          "feature": "zscore_myesb_community",
+          "shap_value": 1.04
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.876
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": 0.6361
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -0.8679
+        }
+      ]
+    },
+    {
+      "country": "Belgium",
+      "probability": 0.1876,
+      "prediction": "outside_top10",
+      "narrative": "Belgium is modelled as unlikely to reach the Top 10 at current form (model probability: 19%). Key positive signals are a favourable Grand Final running-order position and strong public televote support in recent years. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 2 positive, 1 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.15
+        },
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 1.0186
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.8639
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": 0.5911
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.0217
+        }
+      ]
+    },
+    {
+      "country": "Portugal",
+      "probability": 0.1848,
+      "prediction": "outside_top10",
+      "narrative": "Portugal is modelled as unlikely to reach the Top 10 at current form (model probability: 18%). Key positive signals are high pre-contest fan community enthusiasm (MyESB community score) and a favourable Grand Final running-order position. The main limiting factor is limited backing from the betting markets. Net signal among top-5 drivers: 3 positive, 1 negative.",
+      "positive_drivers": [
+        {
+          "feature": "zscore_myesb_community",
+          "shap_value": 1.1532
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.7534
+        },
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 0.6394
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": 0.5935
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.2038
+        }
+      ]
+    },
+    {
+      "country": "Georgia",
+      "probability": 0.1827,
+      "prediction": "outside_top10",
+      "narrative": "Georgia is modelled as unlikely to reach the Top 10 at current form (model probability: 18%). The primary positive signal is a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 1 positive, 3 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.2138
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.4269
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.2125
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": -0.7842
+        },
+        {
+          "feature": "avg_jury_3yr",
+          "shap_value": -0.4345
+        }
+      ]
+    },
+    {
+      "country": "Montenegro",
+      "probability": 0.1807,
+      "prediction": "outside_top10",
+      "narrative": "Montenegro is modelled as unlikely to reach the Top 10 at current form (model probability: 18%). The primary positive signal is a favourable Grand Final running-order position. Limiting factors include a modest historical semi-final qualification rate and limited backing from the betting markets. Net signal among top-5 drivers: 1 positive, 2 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 1.0621
+        },
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 0.8782
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.7236
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "Qualification_Record",
+          "shap_value": -1.5665
+        },
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.0684
+        }
+      ]
+    },
+    {
+      "country": "Luxembourg",
+      "probability": 0.1698,
+      "prediction": "outside_top10",
+      "narrative": "Luxembourg is modelled as unlikely to reach the Top 10 at current form (model probability: 17%). The primary positive signal is a strong historical semi-final qualification rate. Limiting factors include limited backing from the betting markets and modest pre-contest fan community enthusiasm (MyESB community score). Net signal among top-5 drivers: 1 positive, 3 negative.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.1066
+        },
+        {
+          "feature": "Qualification_Record",
+          "shap_value": 0.8734
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.3099
+        },
+        {
+          "feature": "zscore_myesb_community",
+          "shap_value": -0.8033
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": -0.4505
+        }
+      ]
+    },
+    {
+      "country": "Armenia",
+      "probability": 0.145,
+      "prediction": "outside_top10",
+      "narrative": "Armenia is modelled as unlikely to reach the Top 10 at current form (model probability: 15%). Key positive signals are high pre-contest fan community enthusiasm (MyESB community score) and a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 3 positive, 2 negative.",
+      "positive_drivers": [
+        {
+          "feature": "zscore_myesb_community",
+          "shap_value": 1.0602
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.493
+        },
+        {
+          "feature": "Qualification_Record",
+          "shap_value": 0.4804
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -0.901
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": -0.4853
+        }
+      ]
+    },
+    {
       "country": "Latvia",
-      "probability": 0.1052,
+      "probability": 0.1101,
       "prediction": "outside_top10",
       "narrative": "Latvia is modelled as unlikely to reach the Top 10 at current form (model probability: 11%). The primary positive signal is a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and a modest historical semi-final qualification rate. Net signal among top-5 drivers: 1 positive, 2 negative.",
       "positive_drivers": [
@@ -573,430 +873,40 @@
       ]
     },
     {
-      "country": "Romania",
-      "probability": 0.0783,
+      "country": "San Marino",
+      "probability": 0.1012,
       "prediction": "outside_top10",
-      "narrative": "Romania is modelled as unlikely to reach the Top 10 at current form (model probability: 8%). The primary positive signal is consistent jury-vote accumulation in recent contests. Limiting factors include limited backing from the betting markets and modest personal fan ratings on MyESB. Net signal among top-5 drivers: 1 positive, 3 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.2638
-        },
-        {
-          "feature": "avg_jury_3yr",
-          "shap_value": 0.514
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -1.0282
-        },
-        {
-          "feature": "zscore_myesb_personal",
-          "shap_value": -0.6681
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": -0.6013
-        }
-      ]
-    },
-    {
-      "country": "Armenia",
-      "probability": 0.0768,
-      "prediction": "outside_top10",
-      "narrative": "Armenia is modelled as unlikely to reach the Top 10 at current form (model probability: 8%). Key positive signals are high pre-contest fan community enthusiasm (MyESB community score) and a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 3 positive, 2 negative.",
+      "narrative": "San Marino is modelled as unlikely to reach the Top 10 at current form (model probability: 10%). The primary positive signal is high pre-contest fan community enthusiasm (MyESB community score). Limiting factors include limited backing from the betting markets and a modest historical semi-final qualification rate. Net signal among top-5 drivers: 1 positive, 3 negative.",
       "positive_drivers": [
         {
           "feature": "zscore_myesb_community",
-          "shap_value": 1.0602
-        },
+          "shap_value": 1.4815
+        }
+      ],
+      "negative_drivers": [
         {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.493
+          "feature": "implied_prob_close",
+          "shap_value": -1.4104
         },
         {
           "feature": "Qualification_Record",
-          "shap_value": 0.4804
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -0.901
+          "shap_value": -1.0914
         },
         {
           "feature": "avg_tele_3yr",
-          "shap_value": -0.4853
-        }
-      ]
-    },
-    {
-      "country": "Montenegro",
-      "probability": 0.0757,
-      "prediction": "outside_top10",
-      "narrative": "Montenegro is modelled as unlikely to reach the Top 10 at current form (model probability: 8%). The primary positive signal is a favourable Grand Final running-order position. Limiting factors include a modest historical semi-final qualification rate and limited backing from the betting markets. Net signal among top-5 drivers: 1 positive, 2 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 1.0621
+          "shap_value": -0.8078
         },
         {
           "feature": "rule_2019_semifinal_reform",
-          "shap_value": 0.8782
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.7236
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "Qualification_Record",
-          "shap_value": -1.5665
-        },
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -1.0684
-        }
-      ]
-    },
-    {
-      "country": "Cyprus",
-      "probability": 0.0745,
-      "prediction": "outside_top10",
-      "narrative": "Cyprus is modelled as unlikely to reach the Top 10 at current form (model probability: 7%). Key positive signals are a favourable Grand Final running-order position and solid jury-vote support from the regional voting bloc. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 2 positive, 2 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.2219
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.469
-        },
-        {
-          "feature": "avg_bloc_jury_3yr",
-          "shap_value": 0.3944
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -0.9093
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": -0.5682
-        }
-      ]
-    },
-    {
-      "country": "United Kingdom",
-      "probability": 0.0648,
-      "prediction": "outside_top10",
-      "narrative": "United Kingdom is modelled as unlikely to reach the Top 10 at current form (model probability: 6%). The primary positive signal is strong personal fan ratings on MyESB. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 1 positive, 3 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.2249
-        },
-        {
-          "feature": "zscore_myesb_personal",
-          "shap_value": 1.172
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -1.3611
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": -0.5187
-        },
-        {
-          "feature": "avg_jury_3yr",
-          "shap_value": -0.4081
-        }
-      ]
-    },
-    {
-      "country": "Georgia",
-      "probability": 0.0633,
-      "prediction": "outside_top10",
-      "narrative": "Georgia is modelled as unlikely to reach the Top 10 at current form (model probability: 6%). The primary positive signal is a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 1 positive, 3 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.2138
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.4269
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -1.2125
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": -0.7842
-        },
-        {
-          "feature": "avg_jury_3yr",
-          "shap_value": -0.4345
-        }
-      ]
-    },
-    {
-      "country": "Moldova",
-      "probability": 0.0489,
-      "prediction": "outside_top10",
-      "narrative": "Moldova is modelled as unlikely to reach the Top 10 at current form (model probability: 5%). The primary positive signal is a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 1 positive, 3 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.1576
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.4464
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -1.172
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": -0.5808
-        },
-        {
-          "feature": "zscore_myesb_personal",
-          "shap_value": -0.4386
-        }
-      ]
-    },
-    {
-      "country": "Luxembourg",
-      "probability": 0.0302,
-      "prediction": "outside_top10",
-      "narrative": "Luxembourg is modelled as unlikely to reach the Top 10 at current form (model probability: 3%). The primary positive signal is a strong historical semi-final qualification rate. Limiting factors include limited backing from the betting markets and modest pre-contest fan community enthusiasm (MyESB community score). Net signal among top-5 drivers: 1 positive, 3 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.1066
-        },
-        {
-          "feature": "Qualification_Record",
-          "shap_value": 0.8734
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -1.3099
-        },
-        {
-          "feature": "zscore_myesb_community",
-          "shap_value": -0.8033
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": -0.4505
-        }
-      ]
-    },
-    {
-      "country": "Albania",
-      "probability": 0.0289,
-      "prediction": "outside_top10",
-      "narrative": "Albania is modelled as unlikely to reach the Top 10 at current form (model probability: 3%). The model finds no strong positive drivers among the top-5 features. Limiting factors include limited backing from the betting markets and limited public televote support in recent years.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.0387
-        },
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 0.5255
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -1.2455
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": -0.5934
-        },
-        {
-          "feature": "zscore_myesb_personal",
-          "shap_value": -0.5527
-        }
-      ]
-    },
-    {
-      "country": "Czech Republic",
-      "probability": 0.0285,
-      "prediction": "outside_top10",
-      "narrative": "Czech Republic is modelled as unlikely to reach the Top 10 at current form (model probability: 3%). The primary positive signal is a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and a modest historical semi-final qualification rate. Net signal among top-5 drivers: 1 positive, 2 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 0.9513
-        },
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 0.8252
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.6168
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -1.4115
-        },
-        {
-          "feature": "Qualification_Record",
-          "shap_value": -1.4091
-        }
-      ]
-    },
-    {
-      "country": "Germany",
-      "probability": 0.0174,
-      "prediction": "outside_top10",
-      "narrative": "Germany is modelled as unlikely to reach the Top 10 at current form (model probability: 2%). Key positive signals are a favourable Grand Final running-order position and solid jury-vote support from the regional voting bloc. Limiting factors include limited backing from the betting markets and modest pre-contest fan community enthusiasm (MyESB community score). Net signal among top-5 drivers: 2 positive, 2 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.012
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.4927
-        },
-        {
-          "feature": "avg_bloc_jury_3yr",
-          "shap_value": 0.4358
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -1.3584
-        },
-        {
-          "feature": "zscore_myesb_community",
-          "shap_value": -0.7098
-        }
-      ]
-    },
-    {
-      "country": "Norway",
-      "probability": 0.0143,
-      "prediction": "outside_top10",
-      "narrative": "Norway is modelled as unlikely to reach the Top 10 at current form (model probability: 1%). The primary positive signal is a strong historical semi-final qualification rate. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 1 positive, 3 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 0.9146
-        },
-        {
-          "feature": "Qualification_Record",
-          "shap_value": 0.7081
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -1.2504
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": -0.7518
-        },
-        {
-          "feature": "zscore_myesb_community",
-          "shap_value": -0.6929
-        }
-      ]
-    },
-    {
-      "country": "Denmark",
-      "probability": 0.0124,
-      "prediction": "outside_top10",
-      "narrative": "Denmark is modelled as unlikely to reach the Top 10 at current form (model probability: 1%). The primary positive signal is a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and modest personal fan ratings on MyESB. Net signal among top-5 drivers: 1 positive, 3 negative.",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 1.0259
-        },
-        {
-          "feature": "Running_Order_Final",
-          "shap_value": 0.3943
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -1.2953
-        },
-        {
-          "feature": "zscore_myesb_personal",
-          "shap_value": -0.8771
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": -0.5266
-        }
-      ]
-    },
-    {
-      "country": "Lithuania",
-      "probability": 0.0118,
-      "prediction": "outside_top10",
-      "narrative": "Lithuania is modelled as unlikely to reach the Top 10 at current form (model probability: 1%). The model finds no strong positive drivers among the top-5 features. Limiting factors include limited backing from the betting markets and modest pre-contest fan community enthusiasm (MyESB community score).",
-      "positive_drivers": [
-        {
-          "feature": "rule_2019_semifinal_reform",
-          "shap_value": 0.9569
-        },
-        {
-          "feature": "rule_2023_jury_weight_reform",
-          "shap_value": 0.4676
-        }
-      ],
-      "negative_drivers": [
-        {
-          "feature": "implied_prob_close",
-          "shap_value": -1.3301
-        },
-        {
-          "feature": "zscore_myesb_community",
-          "shap_value": -0.7018
-        },
-        {
-          "feature": "avg_tele_3yr",
-          "shap_value": -0.4579
+          "shap_value": -0.6766
         }
       ]
     },
     {
       "country": "Poland",
-      "probability": 0.0096,
+      "probability": 0.0988,
       "prediction": "outside_top10",
-      "narrative": "Poland is modelled as unlikely to reach the Top 10 at current form (model probability: 1%). Key positive signals are high pre-contest fan community enthusiasm (MyESB community score) and a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 2 positive, 2 negative.",
+      "narrative": "Poland is modelled as unlikely to reach the Top 10 at current form (model probability: 10%). Key positive signals are high pre-contest fan community enthusiasm (MyESB community score) and a favourable Grand Final running-order position. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 2 positive, 2 negative.",
       "positive_drivers": [
         {
           "feature": "zscore_myesb_community",
@@ -1023,32 +933,122 @@
       ]
     },
     {
-      "country": "San Marino",
-      "probability": 0.0078,
+      "country": "Germany",
+      "probability": 0.0871,
       "prediction": "outside_top10",
-      "narrative": "San Marino is modelled as unlikely to reach the Top 10 at current form (model probability: 1%). The primary positive signal is high pre-contest fan community enthusiasm (MyESB community score). Limiting factors include limited backing from the betting markets and a modest historical semi-final qualification rate. Net signal among top-5 drivers: 1 positive, 3 negative.",
+      "narrative": "Germany is modelled as unlikely to reach the Top 10 at current form (model probability: 9%). Key positive signals are a favourable Grand Final running-order position and solid jury-vote support from the regional voting bloc. Limiting factors include limited backing from the betting markets and modest pre-contest fan community enthusiasm (MyESB community score). Net signal among top-5 drivers: 2 positive, 2 negative.",
       "positive_drivers": [
         {
-          "feature": "zscore_myesb_community",
-          "shap_value": 1.4815
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.012
+        },
+        {
+          "feature": "Running_Order_Final",
+          "shap_value": 0.4927
+        },
+        {
+          "feature": "avg_bloc_jury_3yr",
+          "shap_value": 0.4358
         }
       ],
       "negative_drivers": [
         {
           "feature": "implied_prob_close",
-          "shap_value": -1.4104
+          "shap_value": -1.3584
         },
         {
-          "feature": "Qualification_Record",
-          "shap_value": -1.0914
+          "feature": "zscore_myesb_community",
+          "shap_value": -0.7098
+        }
+      ]
+    },
+    {
+      "country": "Albania",
+      "probability": 0.0805,
+      "prediction": "outside_top10",
+      "narrative": "Albania is modelled as unlikely to reach the Top 10 at current form (model probability: 8%). The model finds no strong positive drivers among the top-5 features. Limiting factors include limited backing from the betting markets and limited public televote support in recent years.",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 1.0387
+        },
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 0.5255
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.2455
         },
         {
           "feature": "avg_tele_3yr",
-          "shap_value": -0.8078
+          "shap_value": -0.5934
         },
         {
+          "feature": "zscore_myesb_personal",
+          "shap_value": -0.5527
+        }
+      ]
+    },
+    {
+      "country": "Norway",
+      "probability": 0.0741,
+      "prediction": "outside_top10",
+      "narrative": "Norway is modelled as unlikely to reach the Top 10 at current form (model probability: 7%). The primary positive signal is a strong historical semi-final qualification rate. Limiting factors include limited backing from the betting markets and limited public televote support in recent years. Net signal among top-5 drivers: 1 positive, 3 negative.",
+      "positive_drivers": [
+        {
           "feature": "rule_2019_semifinal_reform",
-          "shap_value": -0.6766
+          "shap_value": 0.9146
+        },
+        {
+          "feature": "Qualification_Record",
+          "shap_value": 0.7081
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.2504
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": -0.7518
+        },
+        {
+          "feature": "zscore_myesb_community",
+          "shap_value": -0.6929
+        }
+      ]
+    },
+    {
+      "country": "Lithuania",
+      "probability": 0.0646,
+      "prediction": "outside_top10",
+      "narrative": "Lithuania is modelled as unlikely to reach the Top 10 at current form (model probability: 6%). The model finds no strong positive drivers among the top-5 features. Limiting factors include limited backing from the betting markets and modest pre-contest fan community enthusiasm (MyESB community score).",
+      "positive_drivers": [
+        {
+          "feature": "rule_2019_semifinal_reform",
+          "shap_value": 0.9569
+        },
+        {
+          "feature": "rule_2023_jury_weight_reform",
+          "shap_value": 0.4676
+        }
+      ],
+      "negative_drivers": [
+        {
+          "feature": "implied_prob_close",
+          "shap_value": -1.3301
+        },
+        {
+          "feature": "zscore_myesb_community",
+          "shap_value": -0.7018
+        },
+        {
+          "feature": "avg_tele_3yr",
+          "shap_value": -0.4579
         }
       ]
     }
