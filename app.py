@@ -20,6 +20,45 @@ PREDICTIONS_JSON = REPORTS_DIR / "predictions_2026.json"
 NARRATIVES_JSON = REPORTS_DIR / "narratives_2026.json"
 BACKTEST_JSON = REPORTS_DIR / "backtest_2022_2024.json"
 SEMI_PREDICTIONS_JSON = REPORTS_DIR / "semi_predictions_2026.json"
+ENRICHED_CSV = APP_ROOT / "Dataset" / "eurovision_2016_26_enriched.csv"
+
+COUNTRY_ISO2 = {
+    "Albania": "AL",
+    "Armenia": "AM",
+    "Australia": "AU",
+    "Austria": "AT",
+    "Azerbaijan": "AZ",
+    "Belgium": "BE",
+    "Bulgaria": "BG",
+    "Croatia": "HR",
+    "Cyprus": "CY",
+    "Czech Republic": "CZ",
+    "Denmark": "DK",
+    "Estonia": "EE",
+    "Finland": "FI",
+    "France": "FR",
+    "Georgia": "GE",
+    "Germany": "DE",
+    "Greece": "GR",
+    "Israel": "IL",
+    "Italy": "IT",
+    "Latvia": "LV",
+    "Lithuania": "LT",
+    "Luxembourg": "LU",
+    "Malta": "MT",
+    "Moldova": "MD",
+    "Montenegro": "ME",
+    "Norway": "NO",
+    "Poland": "PL",
+    "Portugal": "PT",
+    "Romania": "RO",
+    "San Marino": "SM",
+    "Serbia": "RS",
+    "Sweden": "SE",
+    "Switzerland": "CH",
+    "Ukraine": "UA",
+    "United Kingdom": "GB",
+}
 
 
 @st.cache_data(show_spinner=False)
@@ -34,6 +73,13 @@ def load_json(path: str, mtime_ns: int) -> dict[str, Any]:
     return data
 
 
+@st.cache_data(show_spinner=False)
+def load_csv(path: str, mtime_ns: int) -> pd.DataFrame:
+    """Load a CSV artifact from disk and cache it across Streamlit reruns."""
+    del mtime_ns
+    return pd.read_csv(path)
+
+
 def load_dashboard_data() -> dict[str, Any]:
     """Load all dashboard JSON artifacts."""
     return {
@@ -45,6 +91,8 @@ def load_dashboard_data() -> dict[str, Any]:
         "backtest_path": str(BACKTEST_JSON.relative_to(APP_ROOT)),
         "semi_predictions": load_json(str(SEMI_PREDICTIONS_JSON), SEMI_PREDICTIONS_JSON.stat().st_mtime_ns),
         "semi_predictions_path": str(SEMI_PREDICTIONS_JSON.relative_to(APP_ROOT)),
+        "history": load_csv(str(ENRICHED_CSV), ENRICHED_CSV.stat().st_mtime_ns),
+        "history_path": str(ENRICHED_CSV.relative_to(APP_ROOT)),
     }
 
 
@@ -100,8 +148,285 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
     st.sidebar.code(data["semi_predictions_path"])
     st.sidebar.code(data["narratives_path"])
     st.sidebar.code(data["backtest_path"])
+    st.sidebar.code(data["history_path"])
     st.sidebar.metric("Load time", f"{load_time_s:.3f}s")
     return page
+
+
+def country_flag(country: str) -> str:
+    code = COUNTRY_ISO2.get(country)
+    if not code:
+        return ""
+    return "".join(chr(0x1F1E6 + ord(letter) - ord("A")) for letter in code.upper())
+
+
+def narratives_by_country(narratives: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {
+        str(row.get("country")): row
+        for row in narratives.get("countries", [])
+        if row.get("country")
+    }
+
+
+def country_prediction_row(predictions_df: pd.DataFrame, country: str) -> dict[str, Any]:
+    rows = predictions_df[predictions_df["country"] == country]
+    return rows.iloc[0].to_dict() if not rows.empty else {}
+
+
+def country_history_frame(history: pd.DataFrame, country: str) -> pd.DataFrame:
+    if history.empty:
+        return pd.DataFrame()
+    frame = history[
+        (history["Country"] == country)
+        & (history["Year"].between(2016, 2024))
+    ].copy()
+    if frame.empty:
+        return pd.DataFrame(columns=["Year", "Result", "Final_Place", "Final_Points", "Semi_Place"])
+
+    frame["Year"] = pd.to_numeric(frame["Year"], errors="coerce").astype("Int64")
+    frame["Final_Place"] = pd.to_numeric(frame["Final_Place"], errors="coerce")
+    frame["Final_Points"] = pd.to_numeric(frame["Final_Points"], errors="coerce")
+    frame["Semi_Place"] = pd.to_numeric(frame["Semi_Place"], errors="coerce")
+    frame["Grand_Final_Ind"] = pd.to_numeric(frame["Grand_Final_Ind"], errors="coerce")
+    frame["Result"] = frame.apply(history_result_label, axis=1)
+    return frame[["Year", "Result", "Final_Place", "Final_Points", "Semi_Place"]].sort_values("Year")
+
+
+def history_result_label(row: pd.Series) -> str:
+    final_place = safe_float(row.get("Final_Place"))
+    grand_final = safe_float(row.get("Grand_Final_Ind"))
+    semi_place = safe_float(row.get("Semi_Place"))
+    if final_place is not None:
+        return f"Final #{int(final_place)}"
+    if grand_final == 0 and semi_place is not None:
+        return f"Semi #{int(semi_place)}"
+    if grand_final == 0:
+        return "Semi"
+    return "No entry"
+
+
+def feature_importance_frame(narrative: dict[str, Any]) -> pd.DataFrame:
+    rows: list[dict[str, Any]] = []
+    for direction, sign in [("positive", 1), ("negative", -1)]:
+        for row in narrative.get(f"{direction}_drivers", []):
+            shap_value = safe_float(row.get("shap_value"))
+            if shap_value is None:
+                continue
+            rows.append(
+                {
+                    "feature": str(row.get("feature", "")),
+                    "shap_value": shap_value,
+                    "direction": direction,
+                    "signed_value": shap_value if sign > 0 else -abs(shap_value),
+                    "abs_value": abs(shap_value),
+                }
+            )
+    if not rows:
+        return pd.DataFrame(columns=["feature", "shap_value", "direction", "signed_value", "abs_value"])
+    return pd.DataFrame(rows).sort_values("abs_value", ascending=False).head(5)
+
+
+def feature_bar_chart(features: pd.DataFrame) -> go.Figure:
+    plot_frame = features.sort_values("abs_value", ascending=True)
+    fig = go.Figure(
+        go.Bar(
+            x=plot_frame["signed_value"],
+            y=plot_frame["feature"],
+            orientation="h",
+            marker_color=[
+                "#16a34a" if value >= 0 else "#dc2626"
+                for value in plot_frame["signed_value"]
+            ],
+            hovertemplate="<b>%{y}</b><br>SHAP: %{x:.3f}<extra></extra>",
+        )
+    )
+    fig.update_layout(
+        title="Top-5 SHAP features",
+        xaxis_title="SHAP value",
+        yaxis_title=None,
+        height=280,
+        margin={"l": 150, "r": 30, "t": 55, "b": 40},
+        font={"size": 12},
+    )
+    fig.add_vline(x=0, line_width=1, line_color="#64748b")
+    return fig
+
+
+def country_ci_frame(prediction: dict[str, Any]) -> pd.DataFrame:
+    rows = []
+    for model in ["xgb", "lgbm"]:
+        prob = safe_float(prediction.get(f"{model}_prob"))
+        if prob is None:
+            continue
+        rows.append(
+            {
+                "model": model.upper(),
+                "probability": prob,
+                "ci80_lo": safe_float(prediction.get(f"{model}_ci80_lo")),
+                "ci80_hi": safe_float(prediction.get(f"{model}_ci80_hi")),
+                "ci50_lo": safe_float(prediction.get(f"{model}_ci50_lo")),
+                "ci50_hi": safe_float(prediction.get(f"{model}_ci50_hi")),
+            }
+        )
+    probability = safe_float(prediction.get("probability"))
+    if probability is not None and rows:
+        rows.append(
+            {
+                "model": "CONSENSUS",
+                "probability": probability,
+                "ci80_lo": sum(row["ci80_lo"] for row in rows if row["ci80_lo"] is not None) / len(rows),
+                "ci80_hi": sum(row["ci80_hi"] for row in rows if row["ci80_hi"] is not None) / len(rows),
+                "ci50_lo": sum(row["ci50_lo"] for row in rows if row["ci50_lo"] is not None) / len(rows),
+                "ci50_hi": sum(row["ci50_hi"] for row in rows if row["ci50_hi"] is not None) / len(rows),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def ci_fan_chart(ci_frame: pd.DataFrame) -> go.Figure:
+    fig = go.Figure()
+    if ci_frame.empty:
+        return fig
+    plot_frame = ci_frame.iloc[::-1]
+    for _, row in plot_frame.iterrows():
+        model = row["model"]
+        y = [model, model]
+        fig.add_trace(
+            go.Scatter(
+                x=[row["ci80_lo"], row["ci80_hi"]],
+                y=y,
+                mode="lines",
+                line={"color": "#93c5fd", "width": 18},
+                name="CI-80",
+                showlegend=model == plot_frame.iloc[0]["model"],
+                hovertemplate=f"{model} CI-80: %{{x:.1%}}<extra></extra>",
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=[row["ci50_lo"], row["ci50_hi"]],
+                y=y,
+                mode="lines",
+                line={"color": "#2563eb", "width": 9},
+                name="CI-50",
+                showlegend=model == plot_frame.iloc[0]["model"],
+                hovertemplate=f"{model} CI-50: %{{x:.1%}}<extra></extra>",
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=[row["probability"]],
+                y=[model],
+                mode="markers",
+                marker={"color": "#0f172a", "size": 9},
+                name="Mean",
+                showlegend=model == plot_frame.iloc[0]["model"],
+                hovertemplate=f"{model} mean: %{{x:.1%}}<extra></extra>",
+            )
+        )
+    fig.update_layout(
+        title="CI-80 / CI-50 fan chart",
+        xaxis={"title": "Top-10 probability", "tickformat": ".0%", "range": [0, 1]},
+        yaxis_title=None,
+        height=260,
+        margin={"l": 90, "r": 30, "t": 55, "b": 40},
+        font={"size": 12},
+    )
+    return fig
+
+
+def history_chart(history_frame: pd.DataFrame) -> go.Figure:
+    fig = go.Figure()
+    if history_frame.empty:
+        return fig
+    finals = history_frame[history_frame["Final_Place"].notna()]
+    if not finals.empty:
+        fig.add_trace(
+            go.Scatter(
+                x=finals["Year"],
+                y=finals["Final_Place"],
+                mode="lines+markers",
+                line={"color": "#2563eb"},
+                marker={"size": 8},
+                hovertemplate="%{x}: final #%{y}<extra></extra>",
+            )
+        )
+    fig.update_layout(
+        title="Final history 2016-2024",
+        xaxis_title="Year",
+        yaxis={"title": "Final place", "autorange": "reversed", "dtick": 5},
+        height=260,
+        margin={"l": 60, "r": 30, "t": 55, "b": 40},
+        font={"size": 12},
+    )
+    return fig
+
+
+def country_card_data(
+    country: str,
+    predictions_df: pd.DataFrame,
+    narratives: dict[str, Any],
+    history: pd.DataFrame,
+) -> dict[str, Any]:
+    narrative = narratives_by_country(narratives).get(country, {})
+    prediction = country_prediction_row(predictions_df, country)
+    return {
+        "country": country,
+        "flag": country_flag(country),
+        "narrative": narrative,
+        "prediction": prediction,
+        "features": feature_importance_frame(narrative),
+        "ci": country_ci_frame(prediction),
+        "history": country_history_frame(history, country),
+    }
+
+
+def render_country_card(card: dict[str, Any]) -> None:
+    country = card["country"]
+    flag = card["flag"]
+    narrative = card["narrative"]
+    prediction = card["prediction"]
+    title = f"{flag} {country}".strip()
+
+    st.markdown(f"### {escape(title)}")
+    probability = safe_float(prediction.get("probability"))
+    rank = prediction.get("rank")
+    cols = st.columns(3)
+    cols[0].metric("Consensus rank", "n/a" if pd.isna(rank) else f"#{int(rank)}")
+    cols[1].metric("Top-10 probability", "n/a" if probability is None else f"{probability:.1%}")
+    cols[2].metric("Narrative signal", narrative.get("prediction", "n/a"))
+
+    text = str(narrative.get("narrative", "")).strip()
+    st.write(text if text else "No narrative available.")
+
+    left, right = st.columns(2)
+    with left:
+        features = card["features"]
+        if features.empty:
+            st.info("No SHAP feature drivers available.")
+        else:
+            st.plotly_chart(feature_bar_chart(features), use_container_width=True, config={"displaylogo": False})
+        st.plotly_chart(ci_fan_chart(card["ci"]), use_container_width=True, config={"displaylogo": False})
+    with right:
+        history_frame = card["history"]
+        st.plotly_chart(history_chart(history_frame), use_container_width=True, config={"displaylogo": False})
+        st.dataframe(history_frame, use_container_width=True, hide_index=True)
+
+
+def render_country_detail_sidebar(
+    data: dict[str, Any],
+    predictions_df: pd.DataFrame,
+) -> None:
+    if predictions_df.empty:
+        return
+    countries = predictions_df.sort_values("rank")["country"].tolist()
+    selected = st.sidebar.selectbox("Country detail", countries)
+    card = country_card_data(selected, predictions_df, data["narratives"], data["history"])
+    with st.sidebar.expander(f"{card['flag']} {selected}".strip(), expanded=True):
+        narrative = str(card["narrative"].get("narrative", "")).strip()
+        probability = safe_float(card["prediction"].get("probability"))
+        st.metric("Top-10 probability", "n/a" if probability is None else f"{probability:.1%}")
+        st.write(narrative if narrative else "No narrative available.")
 
 
 def render_overview(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
@@ -143,7 +468,12 @@ def model_predictions_frame(predictions: dict[str, Any], model: str) -> pd.DataF
     return pd.DataFrame(rows)
 
 
-def render_predictions(predictions: dict[str, Any], predictions_df: pd.DataFrame) -> None:
+def render_predictions(
+    predictions: dict[str, Any],
+    predictions_df: pd.DataFrame,
+    narratives: dict[str, Any],
+    history: pd.DataFrame,
+) -> None:
     st.title("Main Ranking")
     if predictions_df.empty:
         st.warning("No country predictions found in the predictions JSON.")
@@ -151,7 +481,7 @@ def render_predictions(predictions: dict[str, Any], predictions_df: pd.DataFrame
 
     ranking = main_ranking_frame(predictions_df)
     if ranking.empty:
-        st.warning("No rank 1-26 predictions found in the predictions JSON.")
+        st.warning("No country rankings found in the predictions JSON.")
         return
 
     fig = ranking_plot(ranking)
@@ -162,7 +492,7 @@ def render_predictions(predictions: dict[str, Any], predictions_df: pd.DataFrame
             "displaylogo": False,
             "toImageButtonOptions": {
                 "format": "png",
-                "filename": "eurovision_2026_ranking_top26",
+                "filename": "eurovision_2026_ranking_all35",
                 "height": 900,
                 "width": 1400,
                 "scale": 2,
@@ -202,8 +532,19 @@ def render_predictions(predictions: dict[str, Any], predictions_df: pd.DataFrame
         },
     )
 
+    selected_country = st.selectbox("Open country card", ranking["country"].tolist())
+    with st.expander(f"Country card: {selected_country}", expanded=True):
+        render_country_card(
+            country_card_data(
+                selected_country,
+                predictions_df,
+                narratives,
+                history,
+            )
+        )
 
-def main_ranking_frame(predictions_df: pd.DataFrame, n_places: int = 26) -> pd.DataFrame:
+
+def main_ranking_frame(predictions_df: pd.DataFrame, n_places: int | None = None) -> pd.DataFrame:
     frame = predictions_df.copy()
     numeric_columns = [
         "rank",
@@ -221,7 +562,9 @@ def main_ranking_frame(predictions_df: pd.DataFrame, n_places: int = 26) -> pd.D
         if column in frame.columns:
             frame[column] = pd.to_numeric(frame[column], errors="coerce")
 
-    frame = frame.sort_values("rank").head(n_places).reset_index(drop=True)
+    frame = frame.sort_values("rank").reset_index(drop=True)
+    if n_places is not None:
+        frame = frame.head(n_places).reset_index(drop=True)
     frame["ci80_lo"] = frame[["xgb_ci80_lo", "lgbm_ci80_lo"]].mean(axis=1)
     frame["ci80_hi"] = frame[["xgb_ci80_hi", "lgbm_ci80_hi"]].mean(axis=1)
     frame["ci80_width"] = frame["ci80_hi"] - frame["ci80_lo"]
@@ -289,7 +632,7 @@ def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
         )
     )
     fig.update_layout(
-        title="Ranking 1-26 by consensus prob_top10",
+        title="Ranking 1-35 by consensus prob_top10",
         xaxis_title="prob_top10 with CI-80",
         yaxis_title=None,
         height=820,
@@ -629,6 +972,7 @@ def render_data_health(data: dict[str, Any], load_time_s: float) -> None:
             {"check": "Semi predictions JSON", "path": data["semi_predictions_path"], "loaded": bool(data["semi_predictions"])},
             {"check": "Narratives JSON", "path": data["narratives_path"], "loaded": bool(data["narratives"])},
             {"check": "Backtest JSON", "path": data["backtest_path"], "loaded": bool(data["backtest"])},
+            {"check": "History CSV", "path": data["history_path"], "loaded": not data["history"].empty},
             {"check": "Load KPI < 2s", "path": "runtime", "loaded": load_time_s < 2.0},
         ]
     )
@@ -648,10 +992,11 @@ def main() -> None:
     predictions_df = countries_frame(data["predictions"])
 
     page = render_sidebar(data, load_time_s)
+    render_country_detail_sidebar(data, predictions_df)
     if page == "Overview":
         render_overview(data, predictions_df)
     elif page == "Main Ranking":
-        render_predictions(data["predictions"], predictions_df)
+        render_predictions(data["predictions"], predictions_df, data["narratives"], data["history"])
     elif page == "Tiers":
         render_tiers(predictions_df)
     elif page == "Semi Qualifiers":

@@ -1,6 +1,6 @@
 {
   "story": "US-S7-01",
-  "generated_at": "2026-05-03T18:07:49.640272+00:00",
+  "generated_at": "2026-05-04T15:19:04.547677+00:00",
   "target_year": 2026,
   "source_files": {
     "confidence_meta": "models\\artefacts\\confidence_meta.json",
@@ -746,7 +746,7 @@
       "in_lgbm_top10": true,
       "surrogate_rank": 6,
       "surrogate_prob": 0.3562,
-      "narrative_prob": 0.9267,
+      "narrative_prob": 0.95,
       "narrative_prediction": "top10",
       "consensus_rank": 1,
       "in_consensus_top10": true
@@ -770,7 +770,7 @@
       "in_lgbm_top10": true,
       "surrogate_rank": 9,
       "surrogate_prob": 0.3327,
-      "narrative_prob": 0.8981,
+      "narrative_prob": 0.9202,
       "narrative_prediction": "top10",
       "consensus_rank": 2,
       "in_consensus_top10": true
@@ -794,8 +794,8 @@
       "in_lgbm_top10": true,
       "surrogate_rank": 5,
       "surrogate_prob": 0.3573,
-      "narrative_prob": 0.4886,
-      "narrative_prediction": "outside_top10",
+      "narrative_prob": 0.9183,
+      "narrative_prediction": "top10",
       "consensus_rank": 3,
       "in_consensus_top10": true
     },
@@ -818,8 +818,8 @@
       "in_lgbm_top10": true,
       "surrogate_rank": 1,
       "surrogate_prob": 0.5203,
-      "narrative_prob": 0.3265,
-      "narrative_prediction": "outside_top10",
+      "narrative_prob": 0.8853,
+      "narrative_prediction": "top10",
       "consensus_rank": 4,
       "in_consensus_top10": true
     },
@@ -842,7 +842,7 @@
       "in_lgbm_top10": true,
       "surrogate_rank": 3,
       "surrogate_prob": 0.436,
-      "narrative_prob": 0.9389,
+      "narrative_prob": 0.8696,
       "narrative_prediction": "top10",
       "consensus_rank": 5,
       "in_consensus_top10": true
@@ -866,7 +866,7 @@
       "in_lgbm_top10": true,
       "surrogate_rank": 14,
       "surrogate_prob": 0.3005,
-      "narrative_prob": 0.7135,
+      "narrative_prob": 0.8642,
       "narrative_prediction": "top10",
       "consensus_rank": 6,
       "in_consensus_top10": true
@@ -890,8 +890,8 @@
       "in_lgbm_top10": true,
       "surrogate_rank": 22,
       "surrogate_prob": 0.2562,
-      "narrative_prob": 0.0124,
-      "narrative_prediction": "outside_top10",
+      "narrative_prob": 0.8372,
+      "narrative_prediction": "top10",
       "consensus_rank": 7,
       "in_consensus_top10": true
     },
@@ -914,8 +914,8 @@
       "in_lgbm_top10": true,
       "surrogate_rank": 4,
       "surrogate_prob": 0.3906,
-      "narrative_prob": 0.4571,
-      "narrative_prediction": "outside_top10",
+      "narrative_prob": 0.835,
+      "narrative_prediction": "top10",
       "consensus_rank": 8,
       "in_consensus_top10": true
     },
@@ -938,7 +938,7 @@
       "in_lgbm_top10": true,
       "surrogate_rank": 2,
       "surrogate_prob": 0.4557,
-      "narrative_prob": 0.6052,
+      "narrative_prob": 0.7559,
       "narrative_prediction": "top10",
       "consensus_rank": 9,
       "in_consensus_top10": true
@@ -962,8 +962,8 @@
       "in_lgbm_top10": true,
       "surrogate_rank": 11,
       "surrogate_prob": 0.3227,
-      "narrative_prob": 0.0783,
-      "narrative_prediction": "outside_top10",
+      "narrative_prob": 0.6996,
+      "narrative_prediction": "top10",
       "consensus_rank": 10,
       "in_consensus_top10": true
     },
@@ -986,8 +986,8 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 19,
       "surrogate_prob": 0.275,
-      "narrative_prob": 0.4534,
-      "narrative_prediction": "outside_top10",
+      "narrative_prob": 0.5864,
+      "narrative_prediction": "top10",
       "consensus_rank": 11,
       "in_consensus_top10": false
     },
@@ -1010,8 +1010,8 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 16,
       "surrogate_prob": 0.2821,
-      "narrative_prob": 0.1934,
-      "narrative_prediction": "outside_top10",
+      "narrative_prob": 0.5315,
+      "narrative_prediction": "top10",
       "consensus_rank": 12,
       "in_consensus_top10": false
     },
@@ -1034,8 +1034,8 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 15,
       "surrogate_prob": 0.2979,
-      "narrative_prob": 0.5309,
-      "narrative_prediction": "top10",
+      "narrative_prob": 0.4729,
+      "narrative_prediction": "outside_top10",
       "consensus_rank": 13,
       "in_consensus_top10": false
     },
@@ -1058,7 +1058,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 20,
       "surrogate_prob": 0.2691,
-      "narrative_prob": 0.0745,
+      "narrative_prob": 0.3743,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 14,
       "in_consensus_top10": false
@@ -1082,8 +1082,8 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 10,
       "surrogate_prob": 0.3268,
-      "narrative_prob": 0.6124,
-      "narrative_prediction": "top10",
+      "narrative_prob": 0.3141,
+      "narrative_prediction": "outside_top10",
       "consensus_rank": 15,
       "in_consensus_top10": false
     },
@@ -1106,7 +1106,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 13,
       "surrogate_prob": 0.3086,
-      "narrative_prob": 0.431,
+      "narrative_prob": 0.2694,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 16,
       "in_consensus_top10": false
@@ -1130,7 +1130,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 17,
       "surrogate_prob": 0.2821,
-      "narrative_prob": 0.0285,
+      "narrative_prob": 0.2572,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 17,
       "in_consensus_top10": false
@@ -1154,7 +1154,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 8,
       "surrogate_prob": 0.3504,
-      "narrative_prob": 0.0489,
+      "narrative_prob": 0.2335,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 18,
       "in_consensus_top10": false
@@ -1178,7 +1178,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 7,
       "surrogate_prob": 0.3534,
-      "narrative_prob": 0.156,
+      "narrative_prob": 0.2243,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 19,
       "in_consensus_top10": false
@@ -1202,8 +1202,8 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 12,
       "surrogate_prob": 0.3192,
-      "narrative_prob": 0.6048,
-      "narrative_prediction": "top10",
+      "narrative_prob": 0.2135,
+      "narrative_prediction": "outside_top10",
       "consensus_rank": 20,
       "in_consensus_top10": false
     },
@@ -1226,7 +1226,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 18,
       "surrogate_prob": 0.2806,
-      "narrative_prob": 0.0648,
+      "narrative_prob": 0.1927,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 21,
       "in_consensus_top10": false
@@ -1250,7 +1250,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 31,
       "surrogate_prob": 0.1788,
-      "narrative_prob": 0.4243,
+      "narrative_prob": 0.1894,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 22,
       "in_consensus_top10": false
@@ -1274,7 +1274,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 26,
       "surrogate_prob": 0.2381,
-      "narrative_prob": 0.2901,
+      "narrative_prob": 0.1876,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 23,
       "in_consensus_top10": false
@@ -1298,7 +1298,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 34,
       "surrogate_prob": 0.09,
-      "narrative_prob": 0.1675,
+      "narrative_prob": 0.1848,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 24,
       "in_consensus_top10": false
@@ -1322,7 +1322,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 28,
       "surrogate_prob": 0.2173,
-      "narrative_prob": 0.0633,
+      "narrative_prob": 0.1827,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 25,
       "in_consensus_top10": false
@@ -1346,7 +1346,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 23,
       "surrogate_prob": 0.2502,
-      "narrative_prob": 0.0757,
+      "narrative_prob": 0.1807,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 26,
       "in_consensus_top10": false
@@ -1370,7 +1370,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 24,
       "surrogate_prob": 0.2406,
-      "narrative_prob": 0.0302,
+      "narrative_prob": 0.1698,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 27,
       "in_consensus_top10": false
@@ -1394,7 +1394,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 30,
       "surrogate_prob": 0.206,
-      "narrative_prob": 0.0768,
+      "narrative_prob": 0.145,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 28,
       "in_consensus_top10": false
@@ -1418,7 +1418,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 25,
       "surrogate_prob": 0.2392,
-      "narrative_prob": 0.1052,
+      "narrative_prob": 0.1101,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 29,
       "in_consensus_top10": false
@@ -1442,7 +1442,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 35,
       "surrogate_prob": 0.0464,
-      "narrative_prob": 0.0078,
+      "narrative_prob": 0.1012,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 30,
       "in_consensus_top10": false
@@ -1466,7 +1466,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 32,
       "surrogate_prob": 0.1579,
-      "narrative_prob": 0.0096,
+      "narrative_prob": 0.0988,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 31,
       "in_consensus_top10": false
@@ -1490,7 +1490,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 21,
       "surrogate_prob": 0.2589,
-      "narrative_prob": 0.0174,
+      "narrative_prob": 0.0871,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 32,
       "in_consensus_top10": false
@@ -1514,7 +1514,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 29,
       "surrogate_prob": 0.2143,
-      "narrative_prob": 0.0289,
+      "narrative_prob": 0.0805,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 33,
       "in_consensus_top10": false
@@ -1538,7 +1538,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 33,
       "surrogate_prob": 0.1404,
-      "narrative_prob": 0.0143,
+      "narrative_prob": 0.0741,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 34,
       "in_consensus_top10": false
@@ -1562,7 +1562,7 @@
       "in_lgbm_top10": false,
       "surrogate_rank": 27,
       "surrogate_prob": 0.2334,
-      "narrative_prob": 0.0118,
+      "narrative_prob": 0.0646,
       "narrative_prediction": "outside_top10",
       "consensus_rank": 35,
       "in_consensus_top10": false
