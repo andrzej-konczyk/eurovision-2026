@@ -92,7 +92,7 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
     st.sidebar.title("Eurovision 2026")
     page = st.sidebar.radio(
         "Navigation",
-        ["Overview", "Main Ranking", "Semi Qualifiers", "Narratives", "Backtest", "Data Health"],
+        ["Overview", "Main Ranking", "Tiers", "Semi Qualifiers", "Narratives", "Backtest", "Data Health"],
     )
     st.sidebar.divider()
     st.sidebar.caption("Loaded artifacts")
@@ -313,6 +313,167 @@ def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
     return fig
 
 
+def position_probability_frame(predictions_df: pd.DataFrame) -> pd.DataFrame:
+    """Estimate top-3 position mass from model probability and bootstrap CI summaries."""
+    frame = main_ranking_frame(predictions_df, n_places=len(predictions_df)).copy()
+    if frame.empty:
+        return pd.DataFrame(columns=["country", "position", "probability"])
+
+    rows: list[dict[str, Any]] = []
+    position_specs = {
+        1: {"metric": (frame["probability"] + frame["ci80_hi"]) / 2.0, "rank_decay": 0.72},
+        2: {"metric": frame["probability"], "rank_decay": 0.64},
+        3: {"metric": (frame["probability"] + frame["ci80_lo"]) / 2.0, "rank_decay": 0.58},
+    }
+    for position, spec in position_specs.items():
+        distance = (frame["rank"] - position).abs()
+        scores = spec["metric"].clip(lower=0.0) * (spec["rank_decay"] ** distance)
+        total = scores.sum()
+        probabilities = scores / total if total > 0 else scores
+        for country, probability in zip(frame["country"], probabilities, strict=True):
+            rows.append(
+                {
+                    "country": country,
+                    "position": f"P{position}",
+                    "probability": float(probability),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def position_probability_matrix(position_df: pd.DataFrame) -> pd.DataFrame:
+    if position_df.empty:
+        return pd.DataFrame()
+    matrix = position_df.pivot(index="country", columns="position", values="probability").fillna(0.0)
+    return matrix[["P1", "P2", "P3"]]
+
+
+def top3_heatmap(position_df: pd.DataFrame, predictions_df: pd.DataFrame) -> go.Figure:
+    matrix = position_probability_matrix(position_df)
+    country_order = (
+        predictions_df[["country", "rank"]]
+        .dropna()
+        .sort_values("rank")["country"]
+        .tolist()
+    )
+    matrix = matrix.reindex([country for country in country_order if country in matrix.index])
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=matrix.to_numpy(),
+            x=["1st", "2nd", "3rd"],
+            y=matrix.index,
+            colorscale="Viridis",
+            zmin=0.0,
+            zmax=max(0.01, float(matrix.to_numpy().max())),
+            colorbar={"title": "Probability", "tickformat": ".0%"},
+            hovertemplate="<b>%{y}</b><br>Position: %{x}<br>Probability: %{z:.2%}<extra></extra>",
+        )
+    )
+    fig.update_layout(
+        title="Top-3 probability heatmap",
+        xaxis_title="Position",
+        yaxis_title=None,
+        height=980,
+        margin={"l": 130, "r": 40, "t": 70, "b": 50},
+        font={"size": 13},
+    )
+    return fig
+
+
+def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 5) -> go.Figure:
+    winners = (
+        position_df[position_df["position"] == "P1"]
+        .sort_values("probability", ascending=False)
+        .head(top_n)
+        .reset_index(drop=True)
+    )
+    fig = go.Figure()
+    for index, row in winners.iterrows():
+        start = index / top_n
+        end = (index + 1) / top_n
+        fig.add_trace(
+            go.Indicator(
+                mode="gauge+number",
+                value=float(row["probability"]),
+                number={"valueformat": ".1%"},
+                title={"text": str(row["country"]), "font": {"size": 14}},
+                domain={"x": [start + 0.01, end - 0.01], "y": [0.0, 1.0]},
+                gauge={
+                    "axis": {"range": [0.0, 1.0], "tickformat": ".0%"},
+                    "bar": {"color": "#2563eb"},
+                    "bgcolor": "#f8fafc",
+                    "bordercolor": "#cbd5e1",
+                    "steps": [
+                        {"range": [0.0, 0.2], "color": "#e2e8f0"},
+                        {"range": [0.2, 0.5], "color": "#dbeafe"},
+                        {"range": [0.5, 1.0], "color": "#bfdbfe"},
+                    ],
+                },
+            )
+        )
+    fig.update_layout(
+        title="Winner probability gauge: top 5",
+        height=270,
+        margin={"l": 30, "r": 30, "t": 70, "b": 20},
+        font={"size": 12},
+    )
+    return fig
+
+
+def render_tiers(predictions_df: pd.DataFrame) -> None:
+    st.title("Tiers")
+    if predictions_df.empty:
+        st.warning("No country predictions found in the predictions JSON.")
+        return
+
+    position_df = position_probability_frame(predictions_df)
+    if position_df.empty:
+        st.warning("No top-3 position probabilities could be derived.")
+        return
+
+    column_sums = position_df.groupby("position", as_index=False)["probability"].sum()
+    st.subheader("Tier 3: Top-3 Probability Heatmap")
+    st.plotly_chart(
+        top3_heatmap(position_df, predictions_df),
+        use_container_width=True,
+        config={
+            "displaylogo": False,
+            "toImageButtonOptions": {
+                "format": "png",
+                "filename": "eurovision_2026_top3_heatmap",
+                "height": 980,
+                "width": 1100,
+                "scale": 2,
+            },
+        },
+    )
+    st.dataframe(
+        column_sums,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "position": st.column_config.TextColumn("Position"),
+            "probability": st.column_config.NumberColumn("Column sum", format="%.6f"),
+        },
+    )
+
+    st.subheader("Tier 4: Winner Probability Gauge")
+    st.plotly_chart(
+        winner_gauge_figure(position_df),
+        use_container_width=True,
+        config={
+            "displaylogo": False,
+            "toImageButtonOptions": {
+                "format": "png",
+                "filename": "eurovision_2026_winner_gauge_top5",
+                "height": 270,
+                "width": 1400,
+                "scale": 2,
+            },
+        },
+    )
+
+
 def safe_float(value: Any) -> float | None:
     try:
         result = float(value)
@@ -491,6 +652,8 @@ def main() -> None:
         render_overview(data, predictions_df)
     elif page == "Main Ranking":
         render_predictions(data["predictions"], predictions_df)
+    elif page == "Tiers":
+        render_tiers(predictions_df)
     elif page == "Semi Qualifiers":
         render_semi_qualifiers(data["semi_predictions"])
     elif page == "Narratives":
