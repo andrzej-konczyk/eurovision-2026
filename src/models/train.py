@@ -48,6 +48,7 @@ RANDOM_SEED = int(os.getenv("RANDOM_SEED", "42"))
 MLFLOW_URI = os.getenv("MLFLOW_TRACKING_URI", str(ROOT / "models" / "mlruns"))
 ENRICHED_CSV = ROOT / "Dataset" / "eurovision_2016_26_enriched.csv"
 ODDS_CSV = ROOT / "Dataset" / "betting_odds_clean.csv"
+SEMI_ODDS_CSV = ROOT / "Dataset" / "semi_odds_clean.csv"
 ARTEFACT_DIR = ROOT / "models" / "artefacts"
 EXPERIMENT_NAME = "eurovision-2026-ensemble"
 
@@ -144,6 +145,73 @@ def _load_odds_feature(odds_path: Path = ODDS_CSV) -> pd.DataFrame:
     )
 
 
+def _load_semi_odds_feature(odds_path: Path = SEMI_ODDS_CSV) -> pd.DataFrame:
+    """Load semi-final qualification implied probability.
+
+    This is intentionally separate from ``implied_prob_close`` which represents
+    Grand Final winner-market odds. If no semi-final market file is present yet,
+    return an empty feature frame; ``build_feature_matrix`` will then derive a
+    semi-final qualification proxy from pre-contest market odds within each
+    semi-final instead of exposing raw GF winner odds to semi models.
+
+    Supported input schemas:
+    - year,country,implied_prob_semi
+    - year,country,implied_prob_qualify
+    - year,country,implied_prob
+    """
+    output_cols = ["Year", "Country", "implied_prob_semi"]
+    if not odds_path.exists():
+        return pd.DataFrame(columns=output_cols)
+
+    odds = pd.read_csv(odds_path, encoding="utf-8", low_memory=False)
+    odds.columns = odds.columns.str.strip()
+    prob_col = next(
+        (col for col in ["implied_prob_semi", "implied_prob_qualify", "implied_prob"] if col in odds.columns),
+        None,
+    )
+    if prob_col is None:
+        raise ValueError(
+            f"{odds_path} must contain one of: implied_prob_semi, implied_prob_qualify, implied_prob"
+        )
+
+    odds["Country"] = odds["country"].str.strip().replace(_ODDS_NAME_MAP)
+    odds["Year"] = odds["year"].astype(int)
+    return (
+        odds[["Year", "Country", prob_col]]
+        .rename(columns={prob_col: "implied_prob_semi"})
+        .drop_duplicates(subset=["Year", "Country"])
+        .reset_index(drop=True)
+    )
+
+
+def _derive_semi_odds_proxy(df: pd.DataFrame, gf_odds: pd.DataFrame) -> pd.DataFrame:
+    """Derive a semi-final qualification probability proxy from market odds.
+
+    The fallback is used only when direct semi-final qualification market data is
+    absent. It converts pre-contest GF market mass into a within-semi probability
+    scale by normalising each entry against the highest market probability in
+    its (Year, Semi_Final_Num). This keeps semi models off the raw
+    ``implied_prob_close`` feature while preserving a market-based SF ranking
+    signal without saturating small semi-final groups.
+    """
+    output_cols = ["Year", "Country", "implied_prob_semi"]
+    required = {"Year", "Country", "Semi_Final_Num"}
+    if gf_odds.empty or not required.issubset(df.columns):
+        return pd.DataFrame(columns=output_cols)
+
+    semis = df[list(required)].copy()
+    semis = semis[semis["Semi_Final_Num"].notna()]
+    if semis.empty:
+        return pd.DataFrame(columns=output_cols)
+
+    merged = semis.merge(gf_odds, on=["Year", "Country"], how="left")
+    merged["implied_prob_close"] = pd.to_numeric(merged["implied_prob_close"], errors="coerce")
+    group_max = merged.groupby(["Year", "Semi_Final_Num"])["implied_prob_close"].transform("max")
+    merged["implied_prob_semi"] = (merged["implied_prob_close"] / group_max).clip(upper=0.995)
+    merged.loc[group_max <= 0, "implied_prob_semi"] = np.nan
+    return merged[output_cols].drop_duplicates(subset=["Year", "Country"]).reset_index(drop=True)
+
+
 def build_feature_matrix(df: pd.DataFrame) -> pd.DataFrame:
     """Merge all engineered features into *df* keyed on (Year, Country).
 
@@ -155,6 +223,9 @@ def build_feature_matrix(df: pd.DataFrame) -> pd.DataFrame:
     flags = compute_rule_flags(df)
     social = compute_social_proxy(df)
     odds = _load_odds_feature()
+    semi_odds = _load_semi_odds_feature()
+    if semi_odds.empty:
+        semi_odds = _derive_semi_odds_proxy(df, odds)
 
     keep = ["Year", "Country", "Grand_Final_Ind", TARGET_COL] + [
         c for c in _RAW_FEATURES if c in df.columns
@@ -167,6 +238,7 @@ def build_feature_matrix(df: pd.DataFrame) -> pd.DataFrame:
         (flags,  ["Year", "Country", "rule_2019_semifinal_reform", "rule_2023_jury_weight_reform"]),
         (social, ["Year", "Country", "zscore_myesb_community", "zscore_myesb_personal", "zscore_ogae_points"]),
         (odds,   ["Year", "Country", "implied_prob_close"]),
+        (semi_odds, ["Year", "Country", "implied_prob_semi"]),
     ]:
         merge_cols = [c for c in cols if c in fe.columns]
         out = out.merge(fe[merge_cols], on=["Year", "Country"], how="left")

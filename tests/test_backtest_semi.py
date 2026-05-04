@@ -189,10 +189,19 @@ class TestSemiSplit:
     def test_running_order_final_excluded_from_semi_feature_cols(self):
         assert "Running_Order_Final" not in SEMI_FEATURE_COLS
 
-    def test_semi_feature_cols_is_subset_of_feature_cols(self):
+    def test_gf_winner_odds_excluded_from_semi_feature_cols(self):
+        assert "implied_prob_close" not in SEMI_FEATURE_COLS
+
+    def test_semi_market_odds_included_in_semi_feature_cols(self):
+        assert "implied_prob_semi" in SEMI_FEATURE_COLS
+
+    def test_semi_feature_cols_use_feature_cols_plus_semi_market(self):
         from src.models.train import FEATURE_COLS
-        assert all(c in FEATURE_COLS for c in SEMI_FEATURE_COLS)
-        assert len(SEMI_FEATURE_COLS) == len(FEATURE_COLS) - 1
+        expected = [
+            c for c in FEATURE_COLS
+            if c not in {"Running_Order_Final", "implied_prob_close"}
+        ] + ["implied_prob_semi"]
+        assert SEMI_FEATURE_COLS == expected
 
 
 # ---------------------------------------------------------------------------
