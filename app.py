@@ -9,6 +9,7 @@ from time import perf_counter
 from typing import Any
 
 import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 
 
@@ -91,7 +92,7 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
     st.sidebar.title("Eurovision 2026")
     page = st.sidebar.radio(
         "Navigation",
-        ["Overview", "Predictions", "Semi Qualifiers", "Narratives", "Backtest", "Data Health"],
+        ["Overview", "Main Ranking", "Semi Qualifiers", "Narratives", "Backtest", "Data Health"],
     )
     st.sidebar.divider()
     st.sidebar.caption("Loaded artifacts")
@@ -143,65 +144,173 @@ def model_predictions_frame(predictions: dict[str, Any], model: str) -> pd.DataF
 
 
 def render_predictions(predictions: dict[str, Any], predictions_df: pd.DataFrame) -> None:
-    st.title("Predictions")
+    st.title("Main Ranking")
     if predictions_df.empty:
         st.warning("No country predictions found in the predictions JSON.")
         return
 
-    view = st.segmented_control(
-        "Prediction view",
-        ["Consensus", "XGB", "LGBM"],
-        default="Consensus",
+    ranking = main_ranking_frame(predictions_df)
+    if ranking.empty:
+        st.warning("No rank 1-26 predictions found in the predictions JSON.")
+        return
+
+    fig = ranking_plot(ranking)
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={
+            "displaylogo": False,
+            "toImageButtonOptions": {
+                "format": "png",
+                "filename": "eurovision_2026_ranking_top26",
+                "height": 900,
+                "width": 1400,
+                "scale": 2,
+            },
+        },
     )
 
-    if view == "XGB":
-        frame = model_predictions_frame(predictions, "xgb")
-        visible_columns = ["rank", "country", "prob_mean", "ci80_lo", "ci80_hi", "ci50_lo", "ci50_hi"]
-    elif view == "LGBM":
-        frame = model_predictions_frame(predictions, "lgbm")
-        visible_columns = ["rank", "country", "prob_mean", "ci80_lo", "ci80_hi", "ci50_lo", "ci50_hi"]
-    else:
-        frame = predictions_df
-        visible_columns = [
-            column
-            for column in [
-                "rank",
-                "country",
-                "probability",
-                "xgb_prob",
-                "lgbm_prob",
-                "xgb_rank",
-                "lgbm_rank",
-                "in_consensus_top10",
-            ]
-            if column in frame.columns
-        ]
+    visible_columns = [
+        "rank",
+        "country",
+        "probability",
+        "ci80_lo",
+        "ci80_hi",
+        "badge",
+        "xgb_prob",
+        "lgbm_prob",
+        "model_consensus",
+    ]
 
     st.dataframe(
-        frame[visible_columns],
+        ranking[visible_columns],
         use_container_width=True,
         hide_index=True,
         column_config={
             "probability": st.column_config.ProgressColumn(
-                "Consensus probability",
+                "prob_top10",
                 format="%.3f",
                 min_value=0.0,
                 max_value=1.0,
             ),
-            "prob_mean": st.column_config.ProgressColumn(
-                "Probability",
-                format="%.3f",
-                min_value=0.0,
-                max_value=1.0,
-            ),
+            "badge": st.column_config.TextColumn("Safety badge"),
+            "model_consensus": st.column_config.TextColumn("XGB vs LGBM consensus"),
             "xgb_prob": st.column_config.NumberColumn("XGB probability", format="%.3f"),
             "lgbm_prob": st.column_config.NumberColumn("LGBM probability", format="%.3f"),
             "ci80_lo": st.column_config.NumberColumn("CI-80 low", format="%.3f"),
             "ci80_hi": st.column_config.NumberColumn("CI-80 high", format="%.3f"),
-            "ci50_lo": st.column_config.NumberColumn("CI-50 low", format="%.3f"),
-            "ci50_hi": st.column_config.NumberColumn("CI-50 high", format="%.3f"),
         },
     )
+
+
+def main_ranking_frame(predictions_df: pd.DataFrame, n_places: int = 26) -> pd.DataFrame:
+    frame = predictions_df.copy()
+    numeric_columns = [
+        "rank",
+        "probability",
+        "xgb_prob",
+        "lgbm_prob",
+        "xgb_rank",
+        "lgbm_rank",
+        "xgb_ci80_lo",
+        "xgb_ci80_hi",
+        "lgbm_ci80_lo",
+        "lgbm_ci80_hi",
+    ]
+    for column in numeric_columns:
+        if column in frame.columns:
+            frame[column] = pd.to_numeric(frame[column], errors="coerce")
+
+    frame = frame.sort_values("rank").head(n_places).reset_index(drop=True)
+    frame["ci80_lo"] = frame[["xgb_ci80_lo", "lgbm_ci80_lo"]].mean(axis=1)
+    frame["ci80_hi"] = frame[["xgb_ci80_hi", "lgbm_ci80_hi"]].mean(axis=1)
+    frame["ci80_width"] = frame["ci80_hi"] - frame["ci80_lo"]
+    frame["badge"] = frame.apply(safety_badge, axis=1)
+    frame["model_consensus"] = frame.apply(model_consensus_label, axis=1)
+    return frame
+
+
+def safety_badge(row: pd.Series) -> str:
+    probability = safe_float(row.get("probability"))
+    rank = safe_float(row.get("rank"))
+    ci80_lo = safe_float(row.get("ci80_lo"))
+    ci80_width = safe_float(row.get("ci80_width"))
+    if probability is None or rank is None:
+        return "UNCERTAIN"
+    if rank <= 10 and probability >= 0.65 and ci80_lo is not None and ci80_lo >= 0.40:
+        return "SAFE"
+    if rank <= 13 or probability >= 0.45 or (ci80_width is not None and ci80_width >= 0.45):
+        return "LIKELY"
+    return "UNCERTAIN"
+
+
+def model_consensus_label(row: pd.Series) -> str:
+    in_xgb = bool(row.get("in_xgb_top10"))
+    in_lgbm = bool(row.get("in_lgbm_top10"))
+    if in_xgb and in_lgbm:
+        return "XGB + LGBM top-10"
+    if in_xgb:
+        return "XGB only"
+    if in_lgbm:
+        return "LGBM only"
+    return "Outside both top-10"
+
+
+def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
+    plot_frame = ranking.sort_values("rank", ascending=False)
+    colors = {"SAFE": "#16a34a", "LIKELY": "#f59e0b", "UNCERTAIN": "#64748b"}
+    fig = go.Figure()
+    fig.add_trace(
+        go.Bar(
+            x=plot_frame["probability"],
+            y=plot_frame["country"],
+            orientation="h",
+            marker_color=[colors.get(badge, "#64748b") for badge in plot_frame["badge"]],
+            showlegend=False,
+            error_x={
+                "type": "data",
+                "symmetric": False,
+                "array": (plot_frame["ci80_hi"] - plot_frame["probability"]).clip(lower=0),
+                "arrayminus": (plot_frame["probability"] - plot_frame["ci80_lo"]).clip(lower=0),
+                "thickness": 1.2,
+                "width": 3,
+                "color": "#334155",
+            },
+            customdata=plot_frame[["rank", "badge", "xgb_prob", "lgbm_prob", "model_consensus"]],
+            hovertemplate=(
+                "<b>%{y}</b><br>"
+                "Rank: %{customdata[0]}<br>"
+                "prob_top10: %{x:.1%}<br>"
+                "Badge: %{customdata[1]}<br>"
+                "XGB: %{customdata[2]:.1%}<br>"
+                "LGBM: %{customdata[3]:.1%}<br>"
+                "%{customdata[4]}<extra></extra>"
+            ),
+        )
+    )
+    fig.update_layout(
+        title="Ranking 1-26 by consensus prob_top10",
+        xaxis_title="prob_top10 with CI-80",
+        yaxis_title=None,
+        height=820,
+        margin={"l": 120, "r": 40, "t": 70, "b": 50},
+        legend_title_text="Safety badge",
+        bargap=0.22,
+        xaxis={"tickformat": ".0%", "range": [0, 1]},
+        font={"size": 13},
+    )
+    for badge, color in colors.items():
+        fig.add_trace(
+            go.Scatter(
+                x=[None],
+                y=[None],
+                mode="markers",
+                marker={"size": 10, "color": color},
+                name=badge,
+                hoverinfo="skip",
+            )
+        )
+    return fig
 
 
 def safe_float(value: Any) -> float | None:
@@ -380,7 +489,7 @@ def main() -> None:
     page = render_sidebar(data, load_time_s)
     if page == "Overview":
         render_overview(data, predictions_df)
-    elif page == "Predictions":
+    elif page == "Main Ranking":
         render_predictions(data["predictions"], predictions_df)
     elif page == "Semi Qualifiers":
         render_semi_qualifiers(data["semi_predictions"])
