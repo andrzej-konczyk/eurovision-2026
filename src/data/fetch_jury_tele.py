@@ -7,9 +7,9 @@ Data source: EurovisionWorld year-specific JS files
   https://pix.eurovisionworld.com/scripts/js/voting/{event_id}.js
 
 Structure of voting_table_main:
-  {iso2: [run_order, place, total, jury, tele, qualified, sf_num]}
+  {iso2: [run_order, place, total, televote, jury, qualified, sf_num]}
 Structure of voting_table_sub (list of dicts, one per semi):
-  {iso2: [run_order, place_overall, total, jury, tele, qualified, sf_num, ?]}
+  {iso2: [run_order, place_overall, total, televote, jury, qualified, sf_num, ?]}
 """
 
 from __future__ import annotations
@@ -115,9 +115,9 @@ def _parse_year(year: int, event_id: int) -> list[dict]:
             country = ISO_TO_COUNTRY.get(iso)
             if country is None:
                 continue
-            # vals: [run_order, place, total, jury, tele, qualified, sf_num]
-            jury  = vals[3] if vals[3] != -1 else None
-            tele  = vals[4] if vals[4] != -1 else None
+            # vals: [run_order, place, total, televote, jury, qualified, sf_num]
+            tele  = vals[3] if vals[3] != -1 else None
+            jury  = vals[4] if vals[4] != -1 else None
             total = vals[2]
             records.append({
                 "year":        year,
@@ -139,8 +139,8 @@ def _parse_year(year: int, event_id: int) -> list[dict]:
                 country = ISO_TO_COUNTRY.get(iso)
                 if country is None:
                     continue
-                jury  = vals[3] if vals[3] != -1 else None
-                tele  = vals[4] if vals[4] != -1 else None
+                tele  = vals[3] if vals[3] != -1 else None
+                jury  = vals[4] if vals[4] != -1 else None
                 records.append({
                     "year":        year,
                     "country":     country,

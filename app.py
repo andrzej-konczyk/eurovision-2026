@@ -11,6 +11,7 @@ from typing import Any
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 APP_ROOT = Path(__file__).resolve().parent
@@ -18,9 +19,13 @@ REPORTS_DIR = APP_ROOT / "reports"
 
 PREDICTIONS_JSON = REPORTS_DIR / "predictions_2026.json"
 NARRATIVES_JSON = REPORTS_DIR / "narratives_2026.json"
-BACKTEST_JSON = REPORTS_DIR / "backtest_2022_2024.json"
+BACKTEST_JSON_CANDIDATES = [
+    REPORTS_DIR / "backtest_2022_2025.json",
+    REPORTS_DIR / "backtest_2022_2024.json",
+]
 SEMI_PREDICTIONS_JSON = REPORTS_DIR / "semi_predictions_2026.json"
 ENRICHED_CSV = APP_ROOT / "Dataset" / "eurovision_2016_26_enriched.csv"
+BLOC_COOCCURRENCE_CSV = APP_ROOT / "data" / "features" / "bloc_cooccurrence.csv"
 
 COUNTRY_ISO2 = {
     "Albania": "AL",
@@ -80,19 +85,32 @@ def load_csv(path: str, mtime_ns: int) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
+def first_existing_path(candidates: list[Path]) -> Path:
+    for path in candidates:
+        if path.exists():
+            return path
+    return candidates[-1]
+
+
 def load_dashboard_data() -> dict[str, Any]:
     """Load all dashboard JSON artifacts."""
+    backtest_path = first_existing_path(BACKTEST_JSON_CANDIDATES)
     return {
         "predictions": load_json(str(PREDICTIONS_JSON), PREDICTIONS_JSON.stat().st_mtime_ns),
         "predictions_path": str(PREDICTIONS_JSON.relative_to(APP_ROOT)),
         "narratives": load_json(str(NARRATIVES_JSON), NARRATIVES_JSON.stat().st_mtime_ns),
         "narratives_path": str(NARRATIVES_JSON.relative_to(APP_ROOT)),
-        "backtest": load_json(str(BACKTEST_JSON), BACKTEST_JSON.stat().st_mtime_ns),
-        "backtest_path": str(BACKTEST_JSON.relative_to(APP_ROOT)),
+        "backtest": load_json(str(backtest_path), backtest_path.stat().st_mtime_ns),
+        "backtest_path": str(backtest_path.relative_to(APP_ROOT)),
         "semi_predictions": load_json(str(SEMI_PREDICTIONS_JSON), SEMI_PREDICTIONS_JSON.stat().st_mtime_ns),
         "semi_predictions_path": str(SEMI_PREDICTIONS_JSON.relative_to(APP_ROOT)),
         "history": load_csv(str(ENRICHED_CSV), ENRICHED_CSV.stat().st_mtime_ns),
         "history_path": str(ENRICHED_CSV.relative_to(APP_ROOT)),
+        "bloc_cooccurrence": load_csv(
+            str(BLOC_COOCCURRENCE_CSV),
+            BLOC_COOCCURRENCE_CSV.stat().st_mtime_ns,
+        ),
+        "bloc_cooccurrence_path": str(BLOC_COOCCURRENCE_CSV.relative_to(APP_ROOT)),
     }
 
 
@@ -118,6 +136,19 @@ def countries_frame(predictions: dict[str, Any]) -> pd.DataFrame:
     return frame
 
 
+def apply_ukraine_scenario(predictions_df: pd.DataFrame, include_ukraine: bool) -> pd.DataFrame:
+    """Return dashboard rankings for the selected Ukraine in/out scenario."""
+    if include_ukraine or predictions_df.empty or "country" not in predictions_df.columns:
+        return predictions_df.copy()
+    frame = predictions_df[predictions_df["country"] != "Ukraine"].copy()
+    if "probability" in frame.columns:
+        frame = frame.sort_values("probability", ascending=False).reset_index(drop=True)
+    else:
+        frame = frame.reset_index(drop=True)
+    frame["rank"] = frame.index + 1
+    return frame
+
+
 def backtest_frame(backtest: dict[str, Any]) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for year, year_data in backtest.get("years", {}).items():
@@ -136,12 +167,22 @@ def backtest_frame(backtest: dict[str, Any]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
+def render_sidebar(data: dict[str, Any], load_time_s: float) -> tuple[str, bool]:
     st.sidebar.title("Eurovision 2026")
     page = st.sidebar.radio(
         "Navigation",
-        ["Overview", "Main Ranking", "Tiers", "Semi Qualifiers", "Narratives", "Backtest", "Data Health"],
+        [
+            "Overview",
+            "Main Ranking",
+            "Tiers",
+            "Semi Qualifiers",
+            "Voting Blocs",
+            "Narratives",
+            "Backtest",
+            "Data Health",
+        ],
     )
+    include_ukraine = st.sidebar.toggle("Scenario A: include Ukraine", value=True)
     st.sidebar.divider()
     st.sidebar.caption("Loaded artifacts")
     st.sidebar.code(data["predictions_path"])
@@ -149,8 +190,9 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
     st.sidebar.code(data["narratives_path"])
     st.sidebar.code(data["backtest_path"])
     st.sidebar.code(data["history_path"])
+    st.sidebar.code(data["bloc_cooccurrence_path"])
     st.sidebar.metric("Load time", f"{load_time_s:.3f}s")
-    return page
+    return page, include_ukraine
 
 
 def country_flag(country: str) -> str:
@@ -763,6 +805,92 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 5) -> go.Figure:
     return fig
 
 
+def bloc_cooccurrence_long_frame(cooccurrence: pd.DataFrame) -> pd.DataFrame:
+    if cooccurrence.empty:
+        return pd.DataFrame(columns=["country", "bloc", "member"])
+    frame = cooccurrence.copy()
+    country_col = "Country" if "Country" in frame.columns else frame.columns[0]
+    if country_col != "Country":
+        frame = frame.rename(columns={country_col: "Country"})
+    bloc_cols = [col for col in frame.columns if col != "Country"]
+    long = frame.melt(
+        id_vars="Country",
+        value_vars=bloc_cols,
+        var_name="bloc",
+        value_name="member",
+    )
+    long["member"] = pd.to_numeric(long["member"], errors="coerce").fillna(0).astype(int)
+    return long.rename(columns={"Country": "country"})
+
+
+def voting_bloc_d3_html(cooccurrence: pd.DataFrame) -> str:
+    long = bloc_cooccurrence_long_frame(cooccurrence)
+    records = long.to_dict(orient="records")
+    payload = json.dumps(records)
+    return f"""
+<div id="bloc-d3"></div>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script>
+const data = {payload};
+const countries = Array.from(new Set(data.map(d => d.country))).sort();
+const blocs = Array.from(new Set(data.map(d => d.bloc))).sort();
+const margin = {{top: 28, right: 24, bottom: 24, left: 150}};
+const cell = 18;
+const width = margin.left + margin.right + blocs.length * 92;
+const height = margin.top + margin.bottom + countries.length * cell;
+const root = d3.select("#bloc-d3").html("");
+const svg = root.append("svg")
+  .attr("viewBox", [0, 0, width, height])
+  .attr("width", "100%")
+  .attr("height", height);
+const x = d3.scaleBand().domain(blocs).range([margin.left, width - margin.right]).padding(0.08);
+const y = d3.scaleBand().domain(countries).range([margin.top, height - margin.bottom]).padding(0.08);
+svg.append("g")
+  .selectAll("text")
+  .data(blocs)
+  .join("text")
+  .attr("x", d => x(d) + x.bandwidth() / 2)
+  .attr("y", 18)
+  .attr("text-anchor", "middle")
+  .attr("font-size", 12)
+  .attr("font-weight", 700)
+  .text(d => d);
+svg.append("g")
+  .selectAll("text")
+  .data(countries)
+  .join("text")
+  .attr("x", margin.left - 10)
+  .attr("y", d => y(d) + y.bandwidth() / 2)
+  .attr("dominant-baseline", "middle")
+  .attr("text-anchor", "end")
+  .attr("font-size", 12)
+  .text(d => d);
+svg.append("g")
+  .selectAll("rect")
+  .data(data)
+  .join("rect")
+  .attr("x", d => x(d.bloc))
+  .attr("y", d => y(d.country))
+  .attr("width", x.bandwidth())
+  .attr("height", y.bandwidth())
+  .attr("rx", 3)
+  .attr("fill", d => d.member ? "#2563eb" : "#e5e7eb")
+  .append("title")
+  .text(d => `${{d.country}} / ${{d.bloc}}: ${{d.member ? "member" : "not member"}}`);
+</script>
+"""
+
+
+def render_voting_blocs(data: dict[str, Any]) -> None:
+    st.title("Voting Blocs")
+    cooccurrence = data["bloc_cooccurrence"]
+    if cooccurrence.empty:
+        st.warning("No voting-bloc co-occurrence matrix found.")
+        return
+    components.html(voting_bloc_d3_html(cooccurrence), height=920, scrolling=True)
+    st.dataframe(cooccurrence, use_container_width=True, hide_index=True)
+
+
 def render_tiers(predictions_df: pd.DataFrame) -> None:
     st.title("Tiers")
     if predictions_df.empty:
@@ -991,7 +1119,8 @@ def main() -> None:
     load_time_s = perf_counter() - start
     predictions_df = countries_frame(data["predictions"])
 
-    page = render_sidebar(data, load_time_s)
+    page, include_ukraine = render_sidebar(data, load_time_s)
+    predictions_df = apply_ukraine_scenario(predictions_df, include_ukraine)
     render_country_detail_sidebar(data, predictions_df)
     if page == "Overview":
         render_overview(data, predictions_df)
@@ -1001,6 +1130,8 @@ def main() -> None:
         render_tiers(predictions_df)
     elif page == "Semi Qualifiers":
         render_semi_qualifiers(data["semi_predictions"])
+    elif page == "Voting Blocs":
+        render_voting_blocs(data)
     elif page == "Narratives":
         render_narratives(data["narratives"])
     elif page == "Backtest":

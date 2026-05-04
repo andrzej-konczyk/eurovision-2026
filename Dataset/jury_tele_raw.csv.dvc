@@ -1,5 +1,5 @@
 outs:
-- md5: ab101d9bad98768adc55789442ceac86
+- md5: 31c7ff58d36100d82215ff32f7bc69d0
   size: 13897
   hash: md5
   path: jury_tele_raw.csv

@@ -309,11 +309,21 @@ def backtest_year(
 # ---------------------------------------------------------------------------
 
 
-def _build_markdown(year_results: list[dict], timestamp: str) -> str:
+def _years_suffix(years: list[int]) -> str:
+    if not years:
+        return "none"
+    ordered = sorted(years)
+    if ordered == list(range(ordered[0], ordered[-1] + 1)):
+        return f"{ordered[0]}_{ordered[-1]}"
+    return "_".join(str(year) for year in ordered)
+
+
+def _build_markdown(year_results: list[dict], timestamp: str, n_bootstrap: int) -> str:
+    years_label = " / ".join(str(yr["year"]) for yr in year_results)
     lines = [
-        "# Backtest Report — 2022 / 2023 / 2024",
+        f"# Backtest Report - {years_label}",
         "",
-        f"*Generated: {timestamp[:10]}  |  n_bootstrap = {N_BOOTSTRAP}*",
+        f"*Generated: {timestamp[:10]}  |  n_bootstrap = {n_bootstrap}*",
         "",
         "## Top-10 Accuracy",
         "",
@@ -441,14 +451,15 @@ def run_backtest(
 
     # Write outputs
     out_dir.mkdir(parents=True, exist_ok=True)
-    json_path = out_dir / "backtest_2022_2024.json"
-    md_path = out_dir / "backtest_2022_2024.md"
+    suffix = _years_suffix(years)
+    json_path = out_dir / f"backtest_{suffix}.json"
+    md_path = out_dir / f"backtest_{suffix}.md"
 
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, default=str)
     print(f"\nSaved: {json_path.relative_to(ROOT, walk_up=True)}")
 
-    md_content = _build_markdown(year_results, timestamp)
+    md_content = _build_markdown(year_results, timestamp, n_bootstrap)
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(md_content)
     print(f"Saved: {md_path.relative_to(ROOT, walk_up=True)}")

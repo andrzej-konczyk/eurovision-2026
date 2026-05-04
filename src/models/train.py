@@ -40,12 +40,13 @@ from src.features.rule_flags import compute_rule_flags
 from src.features.social_proxy import compute_social_proxy
 from src.features.voting_blocs import compute_voting_blocs
 from src.models.cv import LeaveLastYearOut
+from src.tracking.mlflow_config import tracking_uri
 
 ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(ROOT / ".env")
 
 RANDOM_SEED = int(os.getenv("RANDOM_SEED", "42"))
-MLFLOW_URI = os.getenv("MLFLOW_TRACKING_URI", str(ROOT / "models" / "mlruns"))
+MLFLOW_URI = tracking_uri(ROOT)
 ENRICHED_CSV = ROOT / "Dataset" / "eurovision_2016_26_enriched.csv"
 ODDS_CSV = ROOT / "Dataset" / "betting_odds_clean.csv"
 SEMI_ODDS_CSV = ROOT / "Dataset" / "semi_odds_clean.csv"

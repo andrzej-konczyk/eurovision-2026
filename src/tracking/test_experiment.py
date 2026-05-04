@@ -2,12 +2,11 @@
 MLflow smoke test — US-S1-04
 Usage:  python src/tracking/test_experiment.py
 Logs a dummy classifier run to verify the local tracking server is wired up.
-Then run:  mlflow ui --backend-store-uri ./mlruns  (opens on localhost:5000)
+Then run:  mlflow ui --backend-store-uri sqlite:///mlflow.db  (opens on localhost:5000)
 """
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -18,10 +17,12 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
+from src.tracking.mlflow_config import tracking_uri
+
 ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(ROOT / ".env")
 
-TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "./mlruns")
+TRACKING_URI = tracking_uri(ROOT)
 mlflow.set_tracking_uri(TRACKING_URI)
 
 EXPERIMENT_NAME = "eurovision-2026-smoke-test"

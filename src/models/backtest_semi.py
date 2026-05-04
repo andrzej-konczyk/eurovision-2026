@@ -48,7 +48,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 import xgboost as xgb
 
-from src.models.backtest import ci80_empirical_coverage
+from src.models.backtest import _years_suffix, ci80_empirical_coverage
 from src.models.confidence import bootstrap_proba, compute_ci
 from src.models.cv import LeaveLastYearOut
 from src.models.train import (
@@ -350,11 +350,12 @@ def backtest_semi_year(
 # ---------------------------------------------------------------------------
 
 
-def _build_markdown(year_results: list[dict], timestamp: str) -> str:
+def _build_markdown(year_results: list[dict], timestamp: str, n_bootstrap: int) -> str:
+    years_label = " / ".join(str(yr["year"]) for yr in year_results)
     lines = [
-        "# Semi-Final Backtest Report — 2022 / 2023 / 2024",
+        f"# Semi-Final Backtest Report - {years_label}",
         "",
-        f"*Generated: {timestamp[:10]}  |  n_bootstrap = {N_BOOTSTRAP}  |  K = {QUALIFIERS_PER_SEMI} per semi*",
+        f"*Generated: {timestamp[:10]}  |  n_bootstrap = {n_bootstrap}  |  K = {QUALIFIERS_PER_SEMI} per semi*",
         "",
         "Target: `Grand_Final_Ind` (qualified from semi = 1).  "
         "Features `Running_Order_Final` and `implied_prob_close` excluded. "
@@ -494,15 +495,16 @@ def run_semi_backtest(
     }
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    json_path = out_dir / "backtest_semi_2022_2024.json"
-    md_path = out_dir / "backtest_semi_2022_2024.md"
+    suffix = _years_suffix(years)
+    json_path = out_dir / f"backtest_semi_{suffix}.json"
+    md_path = out_dir / f"backtest_semi_{suffix}.md"
 
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, default=str)
     print(f"\nSaved: {json_path.relative_to(ROOT, walk_up=True)}")
 
     with open(md_path, "w", encoding="utf-8") as f:
-        f.write(_build_markdown(year_results, timestamp))
+        f.write(_build_markdown(year_results, timestamp, n_bootstrap))
     print(f"Saved: {md_path.relative_to(ROOT, walk_up=True)}")
 
     # Summary table
