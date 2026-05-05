@@ -136,19 +136,6 @@ def countries_frame(predictions: dict[str, Any]) -> pd.DataFrame:
     return frame
 
 
-def apply_ukraine_scenario(predictions_df: pd.DataFrame, include_ukraine: bool) -> pd.DataFrame:
-    """Return dashboard rankings for the selected Ukraine in/out scenario."""
-    if include_ukraine or predictions_df.empty or "country" not in predictions_df.columns:
-        return predictions_df.copy()
-    frame = predictions_df[predictions_df["country"] != "Ukraine"].copy()
-    if "probability" in frame.columns:
-        frame = frame.sort_values("probability", ascending=False).reset_index(drop=True)
-    else:
-        frame = frame.reset_index(drop=True)
-    frame["rank"] = frame.index + 1
-    return frame
-
-
 def backtest_frame(backtest: dict[str, Any]) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for year, year_data in backtest.get("years", {}).items():
@@ -167,7 +154,7 @@ def backtest_frame(backtest: dict[str, Any]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def render_sidebar(data: dict[str, Any], load_time_s: float) -> tuple[str, bool]:
+def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
     st.sidebar.title("Eurovision 2026")
     page = st.sidebar.radio(
         "Navigation",
@@ -182,7 +169,6 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> tuple[str, bool]
             "Data Health",
         ],
     )
-    include_ukraine = st.sidebar.toggle("Scenario A: include Ukraine", value=True)
     st.sidebar.divider()
     st.sidebar.caption("Loaded artifacts")
     st.sidebar.code(data["predictions_path"])
@@ -192,7 +178,7 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> tuple[str, bool]
     st.sidebar.code(data["history_path"])
     st.sidebar.code(data["bloc_cooccurrence_path"])
     st.sidebar.metric("Load time", f"{load_time_s:.3f}s")
-    return page, include_ukraine
+    return page
 
 
 def country_flag(country: str) -> str:
@@ -1119,8 +1105,7 @@ def main() -> None:
     load_time_s = perf_counter() - start
     predictions_df = countries_frame(data["predictions"])
 
-    page, include_ukraine = render_sidebar(data, load_time_s)
-    predictions_df = apply_ukraine_scenario(predictions_df, include_ukraine)
+    page = render_sidebar(data, load_time_s)
     render_country_detail_sidebar(data, predictions_df)
     if page == "Overview":
         render_overview(data, predictions_df)
