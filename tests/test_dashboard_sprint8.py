@@ -52,3 +52,6 @@ def test_voting_network_d3_html_contains_counts_and_top_edge():
     assert '"target": "Ukraine"' in html
     assert '"weight": 6' in html
     assert "top_partners" in html
+    assert "d3.forceCenter(width / 2, height / 2)" in html
+    assert "d3.forceCollide" in html
+    assert "Math.max(r, Math.min(width - r, d.x))" in html

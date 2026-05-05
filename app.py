@@ -763,24 +763,29 @@ def top3_heatmap(position_df: pd.DataFrame, predictions_df: pd.DataFrame) -> go.
     return fig
 
 
-def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
+def winner_gauge_frame(position_df: pd.DataFrame, top_n: int = 3) -> pd.DataFrame:
     winners = (
         position_df[position_df["position"] == "P1"]
         .sort_values("probability", ascending=False)
         .head(top_n)
         .reset_index(drop=True)
     )
+    winners = winners[["country", "probability"]].copy()
+    winners.insert(0, "rank", winners.index + 1)
+    return winners
+
+
+def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
+    winners = winner_gauge_frame(position_df, top_n)
     fig = go.Figure()
     for index, row in winners.iterrows():
-        start = index / top_n
-        end = (index + 1) / top_n
         fig.add_trace(
             go.Indicator(
                 mode="gauge+number",
                 value=float(row["probability"]),
                 number={"valueformat": ".1%", "font": {"size": 24}},
-                title={"text": str(row["country"]), "font": {"size": 18}},
-                domain={"x": [start + 0.015, end - 0.015], "y": [0.0, 1.0]},
+                title={"text": f"#{int(row['rank'])} {row['country']}", "font": {"size": 18}},
+                domain={"x": [0.08, 0.92], "y": [0.68 - index * 0.33, 0.94 - index * 0.33]},
                 gauge={
                     "axis": {"range": [0.0, 1.0], "tickformat": ".0%"},
                     "bar": {"color": "#2563eb"},
@@ -796,8 +801,8 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
         )
     fig.update_layout(
         title=f"Winner probability gauge: top {top_n}",
-        height=300,
-        margin={"l": 30, "r": 30, "t": 70, "b": 20},
+        height=560,
+        margin={"l": 35, "r": 35, "t": 70, "b": 30},
         font={"size": 14},
     )
     return fig
@@ -926,6 +931,7 @@ def voting_network_d3_html(voting_network: dict[str, Any], predictions_df: pd.Da
 const graph = {payload};
 const width = 1120;
 const height = 760;
+const padding = 34;
 const root = d3.select("#voting-network-d3").html("");
 const svg = root.append("svg")
   .attr("viewBox", [0, 0, width, height])
@@ -948,10 +954,12 @@ const color = d3.scaleOrdinal()
   .domain(Array.from(new Set(graph.nodes.map(d => d.group || "Other"))).sort())
   .range(d3.schemeTableau10);
 const simulation = d3.forceSimulation(graph.nodes)
-  .force("link", d3.forceLink(graph.links).id(d => d.id).distance(d => 118 - (d.weight || 1) * 8))
-  .force("charge", d3.forceManyBody().strength(-260))
-  .force("center", d3.forceCenter(width / 2, height / 2))
-  .force("collide", d3.forceCollide(d => radius(d.probability || 0) + 4));
+  .force("link", d3.forceLink(graph.links).id(d => d.id).distance(d => 96 - (d.weight || 1) * 5).strength(0.35))
+  .force("charge", d3.forceManyBody().strength(-150))
+  .force("center", d3.forceCenter(width / 2, height / 2).strength(0.18))
+  .force("x", d3.forceX(width / 2).strength(0.035))
+  .force("y", d3.forceY(height / 2).strength(0.035))
+  .force("collide", d3.forceCollide(d => radius(d.probability || 0) + 8).strength(0.9));
 const link = svg.append("g")
   .attr("stroke", "#94a3b8")
   .attr("stroke-opacity", 0.6)
@@ -991,6 +999,11 @@ const labels = svg.append("g")
   .attr("fill", "#0f172a")
   .text(d => d.id);
 simulation.on("tick", () => {{
+  graph.nodes.forEach(d => {{
+    const r = radius(d.probability || 0) + padding;
+    d.x = Math.max(r, Math.min(width - r, d.x));
+    d.y = Math.max(r, Math.min(height - r, d.y));
+  }});
   linkLines
     .attr("x1", d => d.source.x)
     .attr("y1", d => d.source.y)
@@ -1090,7 +1103,7 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
             "toImageButtonOptions": {
                 "format": "png",
                 "filename": "eurovision_2026_winner_gauge_top3",
-                "height": 300,
+                "height": 560,
                 "width": 1400,
                 "scale": 2,
             },

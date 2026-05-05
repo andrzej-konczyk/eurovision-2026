@@ -45,3 +45,6 @@ def test_winner_gauge_uses_top_three_candidates(predictions_df):
 
     assert len(fig.data) == 3
     assert all(trace.type == "indicator" for trace in fig.data)
+    domains = [trace.domain["y"] for trace in fig.data]
+    assert domains[0][0] > domains[1][1]
+    assert domains[1][0] > domains[2][1]
