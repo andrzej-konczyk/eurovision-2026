@@ -24,6 +24,10 @@ BACKTEST_JSON_CANDIDATES = [
     REPORTS_DIR / "backtest_2022_2024.json",
 ]
 SEMI_PREDICTIONS_JSON = REPORTS_DIR / "semi_predictions_2026.json"
+VOTING_NETWORK_JSON_CANDIDATES = [
+    REPORTS_DIR / "voting_network.json",
+    REPORTS_DIR / "voting_network_2026.json",
+]
 ENRICHED_CSV = APP_ROOT / "Dataset" / "eurovision_2016_26_enriched.csv"
 BLOC_COOCCURRENCE_CSV = APP_ROOT / "data" / "features" / "bloc_cooccurrence.csv"
 
@@ -95,6 +99,7 @@ def first_existing_path(candidates: list[Path]) -> Path:
 def load_dashboard_data() -> dict[str, Any]:
     """Load all dashboard JSON artifacts."""
     backtest_path = first_existing_path(BACKTEST_JSON_CANDIDATES)
+    voting_network_path = first_existing_path(VOTING_NETWORK_JSON_CANDIDATES)
     return {
         "predictions": load_json(str(PREDICTIONS_JSON), PREDICTIONS_JSON.stat().st_mtime_ns),
         "predictions_path": str(PREDICTIONS_JSON.relative_to(APP_ROOT)),
@@ -104,6 +109,8 @@ def load_dashboard_data() -> dict[str, Any]:
         "backtest_path": str(backtest_path.relative_to(APP_ROOT)),
         "semi_predictions": load_json(str(SEMI_PREDICTIONS_JSON), SEMI_PREDICTIONS_JSON.stat().st_mtime_ns),
         "semi_predictions_path": str(SEMI_PREDICTIONS_JSON.relative_to(APP_ROOT)),
+        "voting_network": load_json(str(voting_network_path), voting_network_path.stat().st_mtime_ns),
+        "voting_network_path": str(voting_network_path.relative_to(APP_ROOT)),
         "history": load_csv(str(ENRICHED_CSV), ENRICHED_CSV.stat().st_mtime_ns),
         "history_path": str(ENRICHED_CSV.relative_to(APP_ROOT)),
         "bloc_cooccurrence": load_csv(
@@ -164,6 +171,7 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
             "Tiers",
             "Semi Qualifiers",
             "Voting Blocs",
+            "Voting Network",
             "Narratives",
             "Backtest",
             "Data Health",
@@ -173,6 +181,7 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
     st.sidebar.caption("Loaded artifacts")
     st.sidebar.code(data["predictions_path"])
     st.sidebar.code(data["semi_predictions_path"])
+    st.sidebar.code(data["voting_network_path"])
     st.sidebar.code(data["narratives_path"])
     st.sidebar.code(data["backtest_path"])
     st.sidebar.code(data["history_path"])
@@ -867,6 +876,147 @@ svg.append("g")
 """
 
 
+def voting_network_graph_data(
+    voting_network: dict[str, Any],
+    predictions_df: pd.DataFrame,
+) -> dict[str, list[dict[str, Any]]]:
+    """Merge S5 voting-network topology with current top-10 probabilities."""
+    probability_by_country = (
+        predictions_df.set_index("country")["probability"].to_dict()
+        if not predictions_df.empty and {"country", "probability"}.issubset(predictions_df.columns)
+        else {}
+    )
+    links = [dict(link) for link in voting_network.get("links", [])]
+    partner_weights: dict[str, list[tuple[str, int]]] = {}
+    for link in links:
+        source = str(link.get("source", ""))
+        target = str(link.get("target", ""))
+        weight = int(link.get("weight") or 0)
+        partner_weights.setdefault(source, []).append((target, weight))
+        partner_weights.setdefault(target, []).append((source, weight))
+
+    nodes: list[dict[str, Any]] = []
+    for node in voting_network.get("nodes", []):
+        country = str(node.get("id", ""))
+        partners = sorted(
+            partner_weights.get(country, []),
+            key=lambda item: (-item[1], item[0]),
+        )[:3]
+        nodes.append({
+            **node,
+            "id": country,
+            "probability": float(probability_by_country.get(country, node.get("probability") or 0.0)),
+            "top_partners": [partner for partner, _ in partners],
+        })
+    return {"nodes": nodes, "links": links}
+
+
+def voting_network_d3_html(voting_network: dict[str, Any], predictions_df: pd.DataFrame) -> str:
+    graph = voting_network_graph_data(voting_network, predictions_df)
+    nodes = graph["nodes"]
+    links = graph["links"]
+    payload = json.dumps({"nodes": nodes, "links": links}, ensure_ascii=False)
+    return f"""
+<div id="voting-network-d3" data-node-count="{len(nodes)}" data-edge-count="{len(links)}"></div>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script>
+const graph = {payload};
+const width = 1120;
+const height = 760;
+const root = d3.select("#voting-network-d3").html("");
+const svg = root.append("svg")
+  .attr("viewBox", [0, 0, width, height])
+  .attr("width", "100%")
+  .attr("height", height);
+const tooltip = root.append("div")
+  .style("position", "absolute")
+  .style("pointer-events", "none")
+  .style("opacity", 0)
+  .style("background", "#111827")
+  .style("color", "white")
+  .style("padding", "0.45rem 0.6rem")
+  .style("border-radius", "6px")
+  .style("font", "12px system-ui, sans-serif");
+const weights = graph.links.map(d => d.weight || 1);
+const probs = graph.nodes.map(d => d.probability || 0);
+const stroke = d3.scaleLinear().domain([d3.min(weights), d3.max(weights)]).range([1.2, 6]);
+const radius = d3.scaleSqrt().domain([0, d3.max(probs) || 1]).range([6, 24]);
+const color = d3.scaleOrdinal()
+  .domain(Array.from(new Set(graph.nodes.map(d => d.group || "Other"))).sort())
+  .range(d3.schemeTableau10);
+const simulation = d3.forceSimulation(graph.nodes)
+  .force("link", d3.forceLink(graph.links).id(d => d.id).distance(d => 118 - (d.weight || 1) * 8))
+  .force("charge", d3.forceManyBody().strength(-260))
+  .force("center", d3.forceCenter(width / 2, height / 2))
+  .force("collide", d3.forceCollide(d => radius(d.probability || 0) + 4));
+const link = svg.append("g")
+  .attr("stroke", "#94a3b8")
+  .attr("stroke-opacity", 0.6)
+  .selectAll("line")
+  .data(graph.links)
+  .join("line")
+  .attr("stroke-width", d => stroke(d.weight || 1))
+  .append("title")
+  .text(d => `${{d.source.id || d.source}} - ${{d.target.id || d.target}}: weight=${{d.weight}}`);
+const linkLines = svg.selectAll("line");
+const node = svg.append("g")
+  .selectAll("circle")
+  .data(graph.nodes)
+  .join("circle")
+  .attr("r", d => radius(d.probability || 0))
+  .attr("fill", d => color(d.group || "Other"))
+  .attr("stroke", "#0f172a")
+  .attr("stroke-width", 1)
+  .call(drag(simulation))
+  .on("mouseover", (event, d) => {{
+    tooltip.style("opacity", 1)
+      .html(`<strong>${{d.id}}</strong><br>prob_top10: ${{d3.format(".1%")(d.probability || 0)}}<br>Top partners: ${{(d.top_partners || []).join(", ") || "n/a"}}`);
+  }})
+  .on("mousemove", event => {{
+    tooltip.style("left", `${{event.offsetX + 14}}px`).style("top", `${{event.offsetY + 14}}px`);
+  }})
+  .on("mouseout", () => tooltip.style("opacity", 0));
+const labels = svg.append("g")
+  .selectAll("text")
+  .data(graph.nodes)
+  .join("text")
+  .attr("font-size", 11)
+  .attr("font-weight", 650)
+  .attr("paint-order", "stroke")
+  .attr("stroke", "white")
+  .attr("stroke-width", 3)
+  .attr("fill", "#0f172a")
+  .text(d => d.id);
+simulation.on("tick", () => {{
+  linkLines
+    .attr("x1", d => d.source.x)
+    .attr("y1", d => d.source.y)
+    .attr("x2", d => d.target.x)
+    .attr("y2", d => d.target.y);
+  node.attr("cx", d => d.x).attr("cy", d => d.y);
+  labels.attr("x", d => d.x + radius(d.probability || 0) + 4).attr("y", d => d.y + 4);
+}});
+function drag(simulation) {{
+  function dragstarted(event, d) {{
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+  }}
+  function dragged(event, d) {{
+    d.fx = event.x;
+    d.fy = event.y;
+  }}
+  function dragended(event, d) {{
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }}
+  return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
+}}
+</script>
+"""
+
+
 def render_voting_blocs(data: dict[str, Any]) -> None:
     st.title("Voting Blocs")
     cooccurrence = data["bloc_cooccurrence"]
@@ -875,6 +1025,20 @@ def render_voting_blocs(data: dict[str, Any]) -> None:
         return
     components.html(voting_bloc_d3_html(cooccurrence), height=920, scrolling=True)
     st.dataframe(cooccurrence, use_container_width=True, hide_index=True)
+
+
+def render_voting_network(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
+    st.title("Voting Network")
+    network = data["voting_network"]
+    nodes = network.get("nodes", [])
+    links = network.get("links", [])
+    if not nodes or not links:
+        st.warning("No voting-network graph found.")
+        return
+    col1, col2 = st.columns(2)
+    col1.metric("Nodes", len(nodes))
+    col2.metric("Edges", len(links))
+    components.html(voting_network_d3_html(network, predictions_df), height=800, scrolling=False)
 
 
 def render_tiers(predictions_df: pd.DataFrame) -> None:
@@ -1084,6 +1248,7 @@ def render_data_health(data: dict[str, Any], load_time_s: float) -> None:
         [
             {"check": "Predictions JSON", "path": data["predictions_path"], "loaded": bool(data["predictions"])},
             {"check": "Semi predictions JSON", "path": data["semi_predictions_path"], "loaded": bool(data["semi_predictions"])},
+            {"check": "Voting network JSON", "path": data["voting_network_path"], "loaded": bool(data["voting_network"])},
             {"check": "Narratives JSON", "path": data["narratives_path"], "loaded": bool(data["narratives"])},
             {"check": "Backtest JSON", "path": data["backtest_path"], "loaded": bool(data["backtest"])},
             {"check": "History CSV", "path": data["history_path"], "loaded": not data["history"].empty},
@@ -1117,6 +1282,8 @@ def main() -> None:
         render_semi_qualifiers(data["semi_predictions"])
     elif page == "Voting Blocs":
         render_voting_blocs(data)
+    elif page == "Voting Network":
+        render_voting_network(data, predictions_df)
     elif page == "Narratives":
         render_narratives(data["narratives"])
     elif page == "Backtest":
