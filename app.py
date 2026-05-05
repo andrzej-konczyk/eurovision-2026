@@ -512,6 +512,9 @@ def render_predictions(
     history: pd.DataFrame,
 ) -> None:
     st.title("Main Ranking")
+    st.caption(
+        "Belgium qualified via SF but GF top-10 probability reflects Grand Final historical performance"
+    )
     if predictions_df.empty:
         st.warning("No country predictions found in the predictions JSON.")
         return
@@ -752,7 +755,7 @@ def top3_heatmap(position_df: pd.DataFrame, predictions_df: pd.DataFrame) -> go.
     fig.update_layout(
         title="Top-3 probability heatmap",
         xaxis_title="Position",
-        yaxis_title=None,
+        yaxis={"title": None, "autorange": "reversed"},
         height=980,
         margin={"l": 130, "r": 40, "t": 70, "b": 50},
         font={"size": 13},
@@ -760,7 +763,7 @@ def top3_heatmap(position_df: pd.DataFrame, predictions_df: pd.DataFrame) -> go.
     return fig
 
 
-def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 5) -> go.Figure:
+def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
     winners = (
         position_df[position_df["position"] == "P1"]
         .sort_values("probability", ascending=False)
@@ -775,9 +778,9 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 5) -> go.Figure:
             go.Indicator(
                 mode="gauge+number",
                 value=float(row["probability"]),
-                number={"valueformat": ".1%"},
-                title={"text": str(row["country"]), "font": {"size": 14}},
-                domain={"x": [start + 0.01, end - 0.01], "y": [0.0, 1.0]},
+                number={"valueformat": ".1%", "font": {"size": 24}},
+                title={"text": str(row["country"]), "font": {"size": 18}},
+                domain={"x": [start + 0.015, end - 0.015], "y": [0.0, 1.0]},
                 gauge={
                     "axis": {"range": [0.0, 1.0], "tickformat": ".0%"},
                     "bar": {"color": "#2563eb"},
@@ -792,10 +795,10 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 5) -> go.Figure:
             )
         )
     fig.update_layout(
-        title="Winner probability gauge: top 5",
-        height=270,
+        title=f"Winner probability gauge: top {top_n}",
+        height=300,
         margin={"l": 30, "r": 30, "t": 70, "b": 20},
-        font={"size": 12},
+        font={"size": 14},
     )
     return fig
 
@@ -1086,8 +1089,8 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
             "displaylogo": False,
             "toImageButtonOptions": {
                 "format": "png",
-                "filename": "eurovision_2026_winner_gauge_top5",
-                "height": 270,
+                "filename": "eurovision_2026_winner_gauge_top3",
+                "height": 300,
                 "width": 1400,
                 "scale": 2,
             },

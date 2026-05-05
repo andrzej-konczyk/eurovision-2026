@@ -1,6 +1,6 @@
 {
   "story": "US-S5-03",
-  "generated_at": "2026-05-04T15:18:43.183546+00:00",
+  "generated_at": "2026-05-05T18:03:43.450903+00:00",
   "target_year": 2026,
   "model": "consensus_xgb_lgbm_post_polymarket",
   "n_countries": 35,

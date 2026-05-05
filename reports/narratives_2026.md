@@ -1,6 +1,6 @@
 # Eurovision 2026 — Model Prediction Narratives
 
-*Generated: 2026-05-04 | Model: CONSENSUS_XGB_LGBM_POST_POLYMARKET | Target year: 2026*
+*Generated: 2026-05-05 | Model: CONSENSUS_XGB_LGBM_POST_POLYMARKET | Target year: 2026*
 
 Countries ranked by model probability (Top-10 placement).
 
@@ -145,4 +145,3 @@ Norway is modelled as unlikely to reach the Top 10 at current form (model probab
 ### 35. Lithuania — 6%
 
 Lithuania is modelled as unlikely to reach the Top 10 at current form (model probability: 6%). The model finds no strong positive drivers among the top-5 features. Limiting factors include limited backing from the betting markets and modest pre-contest fan community enthusiasm (MyESB community score).
-

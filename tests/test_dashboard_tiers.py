@@ -35,11 +35,13 @@ def test_top3_heatmap_has_country_by_position_shape(predictions_df):
     assert fig.data[0].type == "heatmap"
     assert list(fig.data[0].x) == ["1st", "2nd", "3rd"]
     assert len(fig.data[0].y) == len(predictions_df)
+    assert fig.layout.yaxis.autorange == "reversed"
+    assert fig.data[0].y[0] == predictions_df.sort_values("rank").iloc[0]["country"]
 
 
-def test_winner_gauge_uses_top_five_candidates(predictions_df):
+def test_winner_gauge_uses_top_three_candidates(predictions_df):
     position_df = app.position_probability_frame(predictions_df)
     fig = app.winner_gauge_figure(position_df)
 
-    assert len(fig.data) == 5
+    assert len(fig.data) == 3
     assert all(trace.type == "indicator" for trace in fig.data)

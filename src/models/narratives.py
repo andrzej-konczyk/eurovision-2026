@@ -257,6 +257,31 @@ def _get_probabilities(
     artefact_dir: Path,
 ) -> pd.DataFrame:
     """Return DataFrame with columns [country, probability] for *target_year*."""
+    predictions_path = REPORTS_DIR / f"predictions_{target_year}.json"
+    if predictions_path.exists():
+        try:
+            payload = json.loads(predictions_path.read_text(encoding="utf-8"))
+            rows = payload.get("countries", [])
+            if rows:
+                records = []
+                for row in rows:
+                    country = row.get("country")
+                    probability = row.get("consensus_prob", row.get("ensemble_prob"))
+                    if country is not None and probability is not None:
+                        records.append({
+                            "country": country,
+                            "probability": float(probability),
+                        })
+                if records:
+                    result = pd.DataFrame(records)
+                    result.attrs["source_model"] = payload.get(
+                        "model",
+                        "consensus_xgb_lgbm_post_polymarket",
+                    )
+                    return result
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            pass
+
     df = pd.read_csv(data_path, encoding="utf-8", low_memory=False)
     df.columns = df.columns.str.strip()
 
@@ -276,7 +301,9 @@ def _get_probabilities(
         X_imp = impute(pipeline, X_target)
         proba = pipeline.predict_proba(X_target)[:, 1]
 
-    return pd.DataFrame({"country": countries, "probability": proba})
+    result = pd.DataFrame({"country": countries, "probability": proba})
+    result.attrs["source_model"] = model_name
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -336,6 +363,7 @@ def generate_narratives(
 
     shap_df = _load_shap_top5(model_name, out_dir)
     prob_df = _get_probabilities(model_name, data_path, target_year, out_dir)
+    probability_model = prob_df.attrs.get("source_model", model_name)
 
     countries = prob_df["country"].tolist()
     print(f"Countries   : {len(countries)}")
@@ -388,17 +416,17 @@ def generate_narratives(
         "story": "US-S5-03",
         "generated_at": timestamp,
         "target_year": target_year,
-        "model": model_name,
+        "model": probability_model,
         "n_countries": len(cards),
         "countries": cards,
     }
-    json_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    json_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     _label = json_path.relative_to(ROOT) if json_path.is_relative_to(ROOT) else json_path
     print(f"  Saved: {_label}")
 
     md_path = reports_dir / f"narratives_{target_year}.md"
-    md_text = _render_markdown(cards, target_year, model_name, timestamp)
-    md_path.write_text(md_text, encoding="utf-8")
+    md_text = _render_markdown(cards, target_year, probability_model, timestamp)
+    md_path.write_text(md_text.rstrip() + "\n", encoding="utf-8")
     _md_label = md_path.relative_to(ROOT) if md_path.is_relative_to(ROOT) else md_path
     print(f"  Saved: {_md_label}")
 
