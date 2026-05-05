@@ -1,11 +1,12 @@
 {
-  "story": "US-S5-02",
-  "saved_at": "2026-04-29T17:40:42.073521+00:00",
-  "holdout_year": 2024,
+  "story": "US-S8-01",
+  "saved_at": "2026-05-05T00:00:00+00:00",
+  "decision": "Use the 2025 holdout winner for the official ensemble weights. The proposed equal XGB/LGBM compromise was evaluated and rejected because it falls to 60% top-10 accuracy on the 2025 holdout.",
+  "holdout_year": 2025,
   "weight_step": 0.1,
   "best_weights": {
-    "xgb": 0.0,
-    "lgbm": 1.0,
+    "xgb": 1.0,
+    "lgbm": 0.0,
     "nn": 0.0
   },
   "top10_accuracy": 0.7,
@@ -13,129 +14,83 @@
   "kpi_pass": true,
   "standalone": {
     "xgb": 0.7,
-    "lgbm": 0.7,
+    "lgbm": 0.6,
     "nn": 0.5
+  },
+  "validation": {
+    "2024_holdout": {
+      "xgb_standalone": 0.7,
+      "lgbm_standalone": 0.7,
+      "equal_xgb_lgbm": 0.7,
+      "best_sprint5_grid_weight": {
+        "xgb": 0.0,
+        "lgbm": 1.0,
+        "nn": 0.0
+      }
+    },
+    "2025_holdout": {
+      "xgb_standalone": 0.7,
+      "lgbm_standalone": 0.6,
+      "nn_standalone": 0.5,
+      "equal_xgb_lgbm": 0.6,
+      "best_grid_weight": {
+        "xgb": 1.0,
+        "lgbm": 0.0,
+        "nn": 0.0
+      },
+      "predicted_top10": [
+        "Albania",
+        "Austria",
+        "Estonia",
+        "Finland",
+        "France",
+        "Israel",
+        "Malta",
+        "Netherlands",
+        "Sweden",
+        "Ukraine"
+      ],
+      "actual_top10": [
+        "Albania",
+        "Austria",
+        "Estonia",
+        "France",
+        "Greece",
+        "Israel",
+        "Italy",
+        "Sweden",
+        "Switzerland",
+        "Ukraine"
+      ],
+      "hits": [
+        "Albania",
+        "Austria",
+        "Estonia",
+        "France",
+        "Israel",
+        "Sweden",
+        "Ukraine"
+      ],
+      "missed": [
+        "Greece",
+        "Italy",
+        "Switzerland"
+      ]
+    }
   },
   "top_results": [
     {
-      "w_xgb": 0.0,
-      "w_lgbm": 1.0,
-      "w_nn": 0.0,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.1,
-      "w_lgbm": 0.9,
-      "w_nn": 0.0,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.2,
-      "w_lgbm": 0.4,
-      "w_nn": 0.4,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.2,
-      "w_lgbm": 0.5,
-      "w_nn": 0.3,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.2,
-      "w_lgbm": 0.8,
-      "w_nn": 0.0,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.3,
-      "w_lgbm": 0.2,
-      "w_nn": 0.5,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.3,
-      "w_lgbm": 0.3,
-      "w_nn": 0.4,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.3,
-      "w_lgbm": 0.4,
-      "w_nn": 0.3,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.3,
-      "w_lgbm": 0.5,
-      "w_nn": 0.2,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.3,
-      "w_lgbm": 0.7,
-      "w_nn": 0.0,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.4,
-      "w_lgbm": 0.1,
-      "w_nn": 0.5,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.4,
-      "w_lgbm": 0.2,
-      "w_nn": 0.4,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.4,
-      "w_lgbm": 0.3,
-      "w_nn": 0.3,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.4,
-      "w_lgbm": 0.4,
-      "w_nn": 0.2,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.4,
-      "w_lgbm": 0.5,
-      "w_nn": 0.1,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.4,
-      "w_lgbm": 0.6,
-      "w_nn": 0.0,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.5,
+      "w_xgb": 1.0,
       "w_lgbm": 0.0,
-      "w_nn": 0.5,
+      "w_nn": 0.0,
       "top10_accuracy": 0.7
     },
     {
       "w_xgb": 0.5,
-      "w_lgbm": 0.1,
-      "w_nn": 0.4,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.5,
-      "w_lgbm": 0.2,
-      "w_nn": 0.3,
-      "top10_accuracy": 0.7
-    },
-    {
-      "w_xgb": 0.5,
-      "w_lgbm": 0.3,
-      "w_nn": 0.2,
-      "top10_accuracy": 0.7
+      "w_lgbm": 0.5,
+      "w_nn": 0.0,
+      "top10_accuracy": 0.6,
+      "note": "Rejected compromise: fails 2025 KPI."
     }
   ]
 }

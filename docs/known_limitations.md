@@ -172,6 +172,18 @@ The MLP (US-S5-01, CV ROC-AUC 0.615 ± 0.176) underperforms XGB/LGBM on the 2024
 
 Proceed with **best blend lgbm=1.0** (or xgb=0.5, lgbm=0.5) as the production `ensemble_weights.json`. KPI threshold (≥70%) is met. Risk logged for tracking.
 
+### Update (2026-05-05, US-S8-01)
+
+The 2025 holdout re-run reverses the single-model preference:
+
+- XGBoost standalone: 70% (7/10) - PASS
+- LightGBM standalone: 60% (6/10) - FAIL
+- MLP standalone: 50% (5/10) - FAIL
+- Best 2025 blend: xgb=1.0, lgbm=0.0, nn=0.0 - 70% (7/10), PASS
+- Equal XGB/LGBM compromise: 60% (6/10), FAIL
+
+Official `ensemble_weights.json` was therefore updated to **xgb=1.0, lgbm=0.0, nn=0.0** for US-S8-01. The equal blend was evaluated and rejected because it fails the 2025 KPI.
+
 ### Mitigation paths
 
 1. **Spotify audio features (Sprint 12)** — adding energy, danceability, acousticness to the MLP feature set is expected to improve MLP standalone accuracy and increase member diversity. If MLP lifts above ~65% standalone, blending should produce >70% ensemble accuracy.
@@ -215,3 +227,41 @@ The 2026 ranking is therefore determined entirely by `avg_jury_3yr`, `avg_tele_3
 1. **Load 2026 betting odds** — once closing odds are available (typically ~2–4 weeks before the contest), re-run `src/data/process_odds.py` and re-train the surrogate. With real `implied_prob_close` values, rank delta is expected to drop significantly.
 2. **Use a depth-2 XGBoost surrogate** — a shallow boosted tree (max_depth=2, 50 estimators) produces ~100× faster inference than the full model while capturing tree interactions; expected delta < 2.
 3. **Accept achieved delta for scenario engine** — for the C-06 use case (small feature perturbations on a single country), the surrogate's directional correctness (~79% Spearman) is sufficient for "what-if" analysis.
+
+---
+
+## KL-08 — LGBM pre-contest prior bias (2025)
+
+| Field | Value |
+|-------|-------|
+| **Affected component** | `src/models/ensemble.py`, LGBM Grand Final top-10 model |
+| **Status** | OPEN |
+| **Logged** | 2026-05-05 |
+| **Story** | US-S8-01 |
+| **Severity** | Medium |
+
+### Observation
+
+On the 2025 Grand Final holdout, LightGBM reaches only 60% top-10 accuracy (6/10), while XGBoost reaches 70% (7/10). LGBM systematically misses countries with strong jury/televote history despite weaker market priors: Greece, Italy, and Switzerland.
+
+The false positives skew toward market-favored countries without enough final result support in the holdout: Finland, Latvia, Norway, and Poland.
+
+### Root cause
+
+`implied_prob_close` appears to dominate LGBM splits on this holdout, creating a market-to-model feedback loop. The model follows the pre-contest market prior too aggressively and lacks a corrective feature for countries whose historical jury/televote strength is stronger than their market price.
+
+### Impact
+
+The 2025 ensemble grid search selects **xgb=1.0, lgbm=0.0, nn=0.0**. This keeps the ensemble at 70% top-10 accuracy, but confirms that LGBM is not reliable as the winner-takes-all blend member for the newest available holdout.
+
+Even the XGB-selected 2025 ensemble still misses Greece, Italy, and Switzerland. This matters for future scenario analysis: if the model consistently underestimates strong-history countries, Ukraine or similar countries may also be underestimated when market priors are weak.
+
+### Mitigation
+
+Add `odds_vs_history_delta` in Sprint 9:
+
+```text
+odds_vs_history_delta = normalized(implied_prob_close - avg_tele_3yr)
+```
+
+The feature should give tree models an explicit signal for countries where the market underprices or overprices recent televote strength.
