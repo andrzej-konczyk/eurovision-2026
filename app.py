@@ -54,6 +54,28 @@ PAGE_CAPTIONS = {
     "Data Health": "Loaded artifacts, runtime status, and source availability.",
 }
 
+ABOUT_MODEL = (
+    "Two gradient-boosted classifiers (XGBoost and LightGBM) were trained on Eurovision "
+    "results from 2016 to 2025. Each country is scored on historical placement, regional "
+    "voting blocs, pre-contest betting odds, running order, and social signals. Both models "
+    "produce a top-10 probability; the consensus shown here averages them. A 1,000-run "
+    "bootstrap generates the CI-80 confidence intervals. See the **Glossary** in the sidebar "
+    "for definitions of all key terms."
+)
+
+GLOSSARY = {
+    "prob_top10": "The model's estimate (0–100 %) that a country will place in the top 10 of the Grand Final.",
+    "CI-80": "Confidence Interval at 80 %: the range the model is 80 % sure the true probability falls within. Short bar = high certainty; long bar = more uncertainty.",
+    "SAFE": "The model is confident this country reaches the top 10 — high probability and a tight confidence interval.",
+    "LIKELY": "A credible top-10 contender with more uncertainty. Could go either way on the night.",
+    "UNCERTAIN": "Outside the model's expected top 10, or data is inconclusive.",
+    "SHAP": "A technique that explains *why* the model scored a country the way it did — which features pushed the prediction up or down.",
+    "Running order": "The broadcast slot a country performs in. Later positions historically correlate with higher jury and televote scores.",
+    "Implied probability": "Probability derived from bookmaker odds. It reflects market consensus and is the model's strongest single input.",
+    "Voting bloc": "A group of countries that historically award each other high marks, often due to cultural or geographic ties.",
+    "Backtest": "Testing the model on past Eurovision editions (2022–2025) to check how accurate it would have been in hindsight.",
+}
+
 COUNTRY_ISO2 = {
     "Albania": "AL",
     "Armenia": "AM",
@@ -162,24 +184,75 @@ def inject_dashboard_style() -> None:
     st.markdown(
         """
 <style>
-div[data-testid="stSidebar"] {
-    border-right: 1px solid #e5e7eb;
+/* ===== Eurovision 2026 Vienna — Dashboard Theme ===== */
+:root {
+    --esc-magenta: #E6007E;
+    --esc-blue: #1A1464;
+    --esc-gold: #F5C542;
+    --esc-purple: #7B5EA7;
 }
+
+div[data-testid="stSidebar"] {
+    border-right: 3px solid var(--esc-magenta);
+    background: linear-gradient(180deg, #F8F5FF 0%, #EDE8FF 100%);
+}
+
 div[data-testid="stMetric"] {
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    border-radius: 8px;
-    padding: 0.85rem 0.95rem;
+    background: linear-gradient(135deg, rgba(230,0,126,0.07) 0%, rgba(26,20,100,0.1) 100%);
+    border: 1px solid rgba(230,0,126,0.35);
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
 }
 div[data-testid="stMetricLabel"] p {
-    font-weight: 650;
+    font-weight: 700;
+    color: var(--esc-blue) !important;
+    text-transform: uppercase;
+    font-size: 0.68rem !important;
+    letter-spacing: 0.09em;
 }
+div[data-testid="stMetricValue"] {
+    font-weight: 800;
+}
+
+h1 {
+    font-weight: 900;
+    letter-spacing: -0.01em;
+}
+h2 {
+    color: var(--esc-blue);
+    padding-bottom: 0.3rem;
+    border-bottom: 2px solid var(--esc-magenta);
+}
+h3 {
+    color: var(--esc-purple);
+    font-weight: 700;
+}
+
+div[data-testid="stCaptionContainer"] p {
+    color: var(--esc-purple);
+    font-style: italic;
+}
+
+div[data-testid="stExpander"] summary p {
+    font-weight: 600;
+}
+
+hr {
+    border-color: rgba(230,0,126,0.25);
+}
+
 .block-container {
-    padding-top: 2rem;
+    padding-top: 1.5rem;
 }
 </style>
 """,
         unsafe_allow_html=True,
     )
+
+
+def _info_expander(title: str, body: str) -> None:
+    with st.expander(f"ℹ️ {title}", expanded=False):
+        st.markdown(body)
 
 
 def render_page_header(page: str, title: str | None = None) -> None:
@@ -257,6 +330,9 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
     with st.sidebar.expander("Loaded artifacts", expanded=False):
         for row in dashboard_artifact_rows(data, load_time_s):
             st.code(str(row["path"]))
+    with st.sidebar.expander("📖 Glossary", expanded=False):
+        for term, definition in GLOSSARY.items():
+            st.markdown(f"**{term}** — {definition}")
     return page
 
 
@@ -579,7 +655,66 @@ def render_overview(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
     backtest = data["backtest"]
     aggregate = backtest.get("aggregate", {})
 
-    render_page_header("Overview", "Eurovision 2026 Forecast")
+    _esc_header = """
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: transparent; overflow: hidden; }
+.banner {
+  background: linear-gradient(135deg, #0D0A3B 0%, #1A1464 55%, #3A0F5E 100%);
+  border-radius: 14px;
+  border: 1px solid rgba(230,0,126,0.5);
+  padding: 1.3rem 2rem 1.15rem;
+  position: relative;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 15% 50%, rgba(230,0,126,0.18) 0%, transparent 65%),
+              radial-gradient(ellipse at 85% 50%, rgba(245,197,66,0.12) 0%, transparent 65%);
+  pointer-events: none;
+}
+@keyframes shimmer {
+  0%   { background-position: -250% center; }
+  100% { background-position:  250% center; }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.7); }
+  50%       { opacity: 1;   transform: scale(1.2); }
+}
+.title {
+  font-size: 1.85rem; font-weight: 900; letter-spacing: 0.04em; line-height: 1.15;
+  background: linear-gradient(90deg, #E6007E 0%, #F5C542 30%, #E8E4FF 50%, #E6007E 65%, #F5C542 100%);
+  background-size: 250% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: shimmer 4s linear infinite;
+  position: relative; z-index: 1;
+}
+.sub {
+  color: rgba(220,215,255,0.6); font-size: 0.75rem; margin-top: 0.45rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  position: relative; z-index: 1;
+}
+.star {
+  position: absolute; color: rgba(245,197,66,0.75);
+  animation: twinkle ease-in-out infinite; z-index: 1; pointer-events: none;
+}
+</style>
+<div class="banner">
+  <span class="star" style="font-size:1.1rem;top:18%;left:4%;animation-duration:2.1s;animation-delay:0s">★</span>
+  <span class="star" style="font-size:0.7rem;top:65%;left:11%;animation-duration:1.7s;animation-delay:0.4s">✦</span>
+  <span class="star" style="font-size:0.9rem;top:20%;right:8%;animation-duration:2.4s;animation-delay:1.0s">★</span>
+  <span class="star" style="font-size:1.2rem;top:58%;right:15%;animation-duration:1.9s;animation-delay:0.7s">★</span>
+  <span class="star" style="font-size:0.65rem;top:75%;right:5%;animation-duration:2.8s;animation-delay:1.3s">✦</span>
+  <span class="star" style="font-size:0.8rem;top:15%;left:48%;animation-duration:2.2s;animation-delay:0.9s">✦</span>
+  <div class="title">Eurovision 2026 Forecast</div>
+  <div class="sub">Vienna &nbsp;·&nbsp; May 2026 &nbsp;·&nbsp; Machine Learning Predictions</div>
+</div>
+"""
+    st.components.v1.html(_esc_header, height=122, scrolling=False)
+    st.caption(PAGE_CAPTIONS["Overview"])
 
     top_country = predictions_df.iloc[0]["country"] if not predictions_df.empty else "n/a"
     top_prob = predictions_df.iloc[0].get("probability") if not predictions_df.empty else None
@@ -631,6 +766,22 @@ def render_overview(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
             )
         st.dataframe(pd.DataFrame(kpi_rows), use_container_width=True, hide_index=True)
 
+    _info_expander(
+        "How does the model work?",
+        ABOUT_MODEL,
+    )
+    _info_expander(
+        "Why Top-10 — not the winner?",
+        "The model predicts the **probability of a country finishing in the Grand Final Top 10**, "
+        "not an exact placement or outright winner. Top-10 is our primary KPI — it achieved "
+        "**73 % accuracy** across the 2022–2025 backtests, which is a robust signal at this "
+        "stage of the competition.\n\n"
+        "Winner probability (shown in the **Tiers** tab) is a secondary, derived indicator "
+        "built on top of the top-10 estimates. It comes with wide confidence intervals and "
+        "should be read as a relative signal — *who is most likely to win among the favourites* "
+        "— rather than a standalone forecast.",
+    )
+
 
 def model_predictions_frame(predictions: dict[str, Any], model: str) -> pd.DataFrame:
     rows = predictions.get("models", {}).get(model, {}).get("countries", [])
@@ -669,6 +820,16 @@ def render_predictions(
                 "scale": 2,
             },
         },
+    )
+    _info_expander(
+        "How to read this chart",
+        "**Bars** show each country's estimated probability of finishing in the Grand Final top 10.\n\n"
+        "**CI-80 whiskers** are the 80 % Confidence Interval — the range where the model is 80 % sure "
+        "the true probability lies. Short whisker = high certainty; long whisker = genuine uncertainty.\n\n"
+        "**Bar colour = Safety badge:**\n"
+        "- 🟡 **SAFE** (gold) — high probability ≥ 65 % and tight CI. Expect this country in the top 10.\n"
+        "- 🩷 **LIKELY** (magenta) — a real contender but with more uncertainty. Could go either way.\n"
+        "- 🔵 **UNCERTAIN** (purple) — outside the expected top 10, or data is inconclusive.",
     )
 
     visible_columns = [
@@ -772,7 +933,7 @@ def model_consensus_label(row: pd.Series) -> str:
 
 def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
     plot_frame = ranking.sort_values("rank", ascending=False)
-    colors = {"SAFE": "#16a34a", "LIKELY": "#f59e0b", "UNCERTAIN": "#64748b"}
+    colors = {"SAFE": "#F5C542", "LIKELY": "#E6007E", "UNCERTAIN": "#7B5EA7"}
     fig = go.Figure()
     fig.add_trace(
         go.Bar(
@@ -792,12 +953,9 @@ def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
             },
             customdata=plot_frame[["rank", "badge", "xgb_prob", "lgbm_prob", "model_consensus"]],
             hovertemplate=(
-                "<b>%{y}</b><br>"
-                "Rank: %{customdata[0]}<br>"
-                "prob_top10: %{x:.1%}<br>"
-                "Badge: %{customdata[1]}<br>"
-                "XGB: %{customdata[2]:.1%}<br>"
-                "LGBM: %{customdata[3]:.1%}<br>"
+                "<b>%{y}</b>  #%{customdata[0]}<br>"
+                "Consensus: <b>%{x:.1%}</b>  [%{customdata[1]}]<br>"
+                "XGB: %{customdata[2]:.1%}  ·  LGBM: %{customdata[3]:.1%}<br>"
                 "%{customdata[4]}<extra></extra>"
             ),
         )
@@ -813,14 +971,19 @@ def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
         xaxis={"tickformat": ".0%", "range": [0, 1]},
         font={"size": 13},
     )
+    _badge_labels = {
+        "SAFE": "SAFE — confident top-10",
+        "LIKELY": "LIKELY — probable top-10",
+        "UNCERTAIN": "UNCERTAIN — outside top-10",
+    }
     for badge, color in colors.items():
         fig.add_trace(
             go.Scatter(
                 x=[None],
                 y=[None],
                 mode="markers",
-                marker={"size": 10, "color": color},
-                name=badge,
+                marker={"size": 12, "color": color, "symbol": "square"},
+                name=_badge_labels.get(badge, badge),
                 hoverinfo="skip",
             )
         )
@@ -881,10 +1044,8 @@ def top3_heatmap(position_df: pd.DataFrame, predictions_df: pd.DataFrame) -> go.
             zmax=max(0.01, float(matrix.to_numpy().max())),
             colorbar={"title": "Probability", "tickformat": ".0%"},
             hovertemplate=(
-                "<b>%{y}</b><br>"
-                "Position: %{x}<br>"
-                "prob: %{z:.8f}<br>"
-                "Probability: %{z:.2%}<extra></extra>"
+                "<b>%{y}</b> · %{x}<br>"
+                "Probability: <b>%{z:.1%}</b><extra></extra>"
             ),
         )
     )
@@ -1066,7 +1227,7 @@ def voting_network_graph_data(
             **node,
             "id": country,
             "probability": float(probability_by_country.get(country, node.get("probability") or 0.0)),
-            "top_partners": [partner for partner, _ in partners],
+            "top_partners": [{"country": p, "weight": w} for p, w in partners],
         })
     return {"nodes": nodes, "links": links}
 
@@ -1118,10 +1279,16 @@ const link = svg.append("g")
   .selectAll("line")
   .data(graph.links)
   .join("line")
-  .attr("stroke-width", d => stroke(d.weight || 1))
-  .append("title")
-  .text(d => `${{d.source.id || d.source}} - ${{d.target.id || d.target}}: weight=${{d.weight}}`);
-const linkLines = svg.selectAll("line");
+  .attr("stroke-width", d => stroke(d.weight || 1));
+const linkLines = svg.selectAll("line")
+  .on("mouseover", (event, d) => {{
+    tooltip.style("opacity", 1)
+      .html(`<b>${{d.source.id || d.source}}</b> ↔ <b>${{d.target.id || d.target}}</b><br>Historical affinity: <b>${{d.weight}}</b>`);
+  }})
+  .on("mousemove", event => {{
+    tooltip.style("left", `${{event.offsetX + 14}}px`).style("top", `${{event.offsetY + 14}}px`);
+  }})
+  .on("mouseout", () => tooltip.style("opacity", 0));
 const node = svg.append("g")
   .selectAll("circle")
   .data(graph.nodes)
@@ -1132,8 +1299,11 @@ const node = svg.append("g")
   .attr("stroke-width", 1)
   .call(drag(simulation))
   .on("mouseover", (event, d) => {{
+    const partners = (d.top_partners || [])
+      .map(p => `${{p.country}} (${{p.weight}})`)
+      .join(", ") || "n/a";
     tooltip.style("opacity", 1)
-      .html(`<strong>${{d.id}}</strong><br>prob_top10: ${{d3.format(".1%")(d.probability || 0)}}<br>Top partners: ${{(d.top_partners || []).join(", ") || "n/a"}}`);
+      .html(`<strong>${{d.id}}</strong><br>prob_top10: <b>${{d3.format(".1%")(d.probability || 0)}}</b><br>Top partners: ${{partners}}`);
   }})
   .on("mousemove", event => {{
     tooltip.style("left", `${{event.offsetX + 14}}px`).style("top", `${{event.offsetY + 14}}px`);
@@ -1150,6 +1320,22 @@ const labels = svg.append("g")
   .attr("stroke-width", 3)
   .attr("fill", "#0f172a")
   .text(d => d.id);
+const groups = Array.from(new Set(graph.nodes.map(d => d.group || "Other"))).sort();
+const legendG = svg.append("g").attr("transform", "translate(12, 12)");
+legendG.append("rect")
+  .attr("width", 154).attr("height", groups.length * 20 + 26)
+  .attr("rx", 6).attr("fill", "white").attr("fill-opacity", 0.88).attr("stroke", "#cbd5e1");
+legendG.append("text")
+  .attr("x", 8).attr("y", 16).attr("font-size", 11).attr("font-weight", 700).attr("fill", "#374151")
+  .text("Voting group");
+groups.forEach((grp, i) => {{
+  legendG.append("circle").attr("cx", 16).attr("cy", 30 + i * 20).attr("r", 6).attr("fill", color(grp));
+  legendG.append("text").attr("x", 28).attr("y", 34 + i * 20).attr("font-size", 10).attr("fill", "#374151").text(grp);
+}});
+svg.append("text")
+  .attr("x", 12).attr("y", height - 8)
+  .attr("font-size", 10).attr("fill", "#64748b")
+  .text("Node size = prob_top10  ·  Edge thickness = historical affinity strength");
 simulation.on("tick", () => {{
   graph.nodes.forEach(d => {{
     const r = radius(d.probability || 0) + padding;
@@ -1205,6 +1391,13 @@ def render_voting_network(data: dict[str, Any], predictions_df: pd.DataFrame) ->
     col1, col2 = st.columns(2)
     col1.metric("Nodes", len(nodes))
     col2.metric("Edges", len(links))
+    _info_expander(
+        "What does this network show?",
+        "Each **node** is a country. A **link** means the two countries have historically awarded each other "
+        "high jury scores (strong bilateral affinity). **Node size** reflects the model's current top-10 "
+        "probability — bigger = more favoured. Use this map to spot regional alliances that could swing "
+        "the final result.",
+    )
     components.html(voting_network_d3_html(network, predictions_df), height=800, scrolling=False)
 
 
@@ -1248,6 +1441,12 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
             "probability": st.column_config.NumberColumn("Column sum", format="%.6f"),
         },
     )
+    _info_expander(
+        "How to read the Top-3 Heatmap",
+        "Each row is a country; each column is a podium position (P1 = winner, P2 = runner-up, P3 = third). "
+        "Darker colour = higher probability for that position. "
+        "The three columns each sum to 100 % — probability is spread across all countries.",
+    )
 
     st.subheader("Tier 4: Winner Probability Gauge")
     st.plotly_chart(
@@ -1264,6 +1463,24 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
             },
         },
     )
+    _info_expander(
+        "How to read the Winner Gauge",
+        "Shows the top-3 countries' estimated probability of winning the contest outright (P1). "
+        "The percentage is **derived** from the model's top-10 probability weighted by "
+        "position-ranking distance — it is **not** a direct model output.\n\n"
+        "Due to wide bootstrap CI uncertainty, even a 30 % P1 estimate carries substantial "
+        "error bars. Treat this as a relative ranking signal, not a precise forecast.",
+    )
+    _p1 = position_df[position_df["position"] == "P1"].sort_values("probability", ascending=False)
+    if not _p1.empty:
+        _leader = _p1.iloc[0]
+        _not_win = (1.0 - float(_leader["probability"])) * 100.0
+        st.info(
+            f"Winner probability is a derived estimate based on the bootstrap CI distribution, "
+            f"not a direct model output. Even the current leader — **{_leader['country']} "
+            f"({float(_leader['probability']):.1%})** — has a **{_not_win:.0f} %** chance of "
+            "not winning. Use this as a relative signal, not a standalone forecast."
+        )
 
 
 def safe_float(value: Any) -> float | None:
@@ -1331,6 +1548,13 @@ def render_semi_table(rows: list[dict[str, Any]]) -> str:
 
 def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
     render_page_header("Semi Qualifiers")
+    _info_expander(
+        "How to read the qualification table",
+        "**prob_qualify** is the model's estimate of a country advancing from its semi-final to the Grand Final.\n\n"
+        "**CI-80 bar** shows the uncertainty range (blue segment = plausible range; label = raw values).\n\n"
+        "**Colour coding:** Green ≥ 75 % (likely qualifier) · Yellow 40–75 % (borderline) · Red < 40 % (unlikely) — "
+        "these reflect the model's estimate, not official results.",
+    )
     rows = semi_predictions.get("countries", [])
     if not isinstance(rows, list) or not rows:
         st.warning("No semi-final qualification predictions found.")
@@ -1375,6 +1599,13 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
 
 def render_narratives(narratives: dict[str, Any]) -> None:
     render_page_header("Narratives")
+    _info_expander(
+        "How to read the SHAP narrative",
+        "The text summary explains the model's main reasons for its prediction. "
+        "**Positive drivers** are features that pushed the probability up; **Negative drivers** pulled it down. "
+        "The feature bars show SHAP values — each input's share of the total prediction. "
+        "The CI-80/CI-50 fan chart shows the model's confidence range for each country.",
+    )
     countries = narratives.get("countries", [])
     if not countries:
         st.warning("No narratives found in the narratives JSON.")
