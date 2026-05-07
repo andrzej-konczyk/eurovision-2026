@@ -162,19 +162,65 @@ def inject_dashboard_style() -> None:
     st.markdown(
         """
 <style>
-div[data-testid="stSidebar"] {
-    border-right: 1px solid #e5e7eb;
+/* ===== Eurovision 2026 Vienna — Dashboard Theme ===== */
+:root {
+    --esc-magenta: #E6007E;
+    --esc-blue: #1A1464;
+    --esc-gold: #F5C542;
+    --esc-purple: #7B5EA7;
 }
+
+div[data-testid="stSidebar"] {
+    border-right: 3px solid var(--esc-magenta);
+    background: linear-gradient(180deg, #F8F5FF 0%, #EDE8FF 100%);
+}
+
 div[data-testid="stMetric"] {
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    border-radius: 8px;
-    padding: 0.85rem 0.95rem;
+    background: linear-gradient(135deg, rgba(230,0,126,0.07) 0%, rgba(26,20,100,0.1) 100%);
+    border: 1px solid rgba(230,0,126,0.35);
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
 }
 div[data-testid="stMetricLabel"] p {
-    font-weight: 650;
+    font-weight: 700;
+    color: var(--esc-blue) !important;
+    text-transform: uppercase;
+    font-size: 0.68rem !important;
+    letter-spacing: 0.09em;
 }
+div[data-testid="stMetricValue"] {
+    font-weight: 800;
+}
+
+h1 {
+    font-weight: 900;
+    letter-spacing: -0.01em;
+}
+h2 {
+    color: var(--esc-blue);
+    padding-bottom: 0.3rem;
+    border-bottom: 2px solid var(--esc-magenta);
+}
+h3 {
+    color: var(--esc-purple);
+    font-weight: 700;
+}
+
+div[data-testid="stCaptionContainer"] p {
+    color: var(--esc-purple);
+    font-style: italic;
+}
+
+div[data-testid="stExpander"] summary p {
+    font-weight: 600;
+}
+
+hr {
+    border-color: rgba(230,0,126,0.25);
+}
+
 .block-container {
-    padding-top: 2rem;
+    padding-top: 1.5rem;
 }
 </style>
 """,
@@ -579,7 +625,66 @@ def render_overview(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
     backtest = data["backtest"]
     aggregate = backtest.get("aggregate", {})
 
-    render_page_header("Overview", "Eurovision 2026 Forecast")
+    _esc_header = """
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: transparent; overflow: hidden; }
+.banner {
+  background: linear-gradient(135deg, #0D0A3B 0%, #1A1464 55%, #3A0F5E 100%);
+  border-radius: 14px;
+  border: 1px solid rgba(230,0,126,0.5);
+  padding: 1.3rem 2rem 1.15rem;
+  position: relative;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 15% 50%, rgba(230,0,126,0.18) 0%, transparent 65%),
+              radial-gradient(ellipse at 85% 50%, rgba(245,197,66,0.12) 0%, transparent 65%);
+  pointer-events: none;
+}
+@keyframes shimmer {
+  0%   { background-position: -250% center; }
+  100% { background-position:  250% center; }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.7); }
+  50%       { opacity: 1;   transform: scale(1.2); }
+}
+.title {
+  font-size: 1.85rem; font-weight: 900; letter-spacing: 0.04em; line-height: 1.15;
+  background: linear-gradient(90deg, #E6007E 0%, #F5C542 30%, #E8E4FF 50%, #E6007E 65%, #F5C542 100%);
+  background-size: 250% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: shimmer 4s linear infinite;
+  position: relative; z-index: 1;
+}
+.sub {
+  color: rgba(220,215,255,0.6); font-size: 0.75rem; margin-top: 0.45rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  position: relative; z-index: 1;
+}
+.star {
+  position: absolute; color: rgba(245,197,66,0.75);
+  animation: twinkle ease-in-out infinite; z-index: 1; pointer-events: none;
+}
+</style>
+<div class="banner">
+  <span class="star" style="font-size:1.1rem;top:18%;left:4%;animation-duration:2.1s;animation-delay:0s">★</span>
+  <span class="star" style="font-size:0.7rem;top:65%;left:11%;animation-duration:1.7s;animation-delay:0.4s">✦</span>
+  <span class="star" style="font-size:0.9rem;top:20%;right:8%;animation-duration:2.4s;animation-delay:1.0s">★</span>
+  <span class="star" style="font-size:1.2rem;top:58%;right:15%;animation-duration:1.9s;animation-delay:0.7s">★</span>
+  <span class="star" style="font-size:0.65rem;top:75%;right:5%;animation-duration:2.8s;animation-delay:1.3s">✦</span>
+  <span class="star" style="font-size:0.8rem;top:15%;left:48%;animation-duration:2.2s;animation-delay:0.9s">✦</span>
+  <div class="title">Eurovision 2026 Forecast</div>
+  <div class="sub">Vienna &nbsp;·&nbsp; May 2026 &nbsp;·&nbsp; Machine Learning Predictions</div>
+</div>
+"""
+    st.components.v1.html(_esc_header, height=122, scrolling=False)
+    st.caption(PAGE_CAPTIONS["Overview"])
 
     top_country = predictions_df.iloc[0]["country"] if not predictions_df.empty else "n/a"
     top_prob = predictions_df.iloc[0].get("probability") if not predictions_df.empty else None
@@ -772,7 +877,7 @@ def model_consensus_label(row: pd.Series) -> str:
 
 def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
     plot_frame = ranking.sort_values("rank", ascending=False)
-    colors = {"SAFE": "#16a34a", "LIKELY": "#f59e0b", "UNCERTAIN": "#64748b"}
+    colors = {"SAFE": "#F5C542", "LIKELY": "#E6007E", "UNCERTAIN": "#7B5EA7"}
     fig = go.Figure()
     fig.add_trace(
         go.Bar(
