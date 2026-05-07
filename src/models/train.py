@@ -36,6 +36,7 @@ from sklearn.pipeline import Pipeline
 import xgboost as xgb
 
 from src.features.country_fixed_effects import compute_country_fixed_effects
+from src.features.market_signals import compute_market_signals
 from src.features.rule_flags import compute_rule_flags
 from src.features.social_proxy import compute_social_proxy
 from src.features.voting_blocs import compute_voting_blocs
@@ -95,6 +96,7 @@ _ENGINEERED_FEATURES = [
     "zscore_myesb_personal",
     "zscore_ogae_points",
     "implied_prob_close",
+    "odds_vs_history_delta",
 ]
 
 FEATURE_COLS: list[str] = _RAW_FEATURES + _ENGINEERED_FEATURES
@@ -243,6 +245,9 @@ def build_feature_matrix(df: pd.DataFrame) -> pd.DataFrame:
     ]:
         merge_cols = [c for c in cols if c in fe.columns]
         out = out.merge(fe[merge_cols], on=["Year", "Country"], how="left")
+
+    signals = compute_market_signals(out)
+    out = pd.concat([out, signals], axis=1)
 
     return out.reset_index(drop=True)
 

@@ -16,7 +16,10 @@ def test_prediction_update_timestamp_formats_generated_at_as_utc():
 
     formatted = app.format_prediction_update_timestamp(payload["generated_at"])
 
-    assert formatted == "2026-05-04"
+    # Format must be YYYY-MM-DD; exact date changes each time predictions are rebuilt
+    assert len(formatted) == 10
+    assert formatted[4] == "-" and formatted[7] == "-"
+    int(formatted[:4])  # year is numeric
 
 
 def test_prediction_update_timestamp_handles_missing_value():

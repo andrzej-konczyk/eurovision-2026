@@ -432,8 +432,38 @@ def feature_importance_frame(narrative: dict[str, Any]) -> pd.DataFrame:
     return pd.DataFrame(rows).sort_values("abs_value", ascending=False).head(5)
 
 
+_FEATURE_DISPLAY: dict[str, str] = {
+    "implied_prob_close": "Market odds (implied prob.)",
+    "odds_vs_history_delta": "Market vs history delta",
+    "avg_final_rank_3yr": "GF avg rank (3yr)",
+    "avg_jury_3yr": "Jury avg (3yr)",
+    "avg_tele_3yr": "Televote avg (3yr)",
+    "avg_bloc_jury_3yr": "Bloc jury avg (3yr)",
+    "avg_bloc_tele_3yr": "Bloc televote avg (3yr)",
+    "Running_Order_Final": "GF running order",
+    "Running_Order_Semi": "Semi running order",
+    "zscore_myesb_community": "Fan community score",
+    "zscore_myesb_personal": "Fan personal score",
+    "zscore_ogae_points": "OGAE fan jury",
+    "Big6_Ind": "Big Five / host",
+    "National_Final": "National final selection",
+    "Solo_Artist": "Solo artist",
+    "Returning_Artist_Ind": "Returning artist",
+    "Qualification_Record": "Semi qualification rate",
+    "Semi_Final_Num": "Semi-final group",
+    "EU": "EU membership",
+    "NATO": "NATO membership",
+    "Multiple_Language": "Multi-language entry",
+    "rule_2019_semifinal_reform": "Post-2019 SF reform",
+    "rule_2023_jury_weight_reform": "Post-2023 jury reform",
+}
+
+
 def feature_bar_chart(features: pd.DataFrame) -> go.Figure:
-    plot_frame = features.sort_values("abs_value", ascending=True)
+    plot_frame = features.sort_values("abs_value", ascending=True).copy()
+    plot_frame["feature"] = plot_frame["feature"].map(
+        lambda f: _FEATURE_DISPLAY.get(f, f)
+    )
     fig = go.Figure(
         go.Bar(
             x=plot_frame["signed_value"],

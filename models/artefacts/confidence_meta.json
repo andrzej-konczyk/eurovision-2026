@@ -1,6 +1,6 @@
 {
   "story": "US-S4-03",
-  "run_at": "2026-05-01T07:33:47.409670+00:00",
+  "run_at": "2026-05-07T21:22:25.783595+00:00",
   "n_bootstrap": 1000,
   "seed": 42,
   "target_year": 2026,
@@ -39,16 +39,17 @@
     "zscore_myesb_community",
     "zscore_myesb_personal",
     "zscore_ogae_points",
-    "implied_prob_close"
+    "implied_prob_close",
+    "odds_vs_history_delta"
   ],
   "ci_stats": {
     "xgb": {
-      "avg_ci80_width": 0.31678773100887025,
-      "avg_ci50_width": 0.16906909261431013
+      "avg_ci80_width": 0.3172337995043823,
+      "avg_ci50_width": 0.17163347090993608
     },
     "lgbm": {
-      "avg_ci80_width": 0.44170013075455977,
-      "avg_ci50_width": 0.19676883672998183
+      "avg_ci80_width": 0.45293259079112924,
+      "avg_ci50_width": 0.19547765068655037
     }
   }
 }

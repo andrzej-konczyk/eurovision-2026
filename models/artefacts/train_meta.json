@@ -1,8 +1,8 @@
 {
   "story": "US-S4-02",
-  "trained_at": "2026-04-29T17:55:19.793153+00:00",
+  "trained_at": "2026-05-07T20:52:25.576481+00:00",
   "dataset_path": "Dataset\\eurovision_2016_26_enriched.csv",
-  "dataset_hash": "9ea24521a0c2a5bf39d899797298d669",
+  "dataset_hash": "f799cef221d00a9582fe56bf70eb57f6",
   "random_seed": 42,
   "target": "Top 10",
   "n_train_rows": 217,
@@ -29,7 +29,8 @@
     "zscore_myesb_community",
     "zscore_myesb_personal",
     "zscore_ogae_points",
-    "implied_prob_close"
+    "implied_prob_close",
+    "odds_vs_history_delta"
   ],
   "models": {
     "xgb": {
@@ -40,17 +41,17 @@
         "n_estimators": 100,
         "subsample": 0.8
       },
-      "cv_roc_auc_mean": 0.7466666666666667,
-      "cv_roc_auc_std": 0.18808981306221179,
+      "cv_roc_auc_mean": 0.7354166666666666,
+      "cv_roc_auc_std": 0.17080792493974692,
       "cv_n_valid_folds": 4,
       "fold_scores": [
         NaN,
         NaN,
         0.5,
-        0.8866666666666667,
-        0.7,
+        0.8666666666666667,
+        0.7187499999999999,
         NaN,
-        0.9
+        0.85625
       ]
     },
     "lgbm": {
@@ -61,17 +62,17 @@
         "num_leaves": 31,
         "subsample": 0.8
       },
-      "cv_roc_auc_mean": 0.6358333333333333,
-      "cv_roc_auc_std": 0.14168749846836248,
+      "cv_roc_auc_mean": 0.6846875,
+      "cv_roc_auc_std": 0.13371835684876376,
       "cv_n_valid_folds": 4,
       "fold_scores": [
         NaN,
         NaN,
-        0.5375,
-        0.49333333333333335,
-        0.73125,
+        0.49375,
+        0.7200000000000001,
+        0.71875,
         NaN,
-        0.78125
+        0.8062499999999999
       ]
     }
   }

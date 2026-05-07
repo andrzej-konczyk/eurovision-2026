@@ -66,6 +66,10 @@ _PHRASES: dict[str, tuple[str, str]] = {
         "strong backing from the betting markets",
         "limited backing from the betting markets",
     ),
+    "odds_vs_history_delta": (
+        "betting markets pricing in upside beyond what recent history predicts",
+        "betting markets pricing in a discount relative to recent Grand Final history",
+    ),
     "avg_final_rank_3yr": (
         "a strong 3-year Grand Final track record",
         "a weak recent Grand Final history",

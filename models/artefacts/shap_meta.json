@@ -1,6 +1,6 @@
 {
   "story": "US-S4-04",
-  "run_at": "2026-04-29T18:01:45.816219+00:00",
+  "run_at": "2026-05-07T21:23:54.959535+00:00",
   "target_year": 2026,
   "train_years": [
     2016,
@@ -38,7 +38,8 @@
     "zscore_myesb_community",
     "zscore_myesb_personal",
     "zscore_ogae_points",
-    "implied_prob_close"
+    "implied_prob_close",
+    "odds_vs_history_delta"
   ],
   "top_n": 5
 }
