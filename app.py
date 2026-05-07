@@ -770,6 +770,17 @@ body { background: transparent; overflow: hidden; }
         "How does the model work?",
         ABOUT_MODEL,
     )
+    _info_expander(
+        "Why Top-10 — not the winner?",
+        "The model predicts the **probability of a country finishing in the Grand Final Top 10**, "
+        "not an exact placement or outright winner. Top-10 is our primary KPI — it achieved "
+        "**73 % accuracy** across the 2022–2025 backtests, which is a robust signal at this "
+        "stage of the competition.\n\n"
+        "Winner probability (shown in the **Tiers** tab) is a secondary, derived indicator "
+        "built on top of the top-10 estimates. It comes with wide confidence intervals and "
+        "should be read as a relative signal — *who is most likely to win among the favourites* "
+        "— rather than a standalone forecast.",
+    )
 
 
 def model_predictions_frame(predictions: dict[str, Any], model: str) -> pd.DataFrame:
@@ -1455,9 +1466,21 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
     _info_expander(
         "How to read the Winner Gauge",
         "Shows the top-3 countries' estimated probability of winning the contest outright (P1). "
-        "The percentage is derived from the model's top-10 probability weighted by position-ranking distance — "
-        "countries ranked closer to #1 receive a proportionally larger share of the P1 mass.",
+        "The percentage is **derived** from the model's top-10 probability weighted by "
+        "position-ranking distance — it is **not** a direct model output.\n\n"
+        "Due to wide bootstrap CI uncertainty, even a 30 % P1 estimate carries substantial "
+        "error bars. Treat this as a relative ranking signal, not a precise forecast.",
     )
+    _p1 = position_df[position_df["position"] == "P1"].sort_values("probability", ascending=False)
+    if not _p1.empty:
+        _leader = _p1.iloc[0]
+        _not_win = (1.0 - float(_leader["probability"])) * 100.0
+        st.info(
+            f"Winner probability is a derived estimate based on the bootstrap CI distribution, "
+            f"not a direct model output. Even the current leader — **{_leader['country']} "
+            f"({float(_leader['probability']):.1%})** — has a **{_not_win:.0f} %** chance of "
+            "not winning. Use this as a relative signal, not a standalone forecast."
+        )
 
 
 def safe_float(value: Any) -> float | None:
