@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import UTC, datetime
 from html import escape
 from pathlib import Path
@@ -1654,7 +1655,16 @@ def render_narratives(narratives: dict[str, Any], predictions_df: pd.DataFrame) 
     consensus_prob = safe_float(pred_row.get("probability"))
     prob_display = "n/a" if consensus_prob is None else f"{consensus_prob:.1%}"
     st.metric("Top-10 probability", prob_display)
-    st.write(country_data.get("narrative", ""))
+    # Replace embedded LGBM percentage in narrative text with consensus value so
+    # the text matches the metric above (narratives.py uses LGBM single-pass).
+    narrative_text = country_data.get("narrative", "")
+    if consensus_prob is not None:
+        narrative_text = re.sub(
+            r"model probability: \d+%",
+            f"model probability: {round(consensus_prob * 100)}%",
+            narrative_text,
+        )
+    st.write(narrative_text)
 
     col1, col2 = st.columns(2)
     with col1:
