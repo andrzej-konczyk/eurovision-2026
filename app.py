@@ -942,12 +942,9 @@ def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
             },
             customdata=plot_frame[["rank", "badge", "xgb_prob", "lgbm_prob", "model_consensus"]],
             hovertemplate=(
-                "<b>%{y}</b><br>"
-                "Rank: %{customdata[0]}<br>"
-                "prob_top10: %{x:.1%}<br>"
-                "Badge: %{customdata[1]}<br>"
-                "XGB: %{customdata[2]:.1%}<br>"
-                "LGBM: %{customdata[3]:.1%}<br>"
+                "<b>%{y}</b>  #%{customdata[0]}<br>"
+                "Consensus: <b>%{x:.1%}</b>  [%{customdata[1]}]<br>"
+                "XGB: %{customdata[2]:.1%}  ·  LGBM: %{customdata[3]:.1%}<br>"
                 "%{customdata[4]}<extra></extra>"
             ),
         )
@@ -963,14 +960,19 @@ def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
         xaxis={"tickformat": ".0%", "range": [0, 1]},
         font={"size": 13},
     )
+    _badge_labels = {
+        "SAFE": "SAFE — confident top-10",
+        "LIKELY": "LIKELY — probable top-10",
+        "UNCERTAIN": "UNCERTAIN — outside top-10",
+    }
     for badge, color in colors.items():
         fig.add_trace(
             go.Scatter(
                 x=[None],
                 y=[None],
                 mode="markers",
-                marker={"size": 10, "color": color},
-                name=badge,
+                marker={"size": 12, "color": color, "symbol": "square"},
+                name=_badge_labels.get(badge, badge),
                 hoverinfo="skip",
             )
         )
@@ -1031,10 +1033,8 @@ def top3_heatmap(position_df: pd.DataFrame, predictions_df: pd.DataFrame) -> go.
             zmax=max(0.01, float(matrix.to_numpy().max())),
             colorbar={"title": "Probability", "tickformat": ".0%"},
             hovertemplate=(
-                "<b>%{y}</b><br>"
-                "Position: %{x}<br>"
-                "prob: %{z:.8f}<br>"
-                "Probability: %{z:.2%}<extra></extra>"
+                "<b>%{y}</b> · %{x}<br>"
+                "Probability: <b>%{z:.1%}</b><extra></extra>"
             ),
         )
     )
@@ -1216,7 +1216,7 @@ def voting_network_graph_data(
             **node,
             "id": country,
             "probability": float(probability_by_country.get(country, node.get("probability") or 0.0)),
-            "top_partners": [partner for partner, _ in partners],
+            "top_partners": [{"country": p, "weight": w} for p, w in partners],
         })
     return {"nodes": nodes, "links": links}
 
@@ -1268,10 +1268,16 @@ const link = svg.append("g")
   .selectAll("line")
   .data(graph.links)
   .join("line")
-  .attr("stroke-width", d => stroke(d.weight || 1))
-  .append("title")
-  .text(d => `${{d.source.id || d.source}} - ${{d.target.id || d.target}}: weight=${{d.weight}}`);
-const linkLines = svg.selectAll("line");
+  .attr("stroke-width", d => stroke(d.weight || 1));
+const linkLines = svg.selectAll("line")
+  .on("mouseover", (event, d) => {{
+    tooltip.style("opacity", 1)
+      .html(`<b>${{d.source.id || d.source}}</b> ↔ <b>${{d.target.id || d.target}}</b><br>Historical affinity: <b>${{d.weight}}</b>`);
+  }})
+  .on("mousemove", event => {{
+    tooltip.style("left", `${{event.offsetX + 14}}px`).style("top", `${{event.offsetY + 14}}px`);
+  }})
+  .on("mouseout", () => tooltip.style("opacity", 0));
 const node = svg.append("g")
   .selectAll("circle")
   .data(graph.nodes)
@@ -1282,8 +1288,11 @@ const node = svg.append("g")
   .attr("stroke-width", 1)
   .call(drag(simulation))
   .on("mouseover", (event, d) => {{
+    const partners = (d.top_partners || [])
+      .map(p => `${{p.country}} (${{p.weight}})`)
+      .join(", ") || "n/a";
     tooltip.style("opacity", 1)
-      .html(`<strong>${{d.id}}</strong><br>prob_top10: ${{d3.format(".1%")(d.probability || 0)}}<br>Top partners: ${{(d.top_partners || []).join(", ") || "n/a"}}`);
+      .html(`<strong>${{d.id}}</strong><br>prob_top10: <b>${{d3.format(".1%")(d.probability || 0)}}</b><br>Top partners: ${{partners}}`);
   }})
   .on("mousemove", event => {{
     tooltip.style("left", `${{event.offsetX + 14}}px`).style("top", `${{event.offsetY + 14}}px`);
@@ -1300,6 +1309,22 @@ const labels = svg.append("g")
   .attr("stroke-width", 3)
   .attr("fill", "#0f172a")
   .text(d => d.id);
+const groups = Array.from(new Set(graph.nodes.map(d => d.group || "Other"))).sort();
+const legendG = svg.append("g").attr("transform", "translate(12, 12)");
+legendG.append("rect")
+  .attr("width", 154).attr("height", groups.length * 20 + 26)
+  .attr("rx", 6).attr("fill", "white").attr("fill-opacity", 0.88).attr("stroke", "#cbd5e1");
+legendG.append("text")
+  .attr("x", 8).attr("y", 16).attr("font-size", 11).attr("font-weight", 700).attr("fill", "#374151")
+  .text("Voting group");
+groups.forEach((grp, i) => {{
+  legendG.append("circle").attr("cx", 16).attr("cy", 30 + i * 20).attr("r", 6).attr("fill", color(grp));
+  legendG.append("text").attr("x", 28).attr("y", 34 + i * 20).attr("font-size", 10).attr("fill", "#374151").text(grp);
+}});
+svg.append("text")
+  .attr("x", 12).attr("y", height - 8)
+  .attr("font-size", 10).attr("fill", "#64748b")
+  .text("Node size = prob_top10  ·  Edge thickness = historical affinity strength");
 simulation.on("tick", () => {{
   graph.nodes.forEach(d => {{
     const r = radius(d.probability || 0) + padding;
