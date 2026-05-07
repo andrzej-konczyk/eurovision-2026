@@ -655,7 +655,7 @@ def render_country_detail_sidebar(
 ) -> None:
     if predictions_df.empty:
         return
-    countries = predictions_df.sort_values("rank")["country"].tolist()
+    countries = sorted(predictions_df["country"].tolist())
     selected = st.sidebar.selectbox(
         "Country detail",
         countries,
@@ -895,7 +895,7 @@ def render_predictions(
         },
     )
 
-    selected_country = st.selectbox("Open country card", ranking["country"].tolist())
+    selected_country = st.selectbox("Open country card", sorted(ranking["country"].tolist()))
     with st.expander(f"Country card: {selected_country}", expanded=True):
         render_country_card(
             country_card_data(
@@ -1642,7 +1642,7 @@ def render_narratives(narratives: dict[str, Any], predictions_df: pd.DataFrame) 
         st.warning("No narratives found in the narratives JSON.")
         return
 
-    country_names = [country["country"] for country in countries]
+    country_names = sorted(country["country"] for country in countries)
     selected = st.selectbox("Country", country_names, format_func=country_label)
     country_data = next(country for country in countries if country["country"] == selected)
 
