@@ -77,4 +77,11 @@ def test_country_card_charts_render_for_all_countries(dashboard_payloads):
         card = app.country_card_data(country, predictions_df, narratives, history)
         assert app.feature_bar_chart(card["features"]).data
         assert app.ci_fan_chart(card["ci"]).data
-        assert app.history_chart(card["history"]).layout.title.text == "Final history 2016-2024"
+        assert app.history_chart(card["history"]).layout.title.text == "Final history 2016-2025"
+
+
+def test_country_flag_image_uses_flagcdn_asset():
+    html = app.country_flag_img("Greece")
+
+    assert 'src="https://flagcdn.com/w40/gr.png"' in html
+    assert 'alt="Greece flag"' in html

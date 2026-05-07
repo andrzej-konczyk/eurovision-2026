@@ -40,9 +40,19 @@ NAVIGATION_PAGES = [
     "Voting Blocs",
     "Voting Network",
     "Narratives",
-    "Backtest",
-    "Data Health",
 ]
+
+PAGE_CAPTIONS = {
+    "Overview": "Current forecast snapshot, model freshness, leading contenders, and backtest health.",
+    "Main Ranking": "Full country ranking with confidence intervals and model agreement signals.",
+    "Tiers": "Top-3 position probabilities and winner concentration.",
+    "Semi Qualifiers": "Semi-final qualification probabilities by draw.",
+    "Voting Blocs": "Regional bloc membership matrix used by feature engineering.",
+    "Voting Network": "Historical jury affinity graph merged with current top-10 probabilities.",
+    "Narratives": "Country-level drivers and model-facing explanation notes.",
+    "Backtest": "Historical validation metrics by year and model.",
+    "Data Health": "Loaded artifacts, runtime status, and source availability.",
+}
 
 COUNTRY_ISO2 = {
     "Albania": "AL",
@@ -144,8 +154,56 @@ def format_prediction_update_timestamp(value: Any) -> str:
     except ValueError:
         return value
     if timestamp.tzinfo is None:
-        return timestamp.strftime("%Y-%m-%d %H:%M")
-    return timestamp.astimezone(UTC).strftime("%Y-%m-%d %H:%M UTC")
+        return timestamp.strftime("%Y-%m-%d")
+    return timestamp.astimezone(UTC).strftime("%Y-%m-%d")
+
+
+def inject_dashboard_style() -> None:
+    st.markdown(
+        """
+<style>
+div[data-testid="stSidebar"] {
+    border-right: 1px solid #e5e7eb;
+}
+div[data-testid="stMetric"] {
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 8px;
+    padding: 0.85rem 0.95rem;
+}
+div[data-testid="stMetricLabel"] p {
+    font-weight: 650;
+}
+.block-container {
+    padding-top: 2rem;
+}
+</style>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+def render_page_header(page: str, title: str | None = None) -> None:
+    st.title(title or page)
+    caption = PAGE_CAPTIONS.get(page)
+    if caption:
+        st.caption(caption)
+
+
+def dashboard_artifact_rows(data: dict[str, Any], load_time_s: float) -> list[dict[str, Any]]:
+    return [
+        {"check": "Predictions JSON", "path": data["predictions_path"], "loaded": bool(data["predictions"])},
+        {"check": "Semi predictions JSON", "path": data["semi_predictions_path"], "loaded": bool(data["semi_predictions"])},
+        {"check": "Voting network JSON", "path": data["voting_network_path"], "loaded": bool(data["voting_network"])},
+        {
+            "check": "Voting bloc co-occurrence CSV",
+            "path": data["bloc_cooccurrence_path"],
+            "loaded": not data["bloc_cooccurrence"].empty,
+        },
+        {"check": "Narratives JSON", "path": data["narratives_path"], "loaded": bool(data["narratives"])},
+        {"check": "Backtest JSON", "path": data["backtest_path"], "loaded": bool(data["backtest"])},
+        {"check": "History CSV", "path": data["history_path"], "loaded": not data["history"].empty},
+        {"check": "Load KPI < 2s", "path": "runtime", "loaded": load_time_s < 2.0},
+    ]
 
 
 def countries_frame(predictions: dict[str, Any]) -> pd.DataFrame:
@@ -194,16 +252,11 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
         "Navigation",
         NAVIGATION_PAGES,
     )
-    st.sidebar.divider()
-    st.sidebar.caption("Loaded artifacts")
-    st.sidebar.code(data["predictions_path"])
-    st.sidebar.code(data["semi_predictions_path"])
-    st.sidebar.code(data["voting_network_path"])
-    st.sidebar.code(data["narratives_path"])
-    st.sidebar.code(data["backtest_path"])
-    st.sidebar.code(data["history_path"])
-    st.sidebar.code(data["bloc_cooccurrence_path"])
+    st.sidebar.caption(PAGE_CAPTIONS.get(page, ""))
     st.sidebar.metric("Load time", f"{load_time_s:.3f}s")
+    with st.sidebar.expander("Loaded artifacts", expanded=False):
+        for row in dashboard_artifact_rows(data, load_time_s):
+            st.code(str(row["path"]))
     return page
 
 
@@ -212,6 +265,29 @@ def country_flag(country: str) -> str:
     if not code:
         return ""
     return "".join(chr(0x1F1E6 + ord(letter) - ord("A")) for letter in code.upper())
+
+
+def country_flag_url(country: str) -> str:
+    code = COUNTRY_ISO2.get(country)
+    if not code:
+        return ""
+    return f"https://flagcdn.com/w40/{code.lower()}.png"
+
+
+def country_flag_img(country: str, width: int = 28) -> str:
+    url = country_flag_url(country)
+    if not url:
+        return ""
+    label = escape(country)
+    height = max(1, round(width * 0.75))
+    return (
+        f'<img src="{url}" alt="{label} flag" width="{width}" height="{height}" '
+        'style="vertical-align:-0.18rem;border-radius:2px;object-fit:cover;">'
+    )
+
+
+def country_label(country: str) -> str:
+    return country
 
 
 def narratives_by_country(narratives: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -232,7 +308,7 @@ def country_history_frame(history: pd.DataFrame, country: str) -> pd.DataFrame:
         return pd.DataFrame()
     frame = history[
         (history["Country"] == country)
-        & (history["Year"].between(2016, 2024))
+        & (history["Year"].between(2016, 2025))
     ].copy()
     if frame.empty:
         return pd.DataFrame(columns=["Year", "Result", "Final_Place", "Final_Points", "Semi_Place"])
@@ -406,7 +482,7 @@ def history_chart(history_frame: pd.DataFrame) -> go.Figure:
             )
         )
     fig.update_layout(
-        title="Final history 2016-2024",
+        title="Final history 2016-2025",
         xaxis_title="Year",
         yaxis={"title": "Final place", "autorange": "reversed", "dtick": 5},
         height=260,
@@ -437,12 +513,11 @@ def country_card_data(
 
 def render_country_card(card: dict[str, Any]) -> None:
     country = card["country"]
-    flag = card["flag"]
     narrative = card["narrative"]
     prediction = card["prediction"]
-    title = f"{flag} {country}".strip()
+    flag_img = country_flag_img(country, width=34)
 
-    st.markdown(f"### {escape(title)}")
+    st.markdown(f"### {flag_img} {escape(country)}", unsafe_allow_html=True)
     probability = safe_float(prediction.get("probability"))
     rank = prediction.get("rank")
     cols = st.columns(3)
@@ -474,13 +549,29 @@ def render_country_detail_sidebar(
     if predictions_df.empty:
         return
     countries = predictions_df.sort_values("rank")["country"].tolist()
-    selected = st.sidebar.selectbox("Country detail", countries)
+    selected = st.sidebar.selectbox(
+        "Country detail",
+        countries,
+        format_func=country_label,
+    )
     card = country_card_data(selected, predictions_df, data["narratives"], data["history"])
-    with st.sidebar.expander(f"{card['flag']} {selected}".strip(), expanded=True):
+    with st.sidebar.expander(f"Focus country: {selected}", expanded=False):
+        st.markdown(
+            f"{country_flag_img(selected, width=30)} **{escape(selected)}**",
+            unsafe_allow_html=True,
+        )
         narrative = str(card["narrative"].get("narrative", "")).strip()
         probability = safe_float(card["prediction"].get("probability"))
         st.metric("Top-10 probability", "n/a" if probability is None else f"{probability:.1%}")
         st.write(narrative if narrative else "No narrative available.")
+
+
+def overview_leaderboard_frame(predictions_df: pd.DataFrame, n: int = 5) -> pd.DataFrame:
+    if predictions_df.empty:
+        return pd.DataFrame(columns=["rank", "country", "probability", "ci80_lo", "ci80_hi"])
+    frame = main_ranking_frame(predictions_df, n_places=n)
+    columns = ["rank", "country", "probability", "ci80_lo", "ci80_hi"]
+    return frame[[column for column in columns if column in frame.columns]]
 
 
 def render_overview(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
@@ -488,8 +579,7 @@ def render_overview(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
     backtest = data["backtest"]
     aggregate = backtest.get("aggregate", {})
 
-    st.title("Eurovision 2026 Prediction Dashboard")
-    st.caption("Sprint 7 Streamlit shell for local model artifacts.")
+    render_page_header("Overview", "Eurovision 2026 Forecast")
 
     top_country = predictions_df.iloc[0]["country"] if not predictions_df.empty else "n/a"
     top_prob = predictions_df.iloc[0].get("probability") if not predictions_df.empty else None
@@ -502,19 +592,44 @@ def render_overview(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
     col4.metric("Top probability", f"{top_prob:.1%}" if pd.notna(top_prob) else "n/a")
     col5.metric("Prediction updated", last_prediction_update)
 
-    st.subheader("Backtest KPI")
-    kpi_rows = []
-    for model, metrics in aggregate.items():
-        kpi_rows.append(
-            {
-                "model": model.upper(),
-                "avg_top10_accuracy": metrics.get("avg_top10_accuracy"),
-                "avg_ci80_coverage": metrics.get("avg_ci80_empirical_coverage"),
-                "top10_pass": metrics.get("all_top10_kpi_pass"),
-                "ci80_pass": metrics.get("all_ci80_kpi_pass"),
-            }
+    left, right = st.columns([1.15, 1.0])
+    with left:
+        st.subheader("Leading Contenders")
+        leaders = overview_leaderboard_frame(predictions_df)
+        leaders_display = leaders.copy()
+        for column in ["probability", "ci80_lo", "ci80_hi"]:
+            if column in leaders_display.columns:
+                leaders_display[column] = leaders_display[column] * 100.0
+        st.dataframe(
+            leaders_display,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "probability": st.column_config.ProgressColumn(
+                    "Top-10 probability",
+                    format="%.1f%%",
+                    min_value=0.0,
+                    max_value=100.0,
+                ),
+                "ci80_lo": st.column_config.NumberColumn("CI-80 low", format="%.1f%%"),
+                "ci80_hi": st.column_config.NumberColumn("CI-80 high", format="%.1f%%"),
+            },
         )
-    st.dataframe(pd.DataFrame(kpi_rows), use_container_width=True, hide_index=True)
+
+    with right:
+        st.subheader("Backtest KPI")
+        kpi_rows = []
+        for model, metrics in aggregate.items():
+            kpi_rows.append(
+                {
+                    "model": model.upper(),
+                    "avg_top10_accuracy": metrics.get("avg_top10_accuracy"),
+                    "avg_ci80_coverage": metrics.get("avg_ci80_empirical_coverage"),
+                    "top10_pass": metrics.get("all_top10_kpi_pass"),
+                    "ci80_pass": metrics.get("all_ci80_kpi_pass"),
+                }
+            )
+        st.dataframe(pd.DataFrame(kpi_rows), use_container_width=True, hide_index=True)
 
 
 def model_predictions_frame(predictions: dict[str, Any], model: str) -> pd.DataFrame:
@@ -530,10 +645,7 @@ def render_predictions(
     narratives: dict[str, Any],
     history: pd.DataFrame,
 ) -> None:
-    st.title("Main Ranking")
-    st.caption(
-        "Belgium qualified via SF but GF top-10 probability reflects Grand Final historical performance"
-    )
+    render_page_header("Main Ranking")
     if predictions_df.empty:
         st.warning("No country predictions found in the predictions JSON.")
         return
@@ -803,13 +915,16 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
     winners = winner_gauge_frame(position_df, top_n)
     fig = go.Figure()
     for index, row in winners.iterrows():
+        domain_width = 1.0 / max(top_n, 1)
+        x0 = index * domain_width + 0.03
+        x1 = (index + 1) * domain_width - 0.03
         fig.add_trace(
             go.Indicator(
                 mode="gauge+number",
                 value=float(row["probability"]),
                 number={"valueformat": ".1%", "font": {"size": 24}},
-                title={"text": f"#{int(row['rank'])} {row['country']}", "font": {"size": 18}},
-                domain={"x": [0.08, 0.92], "y": [0.68 - index * 0.33, 0.94 - index * 0.33]},
+                title={"text": f"#{int(row['rank'])}<br>{row['country']}", "font": {"size": 16}},
+                domain={"x": [x0, x1], "y": [0.12, 0.86]},
                 gauge={
                     "axis": {"range": [0.0, 1.0], "tickformat": ".0%"},
                     "bar": {"color": "#2563eb"},
@@ -825,8 +940,8 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
         )
     fig.update_layout(
         title=f"Winner probability gauge: top {top_n}",
-        height=560,
-        margin={"l": 35, "r": 35, "t": 70, "b": 30},
+        height=360,
+        margin={"l": 25, "r": 25, "t": 70, "b": 30},
         font={"size": 14},
     )
     return fig
@@ -861,26 +976,29 @@ def voting_bloc_d3_html(cooccurrence: pd.DataFrame) -> str:
 const data = {payload};
 const countries = Array.from(new Set(data.map(d => d.country))).sort();
 const blocs = Array.from(new Set(data.map(d => d.bloc))).sort();
-const margin = {{top: 28, right: 24, bottom: 24, left: 150}};
-const cell = 18;
-const width = margin.left + margin.right + blocs.length * 92;
+const margin = {{top: 96, right: 36, bottom: 48, left: 190}};
+const cell = 24;
+const width = margin.left + margin.right + blocs.length * 118;
 const height = margin.top + margin.bottom + countries.length * cell;
 const root = d3.select("#bloc-d3").html("");
 const svg = root.append("svg")
   .attr("viewBox", [0, 0, width, height])
   .attr("width", "100%")
-  .attr("height", height);
+  .attr("height", height)
+  .style("background", "#ffffff");
 const x = d3.scaleBand().domain(blocs).range([margin.left, width - margin.right]).padding(0.08);
 const y = d3.scaleBand().domain(countries).range([margin.top, height - margin.bottom]).padding(0.08);
 svg.append("g")
   .selectAll("text")
   .data(blocs)
   .join("text")
-  .attr("x", d => x(d) + x.bandwidth() / 2)
-  .attr("y", 18)
-  .attr("text-anchor", "middle")
-  .attr("font-size", 12)
+  .attr("x", d => x(d) + 8)
+  .attr("y", margin.top - 12)
+  .attr("text-anchor", "start")
+  .attr("transform", d => `rotate(-35, ${{x(d) + 8}}, ${{margin.top - 12}})`)
+  .attr("font-size", 13)
   .attr("font-weight", 700)
+  .attr("fill", "#0f172a")
   .text(d => d);
 svg.append("g")
   .selectAll("text")
@@ -890,7 +1008,9 @@ svg.append("g")
   .attr("y", d => y(d) + y.bandwidth() / 2)
   .attr("dominant-baseline", "middle")
   .attr("text-anchor", "end")
-  .attr("font-size", 12)
+  .attr("font-size", 13)
+  .attr("font-weight", 600)
+  .attr("fill", "#0f172a")
   .text(d => d);
 svg.append("g")
   .selectAll("rect")
@@ -900,10 +1020,18 @@ svg.append("g")
   .attr("y", d => y(d.country))
   .attr("width", x.bandwidth())
   .attr("height", y.bandwidth())
-  .attr("rx", 3)
+  .attr("rx", 4)
+  .attr("stroke", "#cbd5e1")
+  .attr("stroke-width", 0.75)
   .attr("fill", d => d.member ? "#2563eb" : "#e5e7eb")
   .append("title")
   .text(d => `${{d.country}} / ${{d.bloc}}: ${{d.member ? "member" : "not member"}}`);
+svg.append("text")
+  .attr("x", margin.left)
+  .attr("y", height - 12)
+  .attr("font-size", 12)
+  .attr("fill", "#475569")
+  .text("Blue cells indicate bloc membership.");
 </script>
 """
 
@@ -1058,17 +1186,16 @@ function drag(simulation) {{
 
 
 def render_voting_blocs(data: dict[str, Any]) -> None:
-    st.title("Voting Blocs")
+    render_page_header("Voting Blocs")
     cooccurrence = data["bloc_cooccurrence"]
     if cooccurrence.empty:
         st.warning("No voting-bloc co-occurrence matrix found.")
         return
-    components.html(voting_bloc_d3_html(cooccurrence), height=920, scrolling=True)
-    st.dataframe(cooccurrence, use_container_width=True, hide_index=True)
+    components.html(voting_bloc_d3_html(cooccurrence), height=1040, scrolling=True)
 
 
 def render_voting_network(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
-    st.title("Voting Network")
+    render_page_header("Voting Network")
     network = data["voting_network"]
     nodes = network.get("nodes", [])
     links = network.get("links", [])
@@ -1082,26 +1209,11 @@ def render_voting_network(data: dict[str, Any], predictions_df: pd.DataFrame) ->
 
 
 def data_health_checks(data: dict[str, Any], load_time_s: float) -> pd.DataFrame:
-    return pd.DataFrame(
-        [
-            {"check": "Predictions JSON", "path": data["predictions_path"], "loaded": bool(data["predictions"])},
-            {"check": "Semi predictions JSON", "path": data["semi_predictions_path"], "loaded": bool(data["semi_predictions"])},
-            {"check": "Voting network JSON", "path": data["voting_network_path"], "loaded": bool(data["voting_network"])},
-            {
-                "check": "Voting bloc co-occurrence CSV",
-                "path": data["bloc_cooccurrence_path"],
-                "loaded": not data["bloc_cooccurrence"].empty,
-            },
-            {"check": "Narratives JSON", "path": data["narratives_path"], "loaded": bool(data["narratives"])},
-            {"check": "Backtest JSON", "path": data["backtest_path"], "loaded": bool(data["backtest"])},
-            {"check": "History CSV", "path": data["history_path"], "loaded": not data["history"].empty},
-            {"check": "Load KPI < 2s", "path": "runtime", "loaded": load_time_s < 2.0},
-        ]
-    )
+    return pd.DataFrame(dashboard_artifact_rows(data, load_time_s))
 
 
 def render_tiers(predictions_df: pd.DataFrame) -> None:
-    st.title("Tiers")
+    render_page_header("Tiers")
     if predictions_df.empty:
         st.warning("No country predictions found in the predictions JSON.")
         return
@@ -1196,8 +1308,9 @@ def render_semi_table(rows: list[dict[str, Any]]) -> str:
         hi = safe_float(row.get("ci80_hi"))
         band = probability_band(prob)
         prob_text = "n/a" if prob is None else f"{prob:.1%}"
-        country = escape(str(row.get("country") or "Unknown"))
-        flag = escape(str(row.get("flag") or ""))
+        country_name = str(row.get("country") or "Unknown")
+        country = escape(country_name)
+        flag = country_flag_img(country_name, width=26)
         rank = escape(str(row.get("rank_in_semi") or ""))
         table_rows.append(
             "<tr>"
@@ -1217,7 +1330,7 @@ def render_semi_table(rows: list[dict[str, Any]]) -> str:
 
 
 def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
-    st.title("Semi Qualifiers")
+    render_page_header("Semi Qualifiers")
     rows = semi_predictions.get("countries", [])
     if not isinstance(rows, list) or not rows:
         st.warning("No semi-final qualification predictions found.")
@@ -1234,7 +1347,7 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
     .semi-table th:nth-child(4), .semi-table td:nth-child(4) { width: 9rem; }
     .semi-table th:nth-child(5), .semi-table td:nth-child(5) { width: 16rem; }
     .rank-cell { color: #6b7280; font-variant-numeric: tabular-nums; }
-    .flag-cell { font-size: 1.2rem; }
+    .flag-cell img { display: inline-block; }
     .prob-pill { display: inline-block; min-width: 4.7rem; text-align: center; border-radius: 6px; padding: 0.18rem 0.45rem; font-variant-numeric: tabular-nums; font-weight: 700; }
     .prob-pill.high { background: #dcfce7; color: #166534; }
     .prob-pill.medium { background: #fef3c7; color: #92400e; }
@@ -1261,16 +1374,20 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
 
 
 def render_narratives(narratives: dict[str, Any]) -> None:
-    st.title("Narratives")
+    render_page_header("Narratives")
     countries = narratives.get("countries", [])
     if not countries:
         st.warning("No narratives found in the narratives JSON.")
         return
 
     country_names = [country["country"] for country in countries]
-    selected = st.selectbox("Country", country_names)
+    selected = st.selectbox("Country", country_names, format_func=country_label)
     country_data = next(country for country in countries if country["country"] == selected)
 
+    st.markdown(
+        f"### {country_flag_img(selected, width=32)} {escape(selected)}",
+        unsafe_allow_html=True,
+    )
     st.metric("Model probability", f"{country_data.get('probability', 0):.1%}")
     st.write(country_data.get("narrative", ""))
 
@@ -1284,7 +1401,7 @@ def render_narratives(narratives: dict[str, Any]) -> None:
 
 
 def render_backtest(backtest: dict[str, Any]) -> None:
-    st.title("Backtest")
+    render_page_header("Backtest")
     frame = backtest_frame(backtest)
     if frame.empty:
         st.warning("No backtest metrics found in the backtest JSON.")
@@ -1302,7 +1419,7 @@ def render_backtest(backtest: dict[str, Any]) -> None:
 
 
 def render_data_health(data: dict[str, Any], load_time_s: float) -> None:
-    st.title("Data Health")
+    render_page_header("Data Health")
     checks = data_health_checks(data, load_time_s)
     st.dataframe(checks, use_container_width=True, hide_index=True)
 
@@ -1313,6 +1430,7 @@ def main() -> None:
         layout="wide",
         initial_sidebar_state="expanded",
     )
+    inject_dashboard_style()
 
     start = perf_counter()
     data = load_dashboard_data()
