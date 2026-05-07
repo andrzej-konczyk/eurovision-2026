@@ -1395,9 +1395,11 @@ def render_narratives(narratives: dict[str, Any]) -> None:
     with col1:
         st.subheader("Positive drivers")
         st.dataframe(pd.DataFrame(country_data.get("positive_drivers", [])), hide_index=True)
-    with col2:
-        st.subheader("Negative drivers")
-        st.dataframe(pd.DataFrame(country_data.get("negative_drivers", [])), hide_index=True)
+    negative_drivers = country_data.get("negative_drivers", [])
+    if negative_drivers:
+        with col2:
+            st.subheader("Negative drivers")
+            st.dataframe(pd.DataFrame(negative_drivers), hide_index=True)
 
 
 def render_backtest(backtest: dict[str, Any]) -> None:
