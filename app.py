@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from html import escape
 from pathlib import Path
 from time import perf_counter
@@ -30,6 +31,18 @@ VOTING_NETWORK_JSON_CANDIDATES = [
 ]
 ENRICHED_CSV = APP_ROOT / "Dataset" / "eurovision_2016_26_enriched.csv"
 BLOC_COOCCURRENCE_CSV = APP_ROOT / "data" / "features" / "bloc_cooccurrence.csv"
+
+NAVIGATION_PAGES = [
+    "Overview",
+    "Main Ranking",
+    "Tiers",
+    "Semi Qualifiers",
+    "Voting Blocs",
+    "Voting Network",
+    "Narratives",
+    "Backtest",
+    "Data Health",
+]
 
 COUNTRY_ISO2 = {
     "Albania": "AL",
@@ -121,6 +134,20 @@ def load_dashboard_data() -> dict[str, Any]:
     }
 
 
+def format_prediction_update_timestamp(value: Any) -> str:
+    if not value:
+        return "n/a"
+    if not isinstance(value, str):
+        return str(value)
+    try:
+        timestamp = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return value
+    if timestamp.tzinfo is None:
+        return timestamp.strftime("%Y-%m-%d %H:%M")
+    return timestamp.astimezone(UTC).strftime("%Y-%m-%d %H:%M UTC")
+
+
 def countries_frame(predictions: dict[str, Any]) -> pd.DataFrame:
     countries = predictions.get("countries", [])
     if not countries:
@@ -165,17 +192,7 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
     st.sidebar.title("Eurovision 2026")
     page = st.sidebar.radio(
         "Navigation",
-        [
-            "Overview",
-            "Main Ranking",
-            "Tiers",
-            "Semi Qualifiers",
-            "Voting Blocs",
-            "Voting Network",
-            "Narratives",
-            "Backtest",
-            "Data Health",
-        ],
+        NAVIGATION_PAGES,
     )
     st.sidebar.divider()
     st.sidebar.caption("Loaded artifacts")
@@ -476,12 +493,14 @@ def render_overview(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
 
     top_country = predictions_df.iloc[0]["country"] if not predictions_df.empty else "n/a"
     top_prob = predictions_df.iloc[0].get("probability") if not predictions_df.empty else None
+    last_prediction_update = format_prediction_update_timestamp(predictions.get("generated_at"))
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     col1.metric("Target year", predictions.get("target_year", 2026))
     col2.metric("Countries", len(predictions_df))
     col3.metric("Top country", top_country)
     col4.metric("Top probability", f"{top_prob:.1%}" if pd.notna(top_prob) else "n/a")
+    col5.metric("Prediction updated", last_prediction_update)
 
     st.subheader("Backtest KPI")
     kpi_rows = []
@@ -749,7 +768,12 @@ def top3_heatmap(position_df: pd.DataFrame, predictions_df: pd.DataFrame) -> go.
             zmin=0.0,
             zmax=max(0.01, float(matrix.to_numpy().max())),
             colorbar={"title": "Probability", "tickformat": ".0%"},
-            hovertemplate="<b>%{y}</b><br>Position: %{x}<br>Probability: %{z:.2%}<extra></extra>",
+            hovertemplate=(
+                "<b>%{y}</b><br>"
+                "Position: %{x}<br>"
+                "prob: %{z:.8f}<br>"
+                "Probability: %{z:.2%}<extra></extra>"
+            ),
         )
     )
     fig.update_layout(
@@ -1057,6 +1081,25 @@ def render_voting_network(data: dict[str, Any], predictions_df: pd.DataFrame) ->
     components.html(voting_network_d3_html(network, predictions_df), height=800, scrolling=False)
 
 
+def data_health_checks(data: dict[str, Any], load_time_s: float) -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {"check": "Predictions JSON", "path": data["predictions_path"], "loaded": bool(data["predictions"])},
+            {"check": "Semi predictions JSON", "path": data["semi_predictions_path"], "loaded": bool(data["semi_predictions"])},
+            {"check": "Voting network JSON", "path": data["voting_network_path"], "loaded": bool(data["voting_network"])},
+            {
+                "check": "Voting bloc co-occurrence CSV",
+                "path": data["bloc_cooccurrence_path"],
+                "loaded": not data["bloc_cooccurrence"].empty,
+            },
+            {"check": "Narratives JSON", "path": data["narratives_path"], "loaded": bool(data["narratives"])},
+            {"check": "Backtest JSON", "path": data["backtest_path"], "loaded": bool(data["backtest"])},
+            {"check": "History CSV", "path": data["history_path"], "loaded": not data["history"].empty},
+            {"check": "Load KPI < 2s", "path": "runtime", "loaded": load_time_s < 2.0},
+        ]
+    )
+
+
 def render_tiers(predictions_df: pd.DataFrame) -> None:
     st.title("Tiers")
     if predictions_df.empty:
@@ -1260,17 +1303,7 @@ def render_backtest(backtest: dict[str, Any]) -> None:
 
 def render_data_health(data: dict[str, Any], load_time_s: float) -> None:
     st.title("Data Health")
-    checks = pd.DataFrame(
-        [
-            {"check": "Predictions JSON", "path": data["predictions_path"], "loaded": bool(data["predictions"])},
-            {"check": "Semi predictions JSON", "path": data["semi_predictions_path"], "loaded": bool(data["semi_predictions"])},
-            {"check": "Voting network JSON", "path": data["voting_network_path"], "loaded": bool(data["voting_network"])},
-            {"check": "Narratives JSON", "path": data["narratives_path"], "loaded": bool(data["narratives"])},
-            {"check": "Backtest JSON", "path": data["backtest_path"], "loaded": bool(data["backtest"])},
-            {"check": "History CSV", "path": data["history_path"], "loaded": not data["history"].empty},
-            {"check": "Load KPI < 2s", "path": "runtime", "loaded": load_time_s < 2.0},
-        ]
-    )
+    checks = data_health_checks(data, load_time_s)
     st.dataframe(checks, use_container_width=True, hide_index=True)
 
 
