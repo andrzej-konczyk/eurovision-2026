@@ -1627,7 +1627,7 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
             st.markdown(render_semi_table(sf_rows), unsafe_allow_html=True)
 
 
-def render_narratives(narratives: dict[str, Any]) -> None:
+def render_narratives(narratives: dict[str, Any], predictions_df: pd.DataFrame) -> None:
     render_page_header("Narratives")
     _info_expander(
         "How to read the SHAP narrative",
@@ -1649,7 +1649,11 @@ def render_narratives(narratives: dict[str, Any]) -> None:
         f"### {country_flag_img(selected, width=32)} {escape(selected)}",
         unsafe_allow_html=True,
     )
-    st.metric("Model probability", f"{country_data.get('probability', 0):.1%}")
+    # Use consensus probability from predictions_df for consistency with all other views.
+    pred_row = country_prediction_row(predictions_df, selected)
+    consensus_prob = safe_float(pred_row.get("probability"))
+    prob_display = "n/a" if consensus_prob is None else f"{consensus_prob:.1%}"
+    st.metric("Top-10 probability", prob_display)
     st.write(country_data.get("narrative", ""))
 
     col1, col2 = st.columns(2)
@@ -1715,7 +1719,7 @@ def main() -> None:
     elif page == "Voting Network":
         render_voting_network(data, predictions_df)
     elif page == "Narratives":
-        render_narratives(data["narratives"])
+        render_narratives(data["narratives"], predictions_df)
     elif page == "Backtest":
         render_backtest(data["backtest"])
     else:
