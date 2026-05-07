@@ -37,6 +37,8 @@ def test_top3_heatmap_has_country_by_position_shape(predictions_df):
     assert len(fig.data[0].y) == len(predictions_df)
     assert fig.layout.yaxis.autorange == "reversed"
     assert fig.data[0].y[0] == predictions_df.sort_values("rank").iloc[0]["country"]
+    assert "prob: %{z:.8f}" in fig.data[0].hovertemplate
+    assert "Probability: %{z:.2%}" in fig.data[0].hovertemplate
 
 
 def test_winner_gauge_uses_top_three_candidates(predictions_df):
@@ -45,6 +47,8 @@ def test_winner_gauge_uses_top_three_candidates(predictions_df):
 
     assert len(fig.data) == 3
     assert all(trace.type == "indicator" for trace in fig.data)
-    domains = [trace.domain["y"] for trace in fig.data]
-    assert domains[0][0] > domains[1][1]
-    assert domains[1][0] > domains[2][1]
+    x_domains = [trace.domain["x"] for trace in fig.data]
+    y_domains = [trace.domain["y"] for trace in fig.data]
+    assert x_domains[0][1] < x_domains[1][0]
+    assert x_domains[1][1] < x_domains[2][0]
+    assert all(domain == y_domains[0] for domain in y_domains)

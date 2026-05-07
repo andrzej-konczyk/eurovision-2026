@@ -21,6 +21,8 @@ def test_voting_bloc_d3_html_contains_d3_and_payload():
     assert "d3@7" in html
     assert "Ukraine" in html
     assert "South-Eastern" in html
+    assert '.style("background", "#ffffff")' in html
+    assert '.attr("fill", "#0f172a")' in html
 
 
 def test_bloc_cooccurrence_long_frame_shape():
@@ -55,3 +57,22 @@ def test_voting_network_d3_html_contains_counts_and_top_edge():
     assert "d3.forceCenter(width / 2, height / 2)" in html
     assert "d3.forceCollide" in html
     assert "Math.max(r, Math.min(width - r, d.x))" in html
+
+
+def test_semi_table_uses_country_flag_images():
+    html = app.render_semi_table(
+        [
+            {
+                "rank_in_semi": 1,
+                "country": "Greece",
+                "flag": "GR",
+                "prob_qualify": 0.82,
+                "ci80_lo": 0.7,
+                "ci80_hi": 0.9,
+            }
+        ]
+    )
+
+    assert 'src="https://flagcdn.com/w40/gr.png"' in html
+    assert 'alt="Greece flag"' in html
+    assert ">GR<" not in html
