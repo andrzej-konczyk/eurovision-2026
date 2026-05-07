@@ -75,7 +75,7 @@ REPORTS_DIR = ROOT / "reports"
 # Semi-final feature set: drop Grand Final-only signals and add SF market odds.
 SEMI_FEATURE_COLS: list[str] = [
     c for c in FEATURE_COLS
-    if c not in {"Running_Order_Final", "implied_prob_close"}
+    if c not in {"Running_Order_Final", "implied_prob_close", "odds_vs_history_delta"}
 ] + ["implied_prob_semi"]
 SEMI_TARGET = "Grand_Final_Ind"
 

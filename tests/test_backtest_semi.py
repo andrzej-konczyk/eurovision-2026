@@ -199,7 +199,7 @@ class TestSemiSplit:
         from src.models.train import FEATURE_COLS
         expected = [
             c for c in FEATURE_COLS
-            if c not in {"Running_Order_Final", "implied_prob_close"}
+            if c not in {"Running_Order_Final", "implied_prob_close", "odds_vs_history_delta"}
         ] + ["implied_prob_semi"]
         assert SEMI_FEATURE_COLS == expected
 
