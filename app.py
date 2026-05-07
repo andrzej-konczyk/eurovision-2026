@@ -54,6 +54,28 @@ PAGE_CAPTIONS = {
     "Data Health": "Loaded artifacts, runtime status, and source availability.",
 }
 
+ABOUT_MODEL = (
+    "Two gradient-boosted classifiers (XGBoost and LightGBM) were trained on Eurovision "
+    "results from 2016 to 2025. Each country is scored on historical placement, regional "
+    "voting blocs, pre-contest betting odds, running order, and social signals. Both models "
+    "produce a top-10 probability; the consensus shown here averages them. A 1,000-run "
+    "bootstrap generates the CI-80 confidence intervals. See the **Glossary** in the sidebar "
+    "for definitions of all key terms."
+)
+
+GLOSSARY = {
+    "prob_top10": "The model's estimate (0–100 %) that a country will place in the top 10 of the Grand Final.",
+    "CI-80": "Confidence Interval at 80 %: the range the model is 80 % sure the true probability falls within. Short bar = high certainty; long bar = more uncertainty.",
+    "SAFE": "The model is confident this country reaches the top 10 — high probability and a tight confidence interval.",
+    "LIKELY": "A credible top-10 contender with more uncertainty. Could go either way on the night.",
+    "UNCERTAIN": "Outside the model's expected top 10, or data is inconclusive.",
+    "SHAP": "A technique that explains *why* the model scored a country the way it did — which features pushed the prediction up or down.",
+    "Running order": "The broadcast slot a country performs in. Later positions historically correlate with higher jury and televote scores.",
+    "Implied probability": "Probability derived from bookmaker odds. It reflects market consensus and is the model's strongest single input.",
+    "Voting bloc": "A group of countries that historically award each other high marks, often due to cultural or geographic ties.",
+    "Backtest": "Testing the model on past Eurovision editions (2022–2025) to check how accurate it would have been in hindsight.",
+}
+
 COUNTRY_ISO2 = {
     "Albania": "AL",
     "Armenia": "AM",
@@ -228,6 +250,11 @@ hr {
     )
 
 
+def _info_expander(title: str, body: str) -> None:
+    with st.expander(f"ℹ️ {title}", expanded=False):
+        st.markdown(body)
+
+
 def render_page_header(page: str, title: str | None = None) -> None:
     st.title(title or page)
     caption = PAGE_CAPTIONS.get(page)
@@ -303,6 +330,9 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
     with st.sidebar.expander("Loaded artifacts", expanded=False):
         for row in dashboard_artifact_rows(data, load_time_s):
             st.code(str(row["path"]))
+    with st.sidebar.expander("📖 Glossary", expanded=False):
+        for term, definition in GLOSSARY.items():
+            st.markdown(f"**{term}** — {definition}")
     return page
 
 
@@ -736,6 +766,11 @@ body { background: transparent; overflow: hidden; }
             )
         st.dataframe(pd.DataFrame(kpi_rows), use_container_width=True, hide_index=True)
 
+    _info_expander(
+        "How does the model work?",
+        ABOUT_MODEL,
+    )
+
 
 def model_predictions_frame(predictions: dict[str, Any], model: str) -> pd.DataFrame:
     rows = predictions.get("models", {}).get(model, {}).get("countries", [])
@@ -774,6 +809,16 @@ def render_predictions(
                 "scale": 2,
             },
         },
+    )
+    _info_expander(
+        "How to read this chart",
+        "**Bars** show each country's estimated probability of finishing in the Grand Final top 10.\n\n"
+        "**CI-80 whiskers** are the 80 % Confidence Interval — the range where the model is 80 % sure "
+        "the true probability lies. Short whisker = high certainty; long whisker = genuine uncertainty.\n\n"
+        "**Bar colour = Safety badge:**\n"
+        "- 🟡 **SAFE** (gold) — high probability ≥ 65 % and tight CI. Expect this country in the top 10.\n"
+        "- 🩷 **LIKELY** (magenta) — a real contender but with more uncertainty. Could go either way.\n"
+        "- 🔵 **UNCERTAIN** (purple) — outside the expected top 10, or data is inconclusive.",
     )
 
     visible_columns = [
@@ -1310,6 +1355,13 @@ def render_voting_network(data: dict[str, Any], predictions_df: pd.DataFrame) ->
     col1, col2 = st.columns(2)
     col1.metric("Nodes", len(nodes))
     col2.metric("Edges", len(links))
+    _info_expander(
+        "What does this network show?",
+        "Each **node** is a country. A **link** means the two countries have historically awarded each other "
+        "high jury scores (strong bilateral affinity). **Node size** reflects the model's current top-10 "
+        "probability — bigger = more favoured. Use this map to spot regional alliances that could swing "
+        "the final result.",
+    )
     components.html(voting_network_d3_html(network, predictions_df), height=800, scrolling=False)
 
 
@@ -1353,6 +1405,12 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
             "probability": st.column_config.NumberColumn("Column sum", format="%.6f"),
         },
     )
+    _info_expander(
+        "How to read the Top-3 Heatmap",
+        "Each row is a country; each column is a podium position (P1 = winner, P2 = runner-up, P3 = third). "
+        "Darker colour = higher probability for that position. "
+        "The three columns each sum to 100 % — probability is spread across all countries.",
+    )
 
     st.subheader("Tier 4: Winner Probability Gauge")
     st.plotly_chart(
@@ -1368,6 +1426,12 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
                 "scale": 2,
             },
         },
+    )
+    _info_expander(
+        "How to read the Winner Gauge",
+        "Shows the top-3 countries' estimated probability of winning the contest outright (P1). "
+        "The percentage is derived from the model's top-10 probability weighted by position-ranking distance — "
+        "countries ranked closer to #1 receive a proportionally larger share of the P1 mass.",
     )
 
 
@@ -1436,6 +1500,13 @@ def render_semi_table(rows: list[dict[str, Any]]) -> str:
 
 def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
     render_page_header("Semi Qualifiers")
+    _info_expander(
+        "How to read the qualification table",
+        "**prob_qualify** is the model's estimate of a country advancing from its semi-final to the Grand Final.\n\n"
+        "**CI-80 bar** shows the uncertainty range (blue segment = plausible range; label = raw values).\n\n"
+        "**Colour coding:** Green ≥ 75 % (likely qualifier) · Yellow 40–75 % (borderline) · Red < 40 % (unlikely) — "
+        "these reflect the model's estimate, not official results.",
+    )
     rows = semi_predictions.get("countries", [])
     if not isinstance(rows, list) or not rows:
         st.warning("No semi-final qualification predictions found.")
@@ -1480,6 +1551,13 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
 
 def render_narratives(narratives: dict[str, Any]) -> None:
     render_page_header("Narratives")
+    _info_expander(
+        "How to read the SHAP narrative",
+        "The text summary explains the model's main reasons for its prediction. "
+        "**Positive drivers** are features that pushed the probability up; **Negative drivers** pulled it down. "
+        "The feature bars show SHAP values — each input's share of the total prediction. "
+        "The CI-80/CI-50 fan chart shows the model's confidence range for each country.",
+    )
     countries = narratives.get("countries", [])
     if not countries:
         st.warning("No narratives found in the narratives JSON.")
