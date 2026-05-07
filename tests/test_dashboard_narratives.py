@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+import pandas as pd
+
 import app
 
 
@@ -19,6 +21,7 @@ def test_render_narratives_hides_empty_negative_drivers():
             }
         ]
     }
+    predictions_df = pd.DataFrame([{"country": "Greece", "probability": 0.92, "rank": 1}])
     column = MagicMock()
 
     with patch.object(app.st, "selectbox", return_value="Greece"), \
@@ -28,8 +31,9 @@ def test_render_narratives_hides_empty_negative_drivers():
         patch.object(app.st, "metric"), \
         patch.object(app.st, "write"), \
         patch.object(app.st, "markdown"), \
-        patch.object(app, "render_page_header"):
+        patch.object(app, "render_page_header"), \
+        patch.object(app, "_info_expander"):
         render_ctx = column.__enter__.return_value
-        app.render_narratives(narratives)
+        app.render_narratives(narratives, predictions_df)
 
     subheader.assert_called_once_with("Positive drivers")
