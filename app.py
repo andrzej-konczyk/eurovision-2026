@@ -38,7 +38,7 @@ VOTING_NETWORK_JSON_CANDIDATES = [
 ENRICHED_CSV = APP_ROOT / "Dataset" / "eurovision_2016_26_enriched.csv"
 BLOC_COOCCURRENCE_CSV = APP_ROOT / "data" / "features" / "bloc_cooccurrence.csv"
 GRAND_FINAL_AT_ISO = "2026-05-16T21:00:00+02:00"
-AUDIO_FILE = APP_ROOT / "Eurovision Intro.mp3"
+AUDIO_FILE = APP_ROOT / "dl.mp3"
 LOGO_FILE = APP_ROOT / "Eurovision_Song_Contest_2026_Logo.jpg"
 
 NAVIGATION_PAGES = [
@@ -281,11 +281,18 @@ def inject_dashboard_style() -> None:
 
 div[data-testid="stSidebar"] {
     border-right: 3px solid var(--esc-magenta);
-    background: linear-gradient(180deg, rgba(26,20,100,0.94) 0%, rgba(58,15,94,0.9) 55%, rgba(245,197,66,0.18) 100%);
+    background:
+        radial-gradient(circle at 18% 8%, rgba(56,119,255,0.22) 0%, transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(123,94,167,0.18) 0%, transparent 30%),
+        linear-gradient(180deg, #06113d 0%, #0b1f68 46%, #18246f 76%, #080b2b 100%);
+    box-shadow: 10px 0 36px rgba(5,5,20,0.42);
 }
 
 .stApp {
-    background: #050514;
+    background:
+        radial-gradient(circle at 18% 12%, rgba(56,119,255,0.28) 0%, transparent 30%),
+        radial-gradient(circle at 82% 20%, rgba(123,94,167,0.18) 0%, transparent 30%),
+        linear-gradient(145deg, #06113d 0%, #0b1f68 45%, #14368d 72%, #071034 100%);
     background-attachment: fixed;
 }
 
@@ -307,6 +314,71 @@ div[data-testid="stExpander"] {
 
 div[data-testid="stSidebar"] * {
     color: #f8f5ff;
+}
+
+div[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+div[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] li {
+    color: rgba(248,245,255,0.88);
+}
+
+.sidebar-brand {
+    border: 1px solid rgba(162,190,255,0.42);
+    border-radius: 14px;
+    padding: 1rem 0.9rem 0.85rem;
+    margin-bottom: 0.85rem;
+    background:
+        linear-gradient(135deg, rgba(56,119,255,0.18), rgba(123,94,167,0.12)),
+        rgba(255,255,255,0.075);
+    box-shadow: 0 0 24px rgba(56,119,255,0.16);
+}
+
+.sidebar-brand-title {
+    font-size: 1.25rem;
+    line-height: 1.08;
+    font-weight: 950;
+    letter-spacing: 0.04em;
+    color: #f8fbff;
+    text-shadow: 0 0 18px rgba(162,190,255,0.46);
+    background: none;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: currentColor;
+}
+
+.sidebar-brand-sub {
+    margin-top: 0.42rem;
+    color: rgba(226,236,255,0.92);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+
+div[data-testid="stSidebar"] div[role="radiogroup"] {
+    gap: 0.35rem;
+}
+
+div[data-testid="stSidebar"] label[data-baseweb="radio"] {
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 10px;
+    padding: 0.35rem 0.48rem;
+    background: rgba(255,255,255,0.075);
+    transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+div[data-testid="stSidebar"] label[data-baseweb="radio"]:hover {
+    background: rgba(56,119,255,0.20);
+    border-color: rgba(162,190,255,0.52);
+    transform: translateX(2px);
+}
+
+div[data-testid="stSidebar"] label[data-baseweb="radio"] p {
+    font-weight: 800;
+    letter-spacing: 0.01em;
+}
+
+div[data-testid="stSidebar"] [data-testid="stExpander"] {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(245,197,66,0.20);
 }
 
 div[data-testid="stSidebar"] div[data-testid="stMetric"] {
@@ -491,7 +563,7 @@ def render_audio_player() -> None:
     dock.innerHTML = `
       <audio id="esc-audio" src="__AUDIO_SRC__" loop autoplay></audio>
       <button id="music-toggle" type="button">Music on</button>
-      <span id="music-state">Eurovision Intro.mp3</span>
+      <span id="music-state">dl.mp3</span>
     `;
     doc.body.appendChild(dock);
     const style = doc.createElement("style");
@@ -881,15 +953,26 @@ def model_stats_note(backtest: dict[str, Any], semi_backtest: dict[str, Any]) ->
 
 
 def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
-    st.sidebar.title("Eurovision 2026")
+    del data, load_time_s
+    st.sidebar.markdown(
+        """
+<div class="sidebar-brand">
+  <div class="sidebar-brand-title">Eurovision<br>2026</div>
+  <div class="sidebar-brand-sub">Vienna forecast suite</div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
     page = st.sidebar.radio(
         "Navigation",
         NAVIGATION_PAGES,
     )
-    st.sidebar.caption(PAGE_CAPTIONS.get(page, ""))
-    with st.sidebar.expander("📖 Glossary", expanded=False):
+    caption = PAGE_CAPTIONS.get(page, "")
+    if caption:
+        st.sidebar.markdown(f"<small>{escape(caption)}</small>", unsafe_allow_html=True)
+    with st.sidebar.expander("Glossary", expanded=False):
         for term, definition in GLOSSARY.items():
-            st.markdown(f"**{term}** — {definition}")
+            st.markdown(f"**{term}** - {definition}")
     return page
 
 
