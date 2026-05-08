@@ -279,13 +279,12 @@ def inject_dashboard_style() -> None:
     --esc-purple: #7B5EA7;
 }
 
-div[data-testid="stSidebar"] {
+div[data-testid="stSidebar"],
+section[data-testid="stSidebar"] > div {
     border-right: 3px solid var(--esc-magenta);
-    background:
-        radial-gradient(circle at 18% 8%, rgba(56,119,255,0.22) 0%, transparent 28%),
-        radial-gradient(circle at 82% 18%, rgba(123,94,167,0.18) 0%, transparent 30%),
-        linear-gradient(180deg, #06113d 0%, #0b1f68 46%, #18246f 76%, #080b2b 100%);
+    background: linear-gradient(180deg, #1a0a2e 0%, #0d0d1a 100%) !important;
     box-shadow: 10px 0 36px rgba(5,5,20,0.42);
+    color: #e2e8f0 !important;
 }
 
 .stApp {
@@ -304,16 +303,37 @@ div[data-testid="stSidebar"] {
     box-shadow: 0 0 46px rgba(0,0,54,0.42);
 }
 
-div[data-testid="stDataFrame"],
 div[data-testid="stTable"],
-div[data-testid="stPlotlyChart"],
-div[data-testid="stExpander"] {
+div[data-testid="stPlotlyChart"] {
     background: rgba(255,255,255,0.995);
     border-radius: 10px;
 }
 
-div[data-testid="stSidebar"] * {
-    color: #f8f5ff;
+div[data-testid="stDataFrame"],
+div[data-testid="stDataFrame"] > div,
+div[data-testid="stDataFrame"] [class*="gdg-"],
+div[data-testid="stDataFrame"] .glideDataEditor {
+    background: #1a0a2e !important;
+    border-radius: 10px;
+}
+
+.dark-dataframe-wrapper {
+    background: #1a0a2e;
+    padding: 6px 6px 2px;
+    border-radius: 10px;
+    border: 1px solid #9b4dca;
+    margin-bottom: 0.6rem;
+}
+
+div[data-testid="stExpander"] {
+    background: #1a0a2e;
+    border: 1px solid #9b4dca;
+    border-radius: 10px;
+}
+
+div[data-testid="stSidebar"] *,
+section[data-testid="stSidebar"] * {
+    color: #e2e8f0 !important;
 }
 
 div[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
@@ -386,21 +406,30 @@ div[data-testid="stSidebar"] div[data-testid="stMetric"] {
     border-color: rgba(245,197,66,0.42);
 }
 
-div[data-testid="stMetric"] {
-    background: linear-gradient(135deg, rgba(230,0,126,0.07) 0%, rgba(26,20,100,0.1) 100%);
-    border: 1px solid rgba(230,0,126,0.35);
+div[data-testid="stMetric"],
+div[data-testid="metric-container"] {
+    background: #1a0a2e;
+    border: 1px solid #9b4dca;
     border-radius: 12px;
     padding: 0.9rem 1rem;
+    color: #f8fafc;
 }
-div[data-testid="stMetricLabel"] p {
-    font-weight: 700;
-    color: var(--esc-blue) !important;
-    text-transform: uppercase;
-    font-size: 0.68rem !important;
-    letter-spacing: 0.09em;
+[data-testid="stMetricLabel"],
+[data-testid="stMetricLabel"] *,
+[data-testid="stMetricLabel"] p,
+[data-testid="stMetricLabel"] div,
+div[data-testid="metric-container"] label,
+div[data-testid="metric-container"] p {
+    font-weight: 700 !important;
+    color: #F5C542 !important;
+    text-transform: uppercase !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.09em !important;
 }
-div[data-testid="stMetricValue"] {
+div[data-testid="stMetricValue"],
+div[data-testid="metric-container"] [data-testid="stMetricValue"] {
     font-weight: 800;
+    color: #ffffff !important;
 }
 
 h1 {
@@ -424,6 +453,12 @@ div[data-testid="stCaptionContainer"] p {
 
 div[data-testid="stExpander"] summary p {
     font-weight: 600;
+    color: #e2e8f0 !important;
+}
+
+div[data-testid="stExpander"] [data-testid="stMarkdownContainer"] p,
+div[data-testid="stExpander"] [data-testid="stMarkdownContainer"] li {
+    color: #e2e8f0;
 }
 
 div[data-testid="stDataFrame"] div[role="gridcell"],
@@ -518,7 +553,7 @@ def render_countdown_timer() -> None:
     border-radius: 14px;
     padding: 0.9rem 1.1rem;
     margin: 0.35rem 0 0.85rem;
-    background: linear-gradient(135deg, rgba(26,20,100,0.94), rgba(123,94,167,0.9) 58%, rgba(245,197,66,0.88));
+    background: linear-gradient(90deg, #2d0a4e 0%, #4a1a6b 70%, #5a3a00 100%);
     border: 1px solid rgba(245,197,66,0.58);
     color: #fffaf0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -562,8 +597,7 @@ def render_audio_player() -> None:
     dock.id = "esc-audio-dock";
     dock.innerHTML = `
       <audio id="esc-audio" src="__AUDIO_SRC__" loop autoplay></audio>
-      <button id="music-toggle" type="button">Music on</button>
-      <span id="music-state">dl.mp3</span>
+      <button id="music-toggle" type="button">🎵 ON</button>
     `;
     doc.body.appendChild(dock);
     const style = doc.createElement("style");
@@ -594,18 +628,11 @@ def render_audio_player() -> None:
         cursor: pointer;
         box-shadow: 0 0 16px rgba(245,197,66,0.35);
       }
-      #music-state {
-        color: #1f2937;
-        font-size: 0.78rem;
-        font-weight: 800;
-        white-space: nowrap;
-      }
     `;
     doc.head.appendChild(style);
   }
   const audio = doc.getElementById("esc-audio");
   const btn = doc.getElementById("music-toggle");
-  const state = doc.getElementById("music-state");
   const enabledKey = "escMusicEnabled";
   const timeKey = "escMusicTime";
   if (!audio.src) audio.src = "__AUDIO_SRC__";
@@ -615,8 +642,7 @@ def render_audio_player() -> None:
     return localStorage.getItem(enabledKey) !== "false";
   }
   function setUi(isOn, blocked=false) {
-    btn.textContent = isOn ? "Music off" : "Music on";
-    state.textContent = blocked ? "click to start" : (isOn ? "playing" : "off");
+    btn.textContent = blocked ? "🎵 PLAY" : (isOn ? "🎵 OFF" : "🎵 ON");
   }
   function restoreTime() {
     const saved = Number(localStorage.getItem(timeKey) || "0");
@@ -1347,6 +1373,7 @@ def render_overview(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
     for column in ["probability", "ci80_lo", "ci80_hi"]:
         if column in leaders_display.columns:
             leaders_display[column] = leaders_display[column] * 100.0
+    st.markdown('<div class="dark-dataframe-wrapper">', unsafe_allow_html=True)
     st.dataframe(
         leaders_display,
         use_container_width=True,
@@ -1362,6 +1389,7 @@ def render_overview(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
             "ci80_hi": st.column_config.NumberColumn("CI-80 high", format="%.1f%%"),
         },
     )
+    st.markdown('</div>', unsafe_allow_html=True)
 
     _info_expander(
         "How does the model work?",
