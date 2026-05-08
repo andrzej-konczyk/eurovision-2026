@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import re
 from datetime import UTC, datetime
@@ -25,6 +26,10 @@ BACKTEST_JSON_CANDIDATES = [
     REPORTS_DIR / "backtest_2022_2025.json",
     REPORTS_DIR / "backtest_2022_2024.json",
 ]
+SEMI_BACKTEST_JSON_CANDIDATES = [
+    REPORTS_DIR / "backtest_semi_2022_2025.json",
+    REPORTS_DIR / "backtest_semi_2022_2024.json",
+]
 SEMI_PREDICTIONS_JSON = REPORTS_DIR / "semi_predictions_2026.json"
 VOTING_NETWORK_JSON_CANDIDATES = [
     REPORTS_DIR / "voting_network.json",
@@ -32,19 +37,24 @@ VOTING_NETWORK_JSON_CANDIDATES = [
 ]
 ENRICHED_CSV = APP_ROOT / "Dataset" / "eurovision_2016_26_enriched.csv"
 BLOC_COOCCURRENCE_CSV = APP_ROOT / "data" / "features" / "bloc_cooccurrence.csv"
+GRAND_FINAL_AT_ISO = "2026-05-16T21:00:00+02:00"
+AUDIO_FILE = APP_ROOT / "Eurovision Intro.mp3"
+LOGO_FILE = APP_ROOT / "Eurovision_Song_Contest_2026_Logo.jpg"
 
 NAVIGATION_PAGES = [
     "Overview",
+    "Model Stats",
+    "Semi Qualifiers",
     "Main Ranking",
     "Tiers",
-    "Semi Qualifiers",
+    "Narratives",
     "Voting Blocs",
     "Voting Network",
-    "Narratives",
 ]
 
 PAGE_CAPTIONS = {
     "Overview": "Current forecast snapshot, model freshness, leading contenders, and backtest health.",
+    "Model Stats": "",
     "Main Ranking": "Full country ranking with confidence intervals and model agreement signals.",
     "Tiers": "Top-3 position probabilities and winner concentration.",
     "Semi Qualifiers": "Semi-final qualification probabilities by draw.",
@@ -64,6 +74,35 @@ ABOUT_MODEL = (
     "for definitions of all key terms."
 )
 
+TOP10_RATIONALE = (
+    "The dashboard is optimized for **Grand Final Top-10 probability**, not for a single winner "
+    "pick or an exact podium forecast. Top-10 is the most stable target available before the live "
+    "shows: it gives the model enough positive examples in historical data, maps directly to a "
+    "clear contest outcome, and backtests more reliably than predicting only first place.\n\n"
+    "A Top-1 forecast is highly volatile because the winner depends on late-running effects, "
+    "jury-televote splits, staging execution, and the final-night vote distribution. A Top-3 "
+    "view is useful, but it is derived from the Top-10 model and should be read as a relative "
+    "favourites signal. The Top-10 target is therefore the primary accuracy target; Top-3 and winner views "
+    "are secondary interpretations built on top of it."
+)
+
+SEMI_QUALIFIER_METHOD = (
+    "Semi-final predictions are calculated separately from the Grand Final ranking. The pipeline "
+    "trains XGBoost and LightGBM binary classifiers on historical semi-final rows from 2016-2025, "
+    "using only features that are available before the semi-final result is known: qualification "
+    "record, semi-final draw, running order, historical jury/televote strength, bloc signals, "
+    "social/community scores, rule-era flags, and semi-final market probability where available.\n\n"
+    "For each 2026 semi-finalist, both models estimate **prob_qualify**. The displayed probability "
+    "is the average of the XGBoost and LightGBM estimates. A 1,000-run bootstrap retrains the "
+    "models on resampled historical data to produce the CI-80 interval, so a wider interval means "
+    "the qualification estimate is less stable.\n\n"
+    "Countries are then ranked within their own semi-final by prob_qualify. Because Eurovision "
+    "qualifies 10 acts from each semi-final, the top 10 ranked countries in SF1 and the top 10 "
+    "ranked countries in SF2 are marked as predicted qualifiers. This is why the table focuses "
+    "on a Top-10 cutoff rather than a Top-1 or Top-3 cutoff: qualification is a threshold problem, "
+    "not a winner-ranking problem."
+)
+
 GLOSSARY = {
     "prob_top10": "The model's estimate (0–100 %) that a country will place in the top 10 of the Grand Final.",
     "CI-80": "Confidence Interval at 80 %: the range the model is 80 % sure the true probability falls within. Short bar = high certainty; long bar = more uncertainty.",
@@ -71,6 +110,33 @@ GLOSSARY = {
     "LIKELY": "A credible top-10 contender with more uncertainty. Could go either way on the night.",
     "UNCERTAIN": "Outside the model's expected top 10, or data is inconclusive.",
     "SHAP": "A technique that explains *why* the model scored a country the way it did — which features pushed the prediction up or down.",
+    "Positive drivers": "Country-level features with positive SHAP values. They pushed the Top-10 probability upward for the selected country.",
+    "Negative drivers": "Country-level features with negative SHAP values. They pulled the Top-10 probability downward for the selected country.",
+    "SHAP value": "The size and direction of a feature's contribution. Larger absolute value = stronger effect on the country prediction.",
+    "implied_prob_close": "Closing betting-market implied probability before the Grand Final. Higher value usually raises the Top-10 estimate.",
+    "odds_vs_history_delta": "Difference between market expectation and recent historical strength. Large gaps can flag overperformance or underperformance versus history.",
+    "implied_prob_semi": "Semi-final market implied probability used for semi-final qualification modelling.",
+    "avg_bloc_tele_3yr": "Recent average televote support from countries in the same historical voting bloc.",
+    "avg_bloc_jury_3yr": "Recent average jury support from countries in the same historical voting bloc.",
+    "avg_tele_3yr": "Country's recent average televote strength over the available three-year window.",
+    "avg_jury_3yr": "Country's recent average jury strength over the available three-year window.",
+    "avg_final_rank_3yr": "Recent Grand Final placement history. Better historical ranks generally support the prediction.",
+    "Qualification_Record": "Recent record of qualifying from semi-finals where applicable.",
+    "Running_Order_Final": "Grand Final performance slot. Later slots have historically correlated with stronger results.",
+    "Running_Order_Semi": "Semi-final performance slot used in qualification modelling.",
+    "rule_2019_semifinal_reform": "Indicator for contests under the current post-2019 semi-final structure.",
+    "rule_2023_jury_weight_reform": "Indicator for contests after the 2023 voting-rule change.",
+    "zscore_myesb_community": "Standardized My Eurovision Scoreboard community signal.",
+    "zscore_myesb_personal": "Standardized My Eurovision Scoreboard personal-list signal.",
+    "zscore_ogae_points": "Standardized OGAE poll signal where available.",
+    "Big6_Ind": "Automatic Grand Final qualification indicator for Big 5 countries plus the host.",
+    "National_Final": "Whether the entry was selected through a national final rather than internally.",
+    "Solo_Artist": "Whether the act is performed by a solo artist.",
+    "Returning_Artist_Ind": "Whether the performer has appeared at Eurovision before.",
+    "Number of Members": "Number of performers in the act.",
+    "Multiple_Language": "Whether the song uses more than one language.",
+    "EU": "European Union membership flag used as a contextual feature.",
+    "NATO": "NATO membership flag used as a contextual feature.",
     "Running order": "The broadcast slot a country performs in. Later positions historically correlate with higher jury and televote scores.",
     "Implied probability": "Probability derived from bookmaker odds. It reflects market consensus and is the model's strongest single input.",
     "Voting bloc": "A group of countries that historically award each other high marks, often due to cultural or geographic ties.",
@@ -135,6 +201,24 @@ def load_csv(path: str, mtime_ns: int) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
+@st.cache_data(show_spinner=False)
+def load_audio_data_uri(path: str, mtime_ns: int) -> str:
+    del mtime_ns
+    data = Path(path).read_bytes()
+    encoded = base64.b64encode(data).decode("ascii")
+    return f"data:audio/mpeg;base64,{encoded}"
+
+
+@st.cache_data(show_spinner=False)
+def load_image_data_uri(path: str, mtime_ns: int) -> str:
+    del mtime_ns
+    data = Path(path).read_bytes()
+    suffix = Path(path).suffix.lower()
+    mime = "image/png" if suffix == ".png" else "image/jpeg"
+    encoded = base64.b64encode(data).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
+
+
 def first_existing_path(candidates: list[Path]) -> Path:
     for path in candidates:
         if path.exists():
@@ -145,6 +229,7 @@ def first_existing_path(candidates: list[Path]) -> Path:
 def load_dashboard_data() -> dict[str, Any]:
     """Load all dashboard JSON artifacts."""
     backtest_path = first_existing_path(BACKTEST_JSON_CANDIDATES)
+    semi_backtest_path = first_existing_path(SEMI_BACKTEST_JSON_CANDIDATES)
     voting_network_path = first_existing_path(VOTING_NETWORK_JSON_CANDIDATES)
     return {
         "predictions": load_json(str(PREDICTIONS_JSON), PREDICTIONS_JSON.stat().st_mtime_ns),
@@ -153,6 +238,8 @@ def load_dashboard_data() -> dict[str, Any]:
         "narratives_path": str(NARRATIVES_JSON.relative_to(APP_ROOT)),
         "backtest": load_json(str(backtest_path), backtest_path.stat().st_mtime_ns),
         "backtest_path": str(backtest_path.relative_to(APP_ROOT)),
+        "semi_backtest": load_json(str(semi_backtest_path), semi_backtest_path.stat().st_mtime_ns),
+        "semi_backtest_path": str(semi_backtest_path.relative_to(APP_ROOT)),
         "semi_predictions": load_json(str(SEMI_PREDICTIONS_JSON), SEMI_PREDICTIONS_JSON.stat().st_mtime_ns),
         "semi_predictions_path": str(SEMI_PREDICTIONS_JSON.relative_to(APP_ROOT)),
         "voting_network": load_json(str(voting_network_path), voting_network_path.stat().st_mtime_ns),
@@ -182,8 +269,7 @@ def format_prediction_update_timestamp(value: Any) -> str:
 
 
 def inject_dashboard_style() -> None:
-    st.markdown(
-        """
+    css = """
 <style>
 /* ===== Eurovision 2026 Vienna — Dashboard Theme ===== */
 :root {
@@ -195,7 +281,37 @@ def inject_dashboard_style() -> None:
 
 div[data-testid="stSidebar"] {
     border-right: 3px solid var(--esc-magenta);
-    background: linear-gradient(180deg, #F8F5FF 0%, #EDE8FF 100%);
+    background: linear-gradient(180deg, rgba(26,20,100,0.94) 0%, rgba(58,15,94,0.9) 55%, rgba(245,197,66,0.18) 100%);
+}
+
+.stApp {
+    background: #050514;
+    background-attachment: fixed;
+}
+
+.block-container {
+    padding-top: 1.35rem;
+    background: rgba(255,255,255,0.998);
+    border-left: 1px solid rgba(80,96,190,0.30);
+    border-right: 1px solid rgba(96,16,128,0.24);
+    box-shadow: 0 0 46px rgba(0,0,54,0.42);
+}
+
+div[data-testid="stDataFrame"],
+div[data-testid="stTable"],
+div[data-testid="stPlotlyChart"],
+div[data-testid="stExpander"] {
+    background: rgba(255,255,255,0.995);
+    border-radius: 10px;
+}
+
+div[data-testid="stSidebar"] * {
+    color: #f8f5ff;
+}
+
+div[data-testid="stSidebar"] div[data-testid="stMetric"] {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(245,197,66,0.42);
 }
 
 div[data-testid="stMetric"] {
@@ -238,15 +354,69 @@ div[data-testid="stExpander"] summary p {
     font-weight: 600;
 }
 
+div[data-testid="stDataFrame"] div[role="gridcell"],
+div[data-testid="stDataFrame"] div[role="columnheader"],
+div[data-testid="stDataFrame"] [role="cell"],
+div[data-testid="stDataFrame"] [role="columnheader"] *,
+div[data-testid="stTable"] td,
+div[data-testid="stTable"] th {
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+div[data-testid="stDataFrame"] canvas,
+div[data-testid="stDataFrame"] .glide-cell,
+div[data-testid="stDataFrame"] .gdg-cell,
+div[data-testid="stDataFrame"] .gdg-header {
+    text-align: center !important;
+}
+
+div[data-testid="stDataFrame"] [data-testid="stMarkdownContainer"] p {
+    text-align: center !important;
+}
+
+div[data-testid="stDataFrame"] input {
+    text-align: center !important;
+}
+
 hr {
     border-color: rgba(230,0,126,0.25);
 }
 
-.block-container {
-    padding-top: 1.5rem;
+.badge-pill {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 0.18rem 0.62rem;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.badge-pill.safe {
+    background: #F5C542;
+    color: #2d1f00;
+    box-shadow: 0 0 0.7rem rgba(245,197,66,0.75), 0 0 1.35rem rgba(245,197,66,0.35);
+    animation: safeGlow 1.8s ease-in-out infinite;
+}
+
+.badge-pill.likely {
+    background: #E6007E;
+    color: white;
+}
+
+.badge-pill.uncertain {
+    background: #7B5EA7;
+    color: white;
+}
+
+@keyframes safeGlow {
+    0%, 100% { box-shadow: 0 0 0.55rem rgba(245,197,66,0.55), 0 0 1rem rgba(245,197,66,0.28); transform: translateY(0); }
+    50% { box-shadow: 0 0 1rem rgba(245,197,66,0.95), 0 0 2rem rgba(245,197,66,0.48); transform: translateY(-1px); }
 }
 </style>
-""",
+"""
+    st.markdown(
+        css,
         unsafe_allow_html=True,
     )
 
@@ -256,11 +426,321 @@ def _info_expander(title: str, body: str) -> None:
         st.markdown(body)
 
 
+def badge_pill_html(badge: str) -> str:
+    css_class = str(badge).lower()
+    if css_class not in {"safe", "likely", "uncertain"}:
+        css_class = "uncertain"
+    return f'<span class="badge-pill {css_class}">{escape(str(badge))}</span>'
+
+
+def render_countdown_timer() -> None:
+    components.html(
+        f"""
+<div class="countdown-card">
+  <div class="countdown-label">Grand Final countdown</div>
+  <div id="gf-countdown" class="countdown-value">Loading...</div>
+  <div class="countdown-date">16 May 2026, 21:00 CEST · Wiener Stadthalle</div>
+</div>
+<style>
+  .countdown-card {{
+    border-radius: 14px;
+    padding: 0.9rem 1.1rem;
+    margin: 0.35rem 0 0.85rem;
+    background: linear-gradient(135deg, rgba(26,20,100,0.94), rgba(123,94,167,0.9) 58%, rgba(245,197,66,0.88));
+    border: 1px solid rgba(245,197,66,0.58);
+    color: #fffaf0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    box-shadow: 0 12px 28px rgba(26,20,100,0.24);
+  }}
+  .countdown-label {{ font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; opacity: 0.82; font-weight: 800; }}
+  .countdown-value {{ font-size: clamp(1.45rem, 4vw, 2.25rem); line-height: 1.15; font-weight: 950; margin-top: 0.2rem; text-shadow: 0 0 18px rgba(245,197,66,0.45); }}
+  .countdown-date {{ margin-top: 0.28rem; font-size: 0.82rem; opacity: 0.84; }}
+</style>
+<script>
+  const target = new Date("{GRAND_FINAL_AT_ISO}").getTime();
+  const node = document.getElementById("gf-countdown");
+  function tick() {{
+    const diff = target - Date.now();
+    if (diff <= 0) {{ node.textContent = "Grand Final is live"; return; }}
+    const minute = 60 * 1000, hour = 60 * minute, day = 24 * hour;
+    const days = Math.floor(diff / day);
+    const hours = Math.floor((diff % day) / hour);
+    const minutes = Math.floor((diff % hour) / minute);
+    node.textContent = `${{days}} days, ${{hours}}h, ${{minutes}}min to Grand Final`;
+  }}
+  tick();
+  setInterval(tick, 30000);
+</script>
+""",
+        height=118,
+        scrolling=False,
+    )
+
+
+def render_audio_player() -> None:
+    if not AUDIO_FILE.exists():
+        return
+    audio_src = load_audio_data_uri(str(AUDIO_FILE), AUDIO_FILE.stat().st_mtime_ns)
+    html = """
+<script>
+  const doc = window.parent?.document || document;
+  let dock = doc.getElementById("esc-audio-dock");
+  if (!dock) {
+    dock = doc.createElement("div");
+    dock.id = "esc-audio-dock";
+    dock.innerHTML = `
+      <audio id="esc-audio" src="__AUDIO_SRC__" loop autoplay></audio>
+      <button id="music-toggle" type="button">Music on</button>
+      <span id="music-state">Eurovision Intro.mp3</span>
+    `;
+    doc.body.appendChild(dock);
+    const style = doc.createElement("style");
+    style.id = "esc-audio-style";
+    style.textContent = `
+      #esc-audio-dock {
+        position: fixed;
+        top: 4.65rem;
+        right: 1.1rem;
+        z-index: 999998;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.36rem 0.52rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.86);
+        border: 1px solid rgba(245,197,66,0.58);
+        box-shadow: 0 8px 22px rgba(26,20,100,0.22);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+      #music-toggle {
+        border: 1px solid rgba(245,197,66,0.86);
+        border-radius: 999px;
+        background: linear-gradient(135deg, #1A1464 0%, #7B5EA7 52%, #E6007E 100%);
+        color: #fffaf0;
+        padding: 0.42rem 0.78rem;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 0 16px rgba(245,197,66,0.35);
+      }
+      #music-state {
+        color: #1f2937;
+        font-size: 0.78rem;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+    `;
+    doc.head.appendChild(style);
+  }
+  const audio = doc.getElementById("esc-audio");
+  const btn = doc.getElementById("music-toggle");
+  const state = doc.getElementById("music-state");
+  const enabledKey = "escMusicEnabled";
+  const timeKey = "escMusicTime";
+  if (!audio.src) audio.src = "__AUDIO_SRC__";
+  audio.volume = 0.42;
+
+  function enabled() {
+    return localStorage.getItem(enabledKey) !== "false";
+  }
+  function setUi(isOn, blocked=false) {
+    btn.textContent = isOn ? "Music off" : "Music on";
+    state.textContent = blocked ? "click to start" : (isOn ? "playing" : "off");
+  }
+  function restoreTime() {
+    const saved = Number(localStorage.getItem(timeKey) || "0");
+    if (Number.isFinite(saved) && saved > 0) {
+      audio.currentTime = saved % Math.max(audio.duration || saved + 1, 1);
+    }
+  }
+  async function start() {
+    restoreTime();
+    try {
+      await audio.play();
+      setUi(true);
+    } catch (err) {
+      setUi(false, true);
+    }
+  }
+  function stop() {
+    audio.pause();
+    localStorage.setItem(timeKey, String(audio.currentTime || 0));
+    setUi(false);
+  }
+  if (!btn.dataset.bound) {
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", async () => {
+    if (audio.paused) {
+      localStorage.setItem(enabledKey, "true");
+      await start();
+    } else {
+      localStorage.setItem(enabledKey, "false");
+      stop();
+    }
+    });
+  }
+  if (!audio.dataset.bound) {
+    audio.dataset.bound = "1";
+    audio.addEventListener("timeupdate", () => localStorage.setItem(timeKey, String(audio.currentTime || 0)));
+  }
+  if (enabled()) start();
+  else setUi(false);
+</script>
+""".replace("__AUDIO_SRC__", audio_src)
+    components.html(
+        html,
+        height=1,
+        scrolling=False,
+    )
+
+
+def render_tab_confetti(page: str) -> None:
+    del page
+    components.html(
+        """
+<canvas id="confetti-canvas"></canvas>
+<style>
+  #confetti-canvas { position: fixed; inset: 0; pointer-events: none; width: 100vw; height: 100vh; z-index: 999999; }
+</style>
+<script>
+  const doc = window.parent?.document || document;
+  const view = window.parent || window;
+  let canvas = doc.getElementById("esc-global-confetti");
+  if (!canvas) {
+    canvas = doc.createElement("canvas");
+    canvas.id = "esc-global-confetti";
+    canvas.style.position = "fixed";
+    canvas.style.inset = "0";
+    canvas.style.pointerEvents = "none";
+    canvas.style.width = "100vw";
+    canvas.style.height = "100vh";
+    canvas.style.zIndex = "999999";
+    doc.body.appendChild(canvas);
+  }
+  const ctx = canvas.getContext("2d");
+  let pieces = [];
+  function resize() { canvas.width = view.innerWidth; canvas.height = view.innerHeight; }
+  function burst() {
+    resize();
+    const colors = ["#F5C542", "#C0C7D1", "#CD7F32", "#E6007E", "#7B5EA7", "#ffffff"];
+    pieces = Array.from({length: 115}, () => ({
+      x: canvas.width / 2, y: canvas.height * 0.22,
+      vx: (Math.random() - 0.5) * 10, vy: Math.random() * -7 - 2,
+      size: Math.random() * 7 + 4, rot: Math.random() * Math.PI,
+      color: colors[Math.floor(Math.random() * colors.length)], life: 90 + Math.random() * 30
+    }));
+    requestAnimationFrame(frame);
+  }
+  function frame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach((p) => {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.18; p.rot += 0.12; p.life -= 1;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.58);
+      ctx.restore();
+    });
+    pieces = pieces.filter((p) => p.life > 0 && p.y < canvas.height + 40);
+    if (pieces.length) requestAnimationFrame(frame);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  setTimeout(burst, 180);
+  if (!doc.body.dataset.escConfettiBound) {
+    doc.body.dataset.escConfettiBound = "1";
+    doc.addEventListener("click", (event) => {
+      const target = event.target;
+      const navClick = target?.closest?.('div[role="radiogroup"], label[data-baseweb="radio"], input[type="radio"]');
+      if (navClick) setTimeout(burst, 120);
+    }, true);
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if ([...mutation.addedNodes].some((node) => node.nodeType === 1 && node.querySelector?.('section.main'))) {
+          setTimeout(burst, 220);
+          break;
+        }
+      }
+    });
+    observer.observe(doc.body, { childList: true, subtree: true });
+  }
+  view.addEventListener("resize", resize);
+</script>
+""",
+        height=1,
+        scrolling=False,
+    )
+
+
+def render_safety_badge_summary(ranking: pd.DataFrame) -> None:
+    if ranking.empty or "badge" not in ranking.columns:
+        return
+    counts = ranking["badge"].value_counts().to_dict()
+    html = " ".join(
+        f'{badge_pill_html(badge)} <strong>{int(counts.get(badge, 0))}</strong>'
+        for badge in ["SAFE", "LIKELY", "UNCERTAIN"]
+    )
+    st.markdown(html, unsafe_allow_html=True)
+
+
 def render_page_header(page: str, title: str | None = None) -> None:
-    st.title(title or page)
+    display_title = title or page
     caption = PAGE_CAPTIONS.get(page)
-    if caption:
-        st.caption(caption)
+    caption_html = f'<div class="sub">{escape(caption)}</div>' if caption else ""
+    header_html = f"""
+<style>
+* {{ margin: 0; padding: 0; box-sizing: border-box; }}
+body {{ background: transparent; overflow: hidden; }}
+.banner {{
+  background: linear-gradient(135deg, #0D0A3B 0%, #1A1464 55%, #3A0F5E 100%);
+  border-radius: 14px;
+  border: 1px solid rgba(230,0,126,0.5);
+  padding: 1.05rem 1.75rem 0.95rem;
+  position: relative;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}}
+.banner::before {{
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 15% 50%, rgba(230,0,126,0.18) 0%, transparent 65%),
+              radial-gradient(ellipse at 85% 50%, rgba(245,197,66,0.12) 0%, transparent 65%);
+  pointer-events: none;
+}}
+@keyframes shimmer {{
+  0%   {{ background-position: -250% center; }}
+  100% {{ background-position:  250% center; }}
+}}
+@keyframes twinkle {{
+  0%, 100% {{ opacity: 0.2; transform: scale(0.7); }}
+  50%       {{ opacity: 1;   transform: scale(1.2); }}
+}}
+.title {{
+  font-size: 1.75rem; font-weight: 900; letter-spacing: 0.04em; line-height: 1.15;
+  background: linear-gradient(90deg, #E6007E 0%, #F5C542 30%, #E8E4FF 50%, #E6007E 65%, #F5C542 100%);
+  background-size: 250% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: shimmer 4s linear infinite;
+  position: relative; z-index: 1;
+}}
+.sub {{
+  color: rgba(220,215,255,0.68); font-size: 0.76rem; margin-top: 0.42rem;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  position: relative; z-index: 1;
+}}
+.star {{
+  position: absolute; color: rgba(245,197,66,0.75);
+  animation: twinkle ease-in-out infinite; z-index: 1; pointer-events: none;
+}}
+</style>
+<div class="banner">
+  <span class="star" style="font-size:1.1rem;top:18%;left:4%;animation-duration:2.1s;animation-delay:0s">★</span>
+  <span class="star" style="font-size:0.7rem;top:65%;left:11%;animation-duration:1.7s;animation-delay:0.4s">✦</span>
+  <span class="star" style="font-size:0.9rem;top:20%;right:8%;animation-duration:2.4s;animation-delay:1.0s">★</span>
+  <span class="star" style="font-size:1.2rem;top:58%;right:15%;animation-duration:1.9s;animation-delay:0.7s">★</span>
+  <span class="star" style="font-size:0.65rem;top:75%;right:5%;animation-duration:2.8s;animation-delay:1.3s">✦</span>
+  <div class="title">{escape(display_title)}</div>
+  {caption_html}
+</div>
+"""
+    components.html(header_html, height=112 if caption else 90, scrolling=False)
 
 
 def dashboard_artifact_rows(data: dict[str, Any], load_time_s: float) -> list[dict[str, Any]]:
@@ -275,8 +755,9 @@ def dashboard_artifact_rows(data: dict[str, Any], load_time_s: float) -> list[di
         },
         {"check": "Narratives JSON", "path": data["narratives_path"], "loaded": bool(data["narratives"])},
         {"check": "Backtest JSON", "path": data["backtest_path"], "loaded": bool(data["backtest"])},
+        {"check": "Semi backtest JSON", "path": data["semi_backtest_path"], "loaded": bool(data["semi_backtest"])},
         {"check": "History CSV", "path": data["history_path"], "loaded": not data["history"].empty},
-        {"check": "Load KPI < 2s", "path": "runtime", "loaded": load_time_s < 2.0},
+        {"check": "Load time < 2s", "path": "runtime", "loaded": load_time_s < 2.0},
     ]
 
 
@@ -320,6 +801,85 @@ def backtest_frame(backtest: dict[str, Any]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def semi_backtest_frame(semi_backtest: dict[str, Any]) -> pd.DataFrame:
+    rows: list[dict[str, Any]] = []
+    for year, year_data in semi_backtest.get("years", {}).items():
+        for model, metrics in year_data.get("models", {}).items():
+            rows.append(
+                {
+                    "year": int(year),
+                    "model": model.upper(),
+                    "qual_accuracy_overall": metrics.get("qual_accuracy_overall"),
+                    "qual_accuracy_sf1": metrics.get("qual_accuracy_sf1"),
+                    "qual_accuracy_sf2": metrics.get("qual_accuracy_sf2"),
+                    "ci80_coverage": metrics.get("ci80_empirical_coverage"),
+                    "sf1_kpi": metrics.get("kpi_sf1_pass"),
+                    "sf2_kpi": metrics.get("kpi_sf2_pass"),
+                    "ci80_kpi": metrics.get("kpi_ci80_pass"),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def aggregate_model_stats(backtest: dict[str, Any], semi_backtest: dict[str, Any]) -> pd.DataFrame:
+    rows: list[dict[str, Any]] = []
+    for model, metrics in backtest.get("aggregate", {}).items():
+        rows.append(
+            {
+                "scope": "Grand Final Top-10",
+                "model": model.upper(),
+                "accuracy": metrics.get("avg_top10_accuracy"),
+                "ci80_coverage": metrics.get("avg_ci80_empirical_coverage"),
+                "accuracy_kpi_pass": metrics.get("all_top10_kpi_pass"),
+                "ci80_kpi_pass": metrics.get("all_ci80_kpi_pass"),
+            }
+        )
+    for model, metrics in semi_backtest.get("aggregate", {}).items():
+        rows.append(
+            {
+                "scope": "Semi-final qualification",
+                "model": model.upper(),
+                "accuracy": metrics.get("avg_qual_accuracy_overall"),
+                "ci80_coverage": metrics.get("avg_ci80_empirical_coverage"),
+                "accuracy_kpi_pass": (
+                    bool(metrics.get("all_sf1_kpi_pass"))
+                    and bool(metrics.get("all_sf2_kpi_pass"))
+                ),
+                "ci80_kpi_pass": metrics.get("all_ci80_kpi_pass"),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def best_metric_value(frame: pd.DataFrame, scope: str, column: str) -> float | None:
+    if frame.empty or column not in frame.columns:
+        return None
+    values = pd.to_numeric(frame.loc[frame["scope"] == scope, column], errors="coerce").dropna()
+    if values.empty:
+        return None
+    return float(values.max())
+
+
+def format_percent(value: float | None) -> str:
+    return "n/a" if value is None or pd.isna(value) else f"{value:.1%}"
+
+
+def format_percent_rounded(value: Any) -> str:
+    numeric = safe_float(value)
+    return "n/a" if numeric is None else f"{numeric:.0%}"
+
+
+def model_stats_note(backtest: dict[str, Any], semi_backtest: dict[str, Any]) -> str:
+    gf_years = backtest.get("backtest_years", [])
+    semi_years = semi_backtest.get("backtest_years", [])
+    gf_label = f"{min(gf_years)}-{max(gf_years)}" if gf_years else "n/a"
+    semi_label = f"{min(semi_years)}-{max(semi_years)}" if semi_years else "n/a"
+    return (
+        f"Grand Final backtest: {gf_label}; semi-final backtest: {semi_label}. "
+        "Accuracy is measured against historical holdout years using strict temporal isolation."
+    )
+
+
 def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
     st.sidebar.title("Eurovision 2026")
     page = st.sidebar.radio(
@@ -327,10 +887,6 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
         NAVIGATION_PAGES,
     )
     st.sidebar.caption(PAGE_CAPTIONS.get(page, ""))
-    st.sidebar.metric("Load time", f"{load_time_s:.3f}s")
-    with st.sidebar.expander("Loaded artifacts", expanded=False):
-        for row in dashboard_artifact_rows(data, load_time_s):
-            st.code(str(row["path"]))
     with st.sidebar.expander("📖 Glossary", expanded=False):
         for term, definition in GLOSSARY.items():
             st.markdown(f"**{term}** — {definition}")
@@ -606,7 +1162,8 @@ def country_card_data(
     history: pd.DataFrame,
 ) -> dict[str, Any]:
     narrative = narratives_by_country(narratives).get(country, {})
-    prediction = country_prediction_row(predictions_df, country)
+    ranking = main_ranking_frame(predictions_df, n_places=len(predictions_df))
+    prediction = country_prediction_row(ranking if not ranking.empty else predictions_df, country)
     return {
         "country": country,
         "flag": country_flag(country),
@@ -631,6 +1188,9 @@ def render_country_card(card: dict[str, Any]) -> None:
     cols[0].metric("Consensus rank", "n/a" if pd.isna(rank) else f"#{int(rank)}")
     cols[1].metric("Top-10 probability", "n/a" if probability is None else f"{probability:.1%}")
     cols[2].metric("Narrative signal", narrative.get("prediction", "n/a"))
+    badge = prediction.get("badge")
+    if isinstance(badge, str) and badge:
+        st.markdown(badge_pill_html(badge), unsafe_allow_html=True)
 
     text = str(narrative.get("narrative", "")).strip()
     st.write(text if text else "No narrative available.")
@@ -683,69 +1243,9 @@ def overview_leaderboard_frame(predictions_df: pd.DataFrame, n: int = 5) -> pd.D
 
 def render_overview(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
     predictions = data["predictions"]
-    backtest = data["backtest"]
-    aggregate = backtest.get("aggregate", {})
 
-    _esc_header = """
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: transparent; overflow: hidden; }
-.banner {
-  background: linear-gradient(135deg, #0D0A3B 0%, #1A1464 55%, #3A0F5E 100%);
-  border-radius: 14px;
-  border: 1px solid rgba(230,0,126,0.5);
-  padding: 1.3rem 2rem 1.15rem;
-  position: relative;
-  overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-.banner::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 15% 50%, rgba(230,0,126,0.18) 0%, transparent 65%),
-              radial-gradient(ellipse at 85% 50%, rgba(245,197,66,0.12) 0%, transparent 65%);
-  pointer-events: none;
-}
-@keyframes shimmer {
-  0%   { background-position: -250% center; }
-  100% { background-position:  250% center; }
-}
-@keyframes twinkle {
-  0%, 100% { opacity: 0.2; transform: scale(0.7); }
-  50%       { opacity: 1;   transform: scale(1.2); }
-}
-.title {
-  font-size: 1.85rem; font-weight: 900; letter-spacing: 0.04em; line-height: 1.15;
-  background: linear-gradient(90deg, #E6007E 0%, #F5C542 30%, #E8E4FF 50%, #E6007E 65%, #F5C542 100%);
-  background-size: 250% auto;
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  animation: shimmer 4s linear infinite;
-  position: relative; z-index: 1;
-}
-.sub {
-  color: rgba(220,215,255,0.6); font-size: 0.75rem; margin-top: 0.45rem;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  position: relative; z-index: 1;
-}
-.star {
-  position: absolute; color: rgba(245,197,66,0.75);
-  animation: twinkle ease-in-out infinite; z-index: 1; pointer-events: none;
-}
-</style>
-<div class="banner">
-  <span class="star" style="font-size:1.1rem;top:18%;left:4%;animation-duration:2.1s;animation-delay:0s">★</span>
-  <span class="star" style="font-size:0.7rem;top:65%;left:11%;animation-duration:1.7s;animation-delay:0.4s">✦</span>
-  <span class="star" style="font-size:0.9rem;top:20%;right:8%;animation-duration:2.4s;animation-delay:1.0s">★</span>
-  <span class="star" style="font-size:1.2rem;top:58%;right:15%;animation-duration:1.9s;animation-delay:0.7s">★</span>
-  <span class="star" style="font-size:0.65rem;top:75%;right:5%;animation-duration:2.8s;animation-delay:1.3s">✦</span>
-  <span class="star" style="font-size:0.8rem;top:15%;left:48%;animation-duration:2.2s;animation-delay:0.9s">✦</span>
-  <div class="title">Eurovision 2026 Forecast</div>
-  <div class="sub">Vienna &nbsp;·&nbsp; May 2026 &nbsp;·&nbsp; Machine Learning Predictions</div>
-</div>
-"""
-    st.components.v1.html(_esc_header, height=122, scrolling=False)
-    st.caption(PAGE_CAPTIONS["Overview"])
+    render_page_header("Overview", title="Eurovision 2026 Forecast")
+    render_countdown_timer()
 
     top_country = predictions_df.iloc[0]["country"] if not predictions_df.empty else "n/a"
     top_prob = predictions_df.iloc[0].get("probability") if not predictions_df.empty else None
@@ -758,44 +1258,27 @@ body { background: transparent; overflow: hidden; }
     col4.metric("Top probability", f"{top_prob:.1%}" if pd.notna(top_prob) else "n/a")
     col5.metric("Prediction updated", last_prediction_update)
 
-    left, right = st.columns([1.15, 1.0])
-    with left:
-        st.subheader("Leading Contenders")
-        leaders = overview_leaderboard_frame(predictions_df)
-        leaders_display = leaders.copy()
-        for column in ["probability", "ci80_lo", "ci80_hi"]:
-            if column in leaders_display.columns:
-                leaders_display[column] = leaders_display[column] * 100.0
-        st.dataframe(
-            leaders_display,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "probability": st.column_config.ProgressColumn(
-                    "Top-10 probability",
-                    format="%.1f%%",
-                    min_value=0.0,
-                    max_value=100.0,
-                ),
-                "ci80_lo": st.column_config.NumberColumn("CI-80 low", format="%.1f%%"),
-                "ci80_hi": st.column_config.NumberColumn("CI-80 high", format="%.1f%%"),
-            },
-        )
-
-    with right:
-        st.subheader("Backtest KPI")
-        kpi_rows = []
-        for model, metrics in aggregate.items():
-            kpi_rows.append(
-                {
-                    "model": model.upper(),
-                    "avg_top10_accuracy": metrics.get("avg_top10_accuracy"),
-                    "avg_ci80_coverage": metrics.get("avg_ci80_empirical_coverage"),
-                    "top10_pass": metrics.get("all_top10_kpi_pass"),
-                    "ci80_pass": metrics.get("all_ci80_kpi_pass"),
-                }
-            )
-        st.dataframe(pd.DataFrame(kpi_rows), use_container_width=True, hide_index=True)
+    st.subheader("Leading Contenders")
+    leaders = overview_leaderboard_frame(predictions_df)
+    leaders_display = leaders.copy()
+    for column in ["probability", "ci80_lo", "ci80_hi"]:
+        if column in leaders_display.columns:
+            leaders_display[column] = leaders_display[column] * 100.0
+    st.dataframe(
+        leaders_display,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "probability": st.column_config.ProgressColumn(
+                "Top-10 probability",
+                format="%.1f%%",
+                min_value=0.0,
+                max_value=100.0,
+            ),
+            "ci80_lo": st.column_config.NumberColumn("CI-80 low", format="%.1f%%"),
+            "ci80_hi": st.column_config.NumberColumn("CI-80 high", format="%.1f%%"),
+        },
+    )
 
     _info_expander(
         "How does the model work?",
@@ -803,14 +1286,7 @@ body { background: transparent; overflow: hidden; }
     )
     _info_expander(
         "Why Top-10 — not the winner?",
-        "The model predicts the **probability of a country finishing in the Grand Final Top 10**, "
-        "not an exact placement or outright winner. Top-10 is our primary KPI — it achieved "
-        "**73 % accuracy** across the 2022–2025 backtests, which is a robust signal at this "
-        "stage of the competition.\n\n"
-        "Winner probability (shown in the **Tiers** tab) is a secondary, derived indicator "
-        "built on top of the top-10 estimates. It comes with wide confidence intervals and "
-        "should be read as a relative signal — *who is most likely to win among the favourites* "
-        "— rather than a standalone forecast.",
+        TOP10_RATIONALE,
     )
 
 
@@ -852,6 +1328,7 @@ def render_predictions(
             },
         },
     )
+    render_safety_badge_summary(ranking)
     _info_expander(
         "How to read this chart",
         "**Bars** show each country's estimated probability of finishing in the Grand Final top 10.\n\n"
@@ -1447,7 +1924,6 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
         st.warning("No top-3 position probabilities could be derived.")
         return
 
-    column_sums = position_df.groupby("position", as_index=False)["probability"].sum()
     st.subheader("Tier 3: Top-3 Probability Heatmap")
     st.plotly_chart(
         top3_heatmap(position_df, predictions_df),
@@ -1461,15 +1937,6 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
                 "width": 1100,
                 "scale": 2,
             },
-        },
-    )
-    st.dataframe(
-        column_sums,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "position": st.column_config.TextColumn("Position"),
-            "probability": st.column_config.NumberColumn("Column sum", format="%.6f"),
         },
     )
     _info_expander(
@@ -1586,6 +2053,10 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
         "**Colour coding:** Green ≥ 75 % (likely qualifier) · Yellow 40–75 % (borderline) · Red < 40 % (unlikely) — "
         "these reflect the model's estimate, not official results.",
     )
+    _info_expander(
+        "How are semi-final predictions calculated?",
+        SEMI_QUALIFIER_METHOD,
+    )
     rows = semi_predictions.get("countries", [])
     if not isinstance(rows, list) or not rows:
         st.warning("No semi-final qualification predictions found.")
@@ -1695,6 +2166,96 @@ def render_backtest(backtest: dict[str, Any]) -> None:
     )
 
 
+def render_model_stats(data: dict[str, Any]) -> None:
+    render_page_header("Model Stats")
+    backtest = data["backtest"]
+    semi_backtest = data["semi_backtest"]
+    stats = aggregate_model_stats(backtest, semi_backtest)
+    gf_frame = backtest_frame(backtest)
+    semi_frame = semi_backtest_frame(semi_backtest)
+
+    if stats.empty:
+        st.warning("No model statistics found in the backtest artifacts.")
+        return
+
+    gf_best = best_metric_value(stats, "Grand Final Top-10", "accuracy")
+    gf_ci = best_metric_value(stats, "Grand Final Top-10", "ci80_coverage")
+    semi_best = best_metric_value(stats, "Semi-final qualification", "accuracy")
+    semi_ci = best_metric_value(stats, "Semi-final qualification", "ci80_coverage")
+    best_ci = max([value for value in [gf_ci, semi_ci] if value is not None], default=None)
+    years = backtest.get("backtest_years", [])
+    year_label = f"{min(years)}-{max(years)}" if years else "n/a"
+
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Best GF Top-10 accuracy", format_percent(gf_best))
+    col2.metric("Best Semi accuracy", format_percent(semi_best))
+    col3.metric("Best CI-80 coverage", format_percent(best_ci))
+    col4.metric("Backtest years", year_label)
+
+    _info_expander(
+        "How to interpret model accuracy",
+        "Grand Final accuracy measures how many actual Top-10 countries appeared in the model's predicted Top 10. "
+        "Semi-final accuracy measures how many actual qualifiers were included in each predicted qualifier set. "
+        "CI-80 coverage checks whether historical outcomes fell inside the model's 80 % confidence interval.\n\n"
+        "These are historical backtests, not guarantees for 2026. They show whether the modelling approach was "
+        "credible on past contests when each holdout year was treated as unknown."
+    )
+    _info_expander(
+        "Model target summary",
+        TOP10_RATIONALE,
+    )
+
+    st.subheader("Accuracy Summary")
+    stats_display = stats.copy()
+    stats_display = stats_display[["scope", "model", "accuracy", "ci80_coverage"]]
+    for column in ["accuracy", "ci80_coverage"]:
+        if column in stats_display.columns:
+            stats_display[column] = stats_display[column].map(format_percent_rounded)
+    st.dataframe(
+        stats_display,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "accuracy": st.column_config.TextColumn("Avg accuracy"),
+            "ci80_coverage": st.column_config.TextColumn("Avg CI-80 coverage"),
+        },
+    )
+
+    gf_tab, semi_tab = st.tabs(["Grand Final Top-10", "Semi-final qualification"])
+    with gf_tab:
+        st.caption(str(backtest.get("note_hyperparams", "")))
+        gf_display = gf_frame.drop(columns=["top10_kpi", "ci80_kpi"], errors="ignore")
+        for column in ["top10_accuracy", "ci80_coverage"]:
+            if column in gf_display.columns:
+                gf_display[column] = gf_display[column].map(format_percent_rounded)
+        st.dataframe(
+            gf_display.sort_values(["year", "model"]) if not gf_display.empty else gf_display,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "top10_accuracy": st.column_config.TextColumn("Top-10 accuracy"),
+                "ci80_coverage": st.column_config.TextColumn("CI-80 coverage"),
+            },
+        )
+    with semi_tab:
+        st.caption(str(semi_backtest.get("note_hyperparams", "")))
+        semi_display = semi_frame.drop(columns=["sf1_kpi", "sf2_kpi", "ci80_kpi"], errors="ignore")
+        for column in ["qual_accuracy_overall", "qual_accuracy_sf1", "qual_accuracy_sf2", "ci80_coverage"]:
+            if column in semi_display.columns:
+                semi_display[column] = semi_display[column].map(format_percent_rounded)
+        st.dataframe(
+            semi_display.sort_values(["year", "model"]) if not semi_display.empty else semi_display,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "qual_accuracy_overall": st.column_config.TextColumn("Overall accuracy"),
+                "qual_accuracy_sf1": st.column_config.TextColumn("SF1 accuracy"),
+                "qual_accuracy_sf2": st.column_config.TextColumn("SF2 accuracy"),
+                "ci80_coverage": st.column_config.TextColumn("CI-80 coverage"),
+            },
+        )
+
+
 def render_data_health(data: dict[str, Any], load_time_s: float) -> None:
     render_page_header("Data Health")
     checks = data_health_checks(data, load_time_s)
@@ -1715,9 +2276,12 @@ def main() -> None:
     predictions_df = countries_frame(data["predictions"])
 
     page = render_sidebar(data, load_time_s)
-    render_country_detail_sidebar(data, predictions_df)
+    render_audio_player()
+    render_tab_confetti(page)
     if page == "Overview":
         render_overview(data, predictions_df)
+    elif page == "Model Stats":
+        render_model_stats(data)
     elif page == "Main Ranking":
         render_predictions(data["predictions"], predictions_df, data["narratives"], data["history"])
     elif page == "Tiers":
