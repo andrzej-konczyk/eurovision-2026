@@ -305,8 +305,11 @@ section[data-testid="stSidebar"] > div {
 
 div[data-testid="stTable"],
 div[data-testid="stPlotlyChart"] {
-    background: rgba(255,255,255,0.995);
+    background: #ffffff;
+    border: 1px solid rgba(123,94,167,0.30);
     border-radius: 10px;
+    padding: 0.4rem;
+    box-shadow: 0 2px 8px rgba(26,20,100,0.08);
 }
 
 div[data-testid="stDataFrame"],
@@ -438,12 +441,18 @@ h1 {
 }
 h2 {
     color: var(--esc-blue);
-    padding-bottom: 0.3rem;
-    border-bottom: 2px solid var(--esc-magenta);
+    padding-bottom: 0.4rem;
+    border-bottom: 3px solid;
+    border-image: linear-gradient(90deg, #E6007E 0%, #F5C542 60%, transparent 100%) 1;
+    font-weight: 900;
+    letter-spacing: 0.01em;
 }
 h3 {
-    color: var(--esc-purple);
-    font-weight: 700;
+    color: #B8860B;
+    font-weight: 800;
+    padding-left: 0.55rem;
+    border-left: 3px solid var(--esc-magenta);
+    background: linear-gradient(90deg, rgba(245,197,66,0.10) 0%, transparent 60%);
 }
 
 div[data-testid="stCaptionContainer"] p {
@@ -493,10 +502,17 @@ hr {
 .badge-pill {
     display: inline-block;
     border-radius: 999px;
-    padding: 0.18rem 0.62rem;
+    padding: 0.22rem 0.78rem;
     font-size: 0.82rem;
     font-weight: 800;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+    cursor: default;
+}
+.badge-pill:hover {
+    transform: translateY(-1px) scale(1.04);
+    filter: brightness(1.08);
 }
 
 .badge-pill.safe {
@@ -519,6 +535,106 @@ hr {
 @keyframes safeGlow {
     0%, 100% { box-shadow: 0 0 0.55rem rgba(245,197,66,0.55), 0 0 1rem rgba(245,197,66,0.28); transform: translateY(0); }
     50% { box-shadow: 0 0 1rem rgba(245,197,66,0.95), 0 0 2rem rgba(245,197,66,0.48); transform: translateY(-1px); }
+}
+
+.country-hero {
+    display: flex;
+    align-items: center;
+    gap: 1.05rem;
+    padding: 1rem 1.4rem;
+    margin: 0.5rem 0 1rem;
+    background:
+        radial-gradient(ellipse at 92% 50%, rgba(230,0,126,0.18) 0%, transparent 65%),
+        radial-gradient(ellipse at 8% 50%, rgba(245,197,66,0.14) 0%, transparent 60%),
+        linear-gradient(135deg, #0D0A3B 0%, #1A1464 55%, #3A0F5E 100%);
+    border: 1px solid rgba(245,197,66,0.55);
+    border-radius: 14px;
+    box-shadow: 0 10px 26px rgba(13,10,59,0.32), 0 0 24px rgba(245,197,66,0.12) inset;
+    position: relative;
+    overflow: hidden;
+}
+.country-hero .hero-flag {
+    object-fit: cover;
+    border-radius: 5px;
+    border: 2px solid rgba(245,197,66,0.7);
+    box-shadow: 0 0 14px rgba(245,197,66,0.4), 0 4px 10px rgba(0,0,0,0.35);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+.country-hero .hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+.country-hero .hero-name {
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: 0.09em;
+    line-height: 1.05;
+    background: linear-gradient(90deg, #F5C542 0%, #FFE58A 35%, #FFFFFF 50%, #FFE58A 65%, #F5C542 100%);
+    background-size: 250% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: heroShimmer 4.5s linear infinite;
+    text-shadow: 0 0 28px rgba(245,197,66,0.18);
+}
+.country-hero .hero-prob {
+    position: relative;
+    height: 0.8rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(245,197,66,0.35);
+    overflow: hidden;
+}
+.country-hero .hero-prob-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: linear-gradient(90deg, #E6007E 0%, #F5C542 100%);
+    border-radius: 999px;
+    box-shadow: 0 0 12px rgba(245,197,66,0.45);
+    transition: width 600ms ease-out;
+}
+.country-hero .hero-prob-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fffaf0;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    pointer-events: none;
+}
+.country-hero .hero-deco {
+    position: absolute;
+    color: rgba(245,197,66,0.7);
+    pointer-events: none;
+    animation: heroTwinkle 2.6s ease-in-out infinite;
+    z-index: 0;
+}
+.country-hero .hero-star-1 { top: 14%; right: 6%; font-size: 1.05rem; animation-delay: 0s; }
+.country-hero .hero-star-2 { bottom: 18%; right: 18%; font-size: 0.7rem; animation-delay: 1.1s; }
+@keyframes heroShimmer {
+    0%   { background-position: -250% center; }
+    100% { background-position:  250% center; }
+}
+@keyframes heroTwinkle {
+    0%, 100% { opacity: 0.25; transform: scale(0.7); }
+    50%      { opacity: 1;    transform: scale(1.2); }
+}
+
+div[data-testid="stAlert"] {
+    border-radius: 10px;
+    border-left: 4px solid var(--esc-magenta) !important;
 }
 </style>
 """
@@ -686,6 +802,76 @@ def render_audio_player() -> None:
 """.replace("__AUDIO_SRC__", audio_src)
     components.html(
         html,
+        height=1,
+        scrolling=False,
+    )
+
+
+def render_back_to_top() -> None:
+    components.html(
+        """
+<script>
+  const doc = window.parent?.document || document;
+  const view = window.parent || window;
+  let btn = doc.getElementById("esc-back-to-top");
+  if (!btn) {
+    btn = doc.createElement("button");
+    btn.id = "esc-back-to-top";
+    btn.type = "button";
+    btn.title = "Back to top";
+    btn.textContent = "↑";
+    doc.body.appendChild(btn);
+    const style = doc.createElement("style");
+    style.id = "esc-back-to-top-style";
+    style.textContent = `
+      #esc-back-to-top {
+        position: fixed;
+        bottom: 1.4rem;
+        right: 1.4rem;
+        z-index: 999997;
+        width: 2.7rem;
+        height: 2.7rem;
+        border-radius: 999px;
+        border: 1px solid rgba(245,197,66,0.7);
+        background: linear-gradient(135deg, #1A1464 0%, #7B5EA7 50%, #E6007E 100%);
+        color: #fffaf0;
+        font-size: 1.25rem;
+        font-weight: 900;
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(12px);
+        transition: opacity 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+        box-shadow: 0 8px 22px rgba(13,10,59,0.32);
+        pointer-events: none;
+      }
+      #esc-back-to-top.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+      #esc-back-to-top:hover {
+        box-shadow: 0 0 18px rgba(245,197,66,0.55), 0 8px 22px rgba(13,10,59,0.4);
+        transform: translateY(-2px);
+      }
+    `;
+    doc.head.appendChild(style);
+    btn.addEventListener("click", () => {
+      const target = view.document.scrollingElement || doc.scrollingElement || doc.documentElement;
+      target.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+  if (!view.__escBackToTopBound) {
+    view.__escBackToTopBound = true;
+    const onScroll = () => {
+      const y = view.scrollY || view.document.scrollingElement.scrollTop || 0;
+      if (y > 400) btn.classList.add("visible");
+      else btn.classList.remove("visible");
+    };
+    view.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+</script>
+""",
         height=1,
         scrolling=False,
     )
@@ -1024,12 +1210,45 @@ def country_flag_img(country: str, width: int = 28) -> str:
     height = max(1, round(width * 0.75))
     return (
         f'<img src="{url}" alt="{label} flag" width="{width}" height="{height}" '
-        'style="vertical-align:-0.18rem;border-radius:2px;object-fit:cover;">'
+        'style="vertical-align:-0.18rem;border-radius:2px;object-fit:cover;'
+        'border:1.5px solid rgba(155,77,202,0.55);box-shadow:0 0 4px rgba(245,197,66,0.25);">'
     )
 
 
 def country_label(country: str) -> str:
-    return country
+    flag = country_flag(country)
+    return f"{flag}  {country}" if flag else country
+
+
+def country_hero_html(country: str, flag_width: int = 56, probability: float | None = None) -> str:
+    url = country_flag_url(country)
+    flag_height = max(1, round(flag_width * 0.75))
+    flag_img = (
+        f'<img class="hero-flag" src="{url}" alt="{escape(country)} flag" '
+        f'width="{flag_width}" height="{flag_height}">'
+        if url
+        else ""
+    )
+    bar_html = ""
+    if probability is not None and 0.0 <= probability <= 1.0:
+        pct = probability * 100.0
+        bar_html = (
+            '<div class="hero-prob">'
+            f'<div class="hero-prob-fill" style="width:{pct:.1f}%;"></div>'
+            f'<span class="hero-prob-label">Top-10 probability · {pct:.1f}%</span>'
+            "</div>"
+        )
+    return (
+        '<div class="country-hero">'
+        '<span class="hero-deco hero-star-1">★</span>'
+        '<span class="hero-deco hero-star-2">✦</span>'
+        f'{flag_img}'
+        '<div class="hero-content">'
+        f'<span class="hero-name">{escape(country).upper()}</span>'
+        f'{bar_html}'
+        '</div>'
+        "</div>"
+    )
 
 
 def narratives_by_country(narratives: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -1148,9 +1367,13 @@ def feature_bar_chart(features: pd.DataFrame) -> go.Figure:
         yaxis_title=None,
         height=280,
         margin={"l": 150, "r": 30, "t": 55, "b": 40},
-        font={"size": 12},
+        font={"size": 12, "color": "#1A1464"},
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
+        xaxis={"gridcolor": "rgba(123,94,167,0.18)", "zerolinecolor": "rgba(123,94,167,0.55)"},
+        yaxis={"gridcolor": "rgba(123,94,167,0.10)"},
     )
-    fig.add_vline(x=0, line_width=1, line_color="#64748b")
+    fig.add_vline(x=0, line_width=1, line_color="#7B5EA7")
     return fig
 
 
@@ -1228,11 +1451,14 @@ def ci_fan_chart(ci_frame: pd.DataFrame) -> go.Figure:
         )
     fig.update_layout(
         title="CI-80 / CI-50 fan chart",
-        xaxis={"title": "Top-10 probability", "tickformat": ".0%", "range": [0, 1]},
+        xaxis={"title": "Top-10 probability", "tickformat": ".0%", "range": [0, 1], "gridcolor": "rgba(123,94,167,0.18)"},
+        yaxis={"gridcolor": "rgba(123,94,167,0.10)"},
         yaxis_title=None,
         height=260,
         margin={"l": 90, "r": 30, "t": 55, "b": 40},
-        font={"size": 12},
+        font={"size": 12, "color": "#1A1464"},
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
     )
     return fig
 
@@ -1256,10 +1482,13 @@ def history_chart(history_frame: pd.DataFrame) -> go.Figure:
     fig.update_layout(
         title="Final history 2016-2025",
         xaxis_title="Year",
-        yaxis={"title": "Final place", "autorange": "reversed", "dtick": 5},
+        xaxis={"gridcolor": "rgba(123,94,167,0.18)"},
+        yaxis={"title": "Final place", "autorange": "reversed", "dtick": 5, "gridcolor": "rgba(123,94,167,0.18)"},
         height=260,
         margin={"l": 60, "r": 30, "t": 55, "b": 40},
-        font={"size": 12},
+        font={"size": 12, "color": "#1A1464"},
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
     )
     return fig
 
@@ -1288,15 +1517,14 @@ def render_country_card(card: dict[str, Any]) -> None:
     country = card["country"]
     narrative = card["narrative"]
     prediction = card["prediction"]
-    flag_img = country_flag_img(country, width=34)
-
-    st.markdown(f"### {flag_img} {escape(country)}", unsafe_allow_html=True)
     probability = safe_float(prediction.get("probability"))
     rank = prediction.get("rank")
+
+    st.markdown(country_hero_html(country, probability=probability), unsafe_allow_html=True)
     cols = st.columns(3)
-    cols[0].metric("Consensus rank", "n/a" if pd.isna(rank) else f"#{int(rank)}")
-    cols[1].metric("Top-10 probability", "n/a" if probability is None else f"{probability:.1%}")
-    cols[2].metric("Narrative signal", narrative.get("prediction", "n/a"))
+    cols[0].metric("Consensus rank", "n/a" if pd.isna(rank) else f"#{int(rank)}", help="Final ensemble rank position (1 = highest top-10 probability).")
+    cols[1].metric("Top-10 probability", "n/a" if probability is None else f"{probability:.1%}", help="Probability this country finishes in the Grand Final top 10.")
+    cols[2].metric("Narrative signal", narrative.get("prediction", "n/a"), help="High-level direction from the SHAP narrative summary.")
     badge = prediction.get("badge")
     if isinstance(badge, str) and badge:
         st.markdown(badge_pill_html(badge), unsafe_allow_html=True)
@@ -1338,7 +1566,7 @@ def render_country_detail_sidebar(
         )
         narrative = str(card["narrative"].get("narrative", "")).strip()
         probability = safe_float(card["prediction"].get("probability"))
-        st.metric("Top-10 probability", "n/a" if probability is None else f"{probability:.1%}")
+        st.metric("Top-10 probability", "n/a" if probability is None else f"{probability:.1%}", help="Probability this country finishes in the Grand Final top 10.")
         st.write(narrative if narrative else "No narrative available.")
 
 
@@ -1361,11 +1589,11 @@ def render_overview(data: dict[str, Any], predictions_df: pd.DataFrame) -> None:
     last_prediction_update = format_prediction_update_timestamp(predictions.get("generated_at"))
 
     col1, col2, col3, col4, col5 = st.columns(5)
-    col1.metric("Target year", predictions.get("target_year", 2026))
-    col2.metric("Countries", len(predictions_df))
-    col3.metric("Top country", top_country)
-    col4.metric("Top probability", f"{top_prob:.1%}" if pd.notna(top_prob) else "n/a")
-    col5.metric("Prediction updated", last_prediction_update)
+    col1.metric("Target year", predictions.get("target_year", 2026), help="Eurovision contest year these predictions cover.")
+    col2.metric("Countries", len(predictions_df), help="Number of countries with model predictions for the Grand Final.")
+    col3.metric("Top country", top_country, help="Country with the highest consensus top-10 probability.")
+    col4.metric("Top probability", f"{top_prob:.1%}" if pd.notna(top_prob) else "n/a", help="Highest predicted probability of finishing in the Grand Final top 10.")
+    col5.metric("Prediction updated", last_prediction_update, help="When the prediction artefacts were last regenerated.")
 
     st.subheader("Leading Contenders")
     leaders = overview_leaderboard_frame(predictions_df)
@@ -1483,8 +1711,8 @@ def render_predictions(
         },
     )
 
-    selected_country = st.selectbox("Open country card", sorted(ranking["country"].tolist()))
-    with st.expander(f"Country card: {selected_country}", expanded=True):
+    selected_country = st.selectbox("Open country card", sorted(ranking["country"].tolist()), format_func=country_label)
+    with st.expander(f"📋 Country card: {selected_country}", expanded=False):
         render_country_card(
             country_card_data(
                 selected_country,
@@ -1568,7 +1796,7 @@ def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
                 "arrayminus": (plot_frame["probability"] - plot_frame["ci80_lo"]).clip(lower=0),
                 "thickness": 1.2,
                 "width": 3,
-                "color": "#334155",
+                "color": "#1A1464",
             },
             customdata=plot_frame[["rank", "badge", "xgb_prob", "lgbm_prob", "model_consensus"]],
             hovertemplate=(
@@ -1587,8 +1815,11 @@ def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
         margin={"l": 120, "r": 40, "t": 70, "b": 50},
         legend_title_text="Safety badge",
         bargap=0.22,
-        xaxis={"tickformat": ".0%", "range": [0, 1]},
-        font={"size": 13},
+        xaxis={"tickformat": ".0%", "range": [0, 1], "gridcolor": "rgba(123,94,167,0.18)", "tickfont": {"color": "#1A1464"}},
+        yaxis={"tickfont": {"color": "#1A1464", "size": 13, "family": "Arial Black, Arial, sans-serif"}},
+        font={"size": 13, "color": "#1A1464"},
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
     )
     _badge_labels = {
         "SAFE": "SAFE — confident top-10",
@@ -1671,10 +1902,13 @@ def top3_heatmap(position_df: pd.DataFrame, predictions_df: pd.DataFrame) -> go.
     fig.update_layout(
         title="Top-3 probability heatmap",
         xaxis_title="Position",
-        yaxis={"title": None, "autorange": "reversed"},
+        xaxis={"tickfont": {"color": "#1A1464"}},
+        yaxis={"title": None, "autorange": "reversed", "tickfont": {"color": "#1A1464", "family": "Arial Black, Arial, sans-serif"}},
         height=980,
         margin={"l": 130, "r": 40, "t": 70, "b": 50},
-        font={"size": 13},
+        font={"size": 13, "color": "#1A1464"},
+        paper_bgcolor="#ffffff",
+        plot_bgcolor="#ffffff",
     )
     return fig
 
@@ -1706,14 +1940,14 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
                 title={"text": f"#{int(row['rank'])}<br>{row['country']}", "font": {"size": 16}},
                 domain={"x": [x0, x1], "y": [0.12, 0.86]},
                 gauge={
-                    "axis": {"range": [0.0, 1.0], "tickformat": ".0%"},
-                    "bar": {"color": "#2563eb"},
-                    "bgcolor": "#f8fafc",
-                    "bordercolor": "#cbd5e1",
+                    "axis": {"range": [0.0, 1.0], "tickformat": ".0%", "tickcolor": "#1A1464"},
+                    "bar": {"color": "#E6007E"},
+                    "bgcolor": "#ffffff",
+                    "bordercolor": "#7B5EA7",
                     "steps": [
-                        {"range": [0.0, 0.2], "color": "#e2e8f0"},
-                        {"range": [0.2, 0.5], "color": "#dbeafe"},
-                        {"range": [0.5, 1.0], "color": "#bfdbfe"},
+                        {"range": [0.0, 0.2], "color": "#fee2e2"},
+                        {"range": [0.2, 0.5], "color": "#fef3c7"},
+                        {"range": [0.5, 1.0], "color": "#dcfce7"},
                     ],
                 },
             )
@@ -1722,7 +1956,8 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
         title=f"Winner probability gauge: top {top_n}",
         height=360,
         margin={"l": 25, "r": 25, "t": 70, "b": 30},
-        font={"size": 14},
+        font={"size": 14, "color": "#1A1464"},
+        paper_bgcolor="#ffffff",
     )
     return fig
 
@@ -2008,8 +2243,8 @@ def render_voting_network(data: dict[str, Any], predictions_df: pd.DataFrame) ->
         st.warning("No voting-network graph found.")
         return
     col1, col2 = st.columns(2)
-    col1.metric("Nodes", len(nodes))
-    col2.metric("Edges", len(links))
+    col1.metric("Nodes", len(nodes), help="Countries shown in the bilateral voting affinity network.")
+    col2.metric("Edges", len(links), help="Strong historical jury-vote affinities between country pairs.")
     _info_expander(
         "What does this network show?",
         "Each **node** is a country. A **link** means the two countries have historically awarded each other "
@@ -2228,15 +2463,11 @@ def render_narratives(narratives: dict[str, Any], predictions_df: pd.DataFrame) 
     selected = st.selectbox("Country", country_names, format_func=country_label)
     country_data = next(country for country in countries if country["country"] == selected)
 
-    st.markdown(
-        f"### {country_flag_img(selected, width=32)} {escape(selected)}",
-        unsafe_allow_html=True,
-    )
-    # Use consensus probability from predictions_df for consistency with all other views.
     pred_row = country_prediction_row(predictions_df, selected)
     consensus_prob = safe_float(pred_row.get("probability"))
+    st.markdown(country_hero_html(selected, probability=consensus_prob), unsafe_allow_html=True)
     prob_display = "n/a" if consensus_prob is None else f"{consensus_prob:.1%}"
-    st.metric("Top-10 probability", prob_display)
+    st.metric("Top-10 probability", prob_display, help="Consensus probability this country finishes in the Grand Final top 10.")
     # Replace embedded LGBM percentage in narrative text with consensus value so
     # the text matches the metric above (narratives.py uses LGBM single-pass).
     narrative_text = country_data.get("narrative", "")
@@ -2298,10 +2529,10 @@ def render_model_stats(data: dict[str, Any]) -> None:
     year_label = f"{min(years)}-{max(years)}" if years else "n/a"
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Best GF Top-10 accuracy", format_percent(gf_best))
-    col2.metric("Best Semi accuracy", format_percent(semi_best))
-    col3.metric("Best CI-80 coverage", format_percent(best_ci))
-    col4.metric("Backtest years", year_label)
+    col1.metric("Best GF Top-10 accuracy", format_percent(gf_best), help="Highest top-10 prediction accuracy achieved across backtested years.")
+    col2.metric("Best Semi accuracy", format_percent(semi_best), help="Best semi-final qualification accuracy in backtests.")
+    col3.metric("Best CI-80 coverage", format_percent(best_ci), help="Empirical coverage of the 80% confidence interval (target: ≥ 80%).")
+    col4.metric("Backtest years", year_label, help="Years used for out-of-sample model validation.")
 
     _info_expander(
         "How to interpret model accuracy",
@@ -2382,12 +2613,14 @@ def main() -> None:
     inject_dashboard_style()
 
     start = perf_counter()
-    data = load_dashboard_data()
+    with st.spinner("Loading 2026 predictions, narratives, and voting network..."):
+        data = load_dashboard_data()
     load_time_s = perf_counter() - start
     predictions_df = countries_frame(data["predictions"])
 
     page = render_sidebar(data, load_time_s)
     render_audio_player()
+    render_back_to_top()
     render_tab_confetti(page)
     if page == "Overview":
         render_overview(data, predictions_df)
