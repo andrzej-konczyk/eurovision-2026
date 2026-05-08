@@ -1855,7 +1855,14 @@ def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
         yaxis_title=None,
         height=820,
         margin={"l": 120, "r": 40, "t": 70, "b": 50},
-        legend_title_text="Safety badge",
+        legend={
+            "orientation": "h",
+            "yanchor": "top",
+            "y": -0.06,
+            "xanchor": "left",
+            "x": 0,
+            "font": {"size": 11},
+        },
         bargap=0.22,
         xaxis={"tickformat": ".0%", "range": [0, 1], "gridcolor": "rgba(123,94,167,0.18)", "tickfont": {"color": "#1A1464"}},
         yaxis={"tickfont": {"color": "#1A1464", "size": 13, "family": "Arial Black, Arial, sans-serif"}},
@@ -1971,16 +1978,16 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
     winners = winner_gauge_frame(position_df, top_n)
     fig = go.Figure()
     for index, row in winners.iterrows():
-        domain_width = 1.0 / max(top_n, 1)
-        x0 = index * domain_width + 0.03
-        x1 = (index + 1) * domain_width - 0.03
+        domain_height = 1.0 / max(top_n, 1)
+        y0 = index * domain_height + 0.02
+        y1 = (index + 1) * domain_height - 0.02
         fig.add_trace(
             go.Indicator(
                 mode="gauge+number",
                 value=float(row["probability"]),
-                number={"valueformat": ".1%", "font": {"size": 24}},
-                title={"text": f"#{int(row['rank'])}<br>{row['country']}", "font": {"size": 16}},
-                domain={"x": [x0, x1], "y": [0.12, 0.86]},
+                number={"valueformat": ".1%", "font": {"size": 22}},
+                title={"text": f"#{int(row['rank'])} {row['country']}", "font": {"size": 15}},
+                domain={"x": [0.1, 0.9], "y": [y0, y1]},
                 gauge={
                     "axis": {"range": [0.0, 1.0], "tickformat": ".0%", "tickcolor": "#1A1464"},
                     "bar": {"color": "#E6007E"},
@@ -1996,8 +2003,8 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
         )
     fig.update_layout(
         title=f"Winner probability gauge: top {top_n}",
-        height=360,
-        margin={"l": 25, "r": 25, "t": 70, "b": 30},
+        height=560,
+        margin={"l": 25, "r": 25, "t": 50, "b": 20},
         font={"size": 14, "color": "#1A1464"},
         paper_bgcolor="#ffffff",
     )
@@ -2471,6 +2478,13 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
     .ci-range { position: absolute; top: 0; height: 100%; border-radius: 999px; background: #2563eb; }
     .ci-label { color: #4b5563; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
     .missing-text { color: #6b7280; }
+    @media (max-width: 640px) {
+        .semi-table { table-layout: auto; }
+        .semi-table th:nth-child(5), .semi-table td:nth-child(5) { display: none; }
+        .semi-table th:nth-child(4), .semi-table td:nth-child(4) { width: auto; }
+        .semi-table th:nth-child(1), .semi-table td:nth-child(1) { width: 2rem; }
+        .semi-table th:nth-child(2), .semi-table td:nth-child(2) { width: 3rem; }
+    }
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
