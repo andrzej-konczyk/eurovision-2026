@@ -636,6 +636,41 @@ div[data-testid="stAlert"] {
     border-radius: 10px;
     border-left: 4px solid var(--esc-magenta) !important;
 }
+
+@media (max-width: 640px) {
+    .block-container {
+        padding-left: 0.6rem !important;
+        padding-right: 0.6rem !important;
+        padding-top: 0.75rem !important;
+    }
+    h1 { font-size: 1.4rem !important; }
+    h2 { font-size: 1.1rem !important; }
+    h3 { font-size: 0.95rem !important; }
+    .country-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.75rem 0.9rem;
+        gap: 0.6rem;
+    }
+    .country-hero .hero-name {
+        font-size: 1.35rem !important;
+    }
+    .badge-pill {
+        font-size: 0.72rem !important;
+        padding: 0.18rem 0.52rem !important;
+    }
+    div[data-testid="stMetric"],
+    div[data-testid="metric-container"] {
+        padding: 0.6rem 0.7rem !important;
+    }
+    div[data-testid="stPlotlyChart"] {
+        overflow-x: auto !important;
+    }
+    div[data-testid="column"] {
+        min-width: 0;
+        overflow: hidden;
+    }
+}
 </style>
 """
     st.markdown(
@@ -743,6 +778,13 @@ def render_audio_player() -> None:
         font-weight: 900;
         cursor: pointer;
         box-shadow: 0 0 16px rgba(245,197,66,0.35);
+      }
+      @media (max-width: 640px) {
+        #esc-audio-dock {
+          top: auto !important;
+          bottom: 1.2rem !important;
+          right: 0.75rem !important;
+        }
       }
     `;
     doc.head.appendChild(style);
