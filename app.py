@@ -1978,16 +1978,16 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
     winners = winner_gauge_frame(position_df, top_n)
     fig = go.Figure()
     for index, row in winners.iterrows():
-        domain_height = 1.0 / max(top_n, 1)
-        y0 = index * domain_height + 0.02
-        y1 = (index + 1) * domain_height - 0.02
+        domain_width = 1.0 / max(top_n, 1)
+        x0 = index * domain_width + 0.02
+        x1 = (index + 1) * domain_width - 0.02
         fig.add_trace(
             go.Indicator(
                 mode="gauge+number",
                 value=float(row["probability"]),
                 number={"valueformat": ".1%", "font": {"size": 22}},
                 title={"text": f"#{int(row['rank'])} {row['country']}", "font": {"size": 15}},
-                domain={"x": [0.1, 0.9], "y": [y0, y1]},
+                domain={"x": [x0, x1], "y": [0.08, 0.9]},
                 gauge={
                     "axis": {"range": [0.0, 1.0], "tickformat": ".0%", "tickcolor": "#1A1464"},
                     "bar": {"color": "#E6007E"},
@@ -2003,7 +2003,7 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
         )
     fig.update_layout(
         title=f"Winner probability gauge: top {top_n}",
-        height=560,
+        height=300,
         margin={"l": 25, "r": 25, "t": 50, "b": 20},
         font={"size": 14, "color": "#1A1464"},
         paper_bgcolor="#ffffff",
@@ -2350,7 +2350,7 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
             "toImageButtonOptions": {
                 "format": "png",
                 "filename": "eurovision_2026_winner_gauge_top3",
-                "height": 560,
+                "height": 300,
                 "width": 1400,
                 "scale": 2,
             },
