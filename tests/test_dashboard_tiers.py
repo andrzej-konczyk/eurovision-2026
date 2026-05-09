@@ -52,3 +52,6 @@ def test_winner_gauge_uses_top_three_candidates(predictions_df):
     assert x_domains[0][1] < x_domains[1][0]
     assert x_domains[1][1] < x_domains[2][0]
     assert all(domain == y_domains[0] for domain in y_domains)
+    for trace in fig.data:
+        assert list(trace.gauge.axis.tickvals) == [0.0, 0.5, 1.0]
+        assert list(trace.gauge.axis.ticktext) == ["", "50%", ""]

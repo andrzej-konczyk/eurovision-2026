@@ -1989,7 +1989,13 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
                 title={"text": f"#{int(row['rank'])} {row['country']}", "font": {"size": 15}},
                 domain={"x": [x0, x1], "y": [0.08, 0.9]},
                 gauge={
-                    "axis": {"range": [0.0, 1.0], "tickformat": ".0%", "tickcolor": "#1A1464"},
+                    "axis": {
+                        "range": [0.0, 1.0],
+                        "tickmode": "array",
+                        "tickvals": [0.0, 0.5, 1.0],
+                        "ticktext": ["", "50%", ""],
+                        "tickcolor": "#1A1464",
+                    },
                     "bar": {"color": "#E6007E"},
                     "bgcolor": "#ffffff",
                     "bordercolor": "#7B5EA7",
