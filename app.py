@@ -46,7 +46,7 @@ NAVIGATION_PAGES = [
     "Model Stats",
     "Semi Qualifiers",
     "Main Ranking",
-    "Tiers",
+    "Podium",
     "Narratives",
     "Voting Blocs",
     "Voting Network",
@@ -56,7 +56,7 @@ PAGE_CAPTIONS = {
     "Overview": "Current forecast snapshot, model freshness, leading contenders, and backtest health.",
     "Model Stats": "",
     "Main Ranking": "Full country ranking with confidence intervals and model agreement signals.",
-    "Tiers": "Top-3 position probabilities and winner concentration.",
+    "Podium": "Top-3 position probabilities and winner concentration.",
     "Semi Qualifiers": "Semi-final qualification probabilities by draw.",
     "Voting Blocs": "Regional bloc membership matrix used by feature engineering.",
     "Voting Network": "Historical jury affinity graph merged with current top-10 probabilities.",
@@ -2315,7 +2315,7 @@ def data_health_checks(data: dict[str, Any], load_time_s: float) -> pd.DataFrame
 
 
 def render_tiers(predictions_df: pd.DataFrame) -> None:
-    render_page_header("Tiers")
+    render_page_header("Podium")
     if predictions_df.empty:
         st.warning("No country predictions found in the predictions JSON.")
         return
@@ -2325,7 +2325,7 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
         st.warning("No top-3 position probabilities could be derived.")
         return
 
-    st.subheader("Tier 3: Top-3 Probability Heatmap")
+    st.subheader("Top-3 Probability Heatmap")
     st.plotly_chart(
         top3_heatmap(position_df, predictions_df),
         use_container_width=True,
@@ -2347,7 +2347,7 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
         "The three columns each sum to 100 % — probability is spread across all countries.",
     )
 
-    st.subheader("Tier 4: Winner Probability Gauge")
+    st.subheader("Winner Probability Gauge")
     st.plotly_chart(
         winner_gauge_figure(position_df),
         use_container_width=True,
@@ -2690,7 +2690,7 @@ def main() -> None:
         render_model_stats(data)
     elif page == "Main Ranking":
         render_predictions(data["predictions"], predictions_df, data["narratives"], data["history"])
-    elif page == "Tiers":
+    elif page == "Podium":
         render_tiers(predictions_df)
     elif page == "Semi Qualifiers":
         render_semi_qualifiers(data["semi_predictions"])
