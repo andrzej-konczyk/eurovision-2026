@@ -735,7 +735,19 @@ def render_countdown_timer() -> None:
     )
 
 
-def render_audio_player() -> None:
+def render_audio_player(enabled: bool) -> None:
+    if not enabled:
+        components.html(
+            """
+<script>
+  const doc = window.parent?.document || document;
+  doc.getElementById("esc-audio-dock")?.remove();
+</script>
+""",
+            height=1,
+            scrolling=False,
+        )
+        return
     if not AUDIO_FILE.exists():
         return
     audio_src = load_audio_data_uri(str(AUDIO_FILE), AUDIO_FILE.stat().st_mtime_ns)
@@ -1206,7 +1218,7 @@ def model_stats_note(backtest: dict[str, Any], semi_backtest: dict[str, Any]) ->
     )
 
 
-def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
+def render_sidebar(data: dict[str, Any], load_time_s: float) -> tuple[str, bool]:
     del data, load_time_s
     st.sidebar.markdown(
         """
@@ -1224,10 +1236,11 @@ def render_sidebar(data: dict[str, Any], load_time_s: float) -> str:
     caption = PAGE_CAPTIONS.get(page, "")
     if caption:
         st.sidebar.markdown(f"<small>{escape(caption)}</small>", unsafe_allow_html=True)
+    music_enabled = st.sidebar.checkbox("Music", value=False)
     with st.sidebar.expander("Glossary", expanded=False):
         for term, definition in GLOSSARY.items():
             st.markdown(f"**{term}** - {definition}")
-    return page
+    return page, music_enabled
 
 
 def country_flag(country: str) -> str:
@@ -2680,8 +2693,8 @@ def main() -> None:
     load_time_s = perf_counter() - start
     predictions_df = countries_frame(data["predictions"])
 
-    page = render_sidebar(data, load_time_s)
-    render_audio_player()
+    page, music_enabled = render_sidebar(data, load_time_s)
+    render_audio_player(music_enabled)
     render_back_to_top()
     render_tab_confetti(page)
     if page == "Overview":
