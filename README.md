@@ -4,6 +4,47 @@ Local machine-learning pipeline and Streamlit dashboard for Eurovision Song Cont
 
 The project estimates Grand Final top-10 probability, semi-final qualification probability, derived podium/winner signals, model confidence intervals, SHAP-based country narratives, and historical voting-bloc structure. It is built as a local-first workflow with committed dashboard artifacts under `reports/`.
 
+## Goals And KPIs
+
+### Project goals
+
+- Build a local machine-learning platform that produces probabilistic outcome predictions for Eurovision 2026.
+- Ship a Streamlit dashboard suitable for editorial and broadcast-planning use.
+- Keep the entire pipeline local-first — no paid cloud services for training, tracking, or hosting.
+- Make every prediction reproducible: pinned seed, DVC-tracked datasets, MLflow-tracked experiments, leakage-audit gate.
+- Deliver the work iteratively under a real SDLC: feature branches, sprint releases, automated test suite, code-audit reviews before merging to `main`.
+
+### Deadlines
+
+| Milestone | Date |
+| --- | --- |
+| MVP — Streamlit dashboard | 2026-06-30 |
+| Final predictions | 2026-09-30 |
+
+### Primary KPI
+
+| KPI | Target | Stretch |
+| --- | --- | --- |
+| Grand Final top-10 accuracy in backtests | >= 70% | 80% |
+| CI-80 empirical coverage in backtests | >= 80% | — |
+| Leakage audit | 7/7 PASS after every odds or data refresh | — |
+
+### Achieved KPI results (rebuilt Sprint 12 with `odds_vs_history_delta` feature)
+
+| Model | Top-10 avg accuracy 2022-2024 | CI-80 coverage |
+| --- | --- | --- |
+| XGBoost | 73% | 89% |
+| LightGBM | 77% | 92% |
+| Ensemble on 2025 holdout | 70% | PASS |
+| Semi-final qualification (XGB / LGBM) | 96.7% | — |
+
+### Operational invariants
+
+- Random seed: `42`.
+- Temporal isolation: no future-year data in any training fold.
+- Feature branch per user story; ask explicit approval before merging to `develop` or `main`, and again before push.
+- Build artifacts and dashboard exports under `build/` are not committed (see `.gitignore`).
+
 ## What Is Included
 
 - Streamlit dashboard in `app.py`
