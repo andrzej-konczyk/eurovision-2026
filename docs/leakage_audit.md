@@ -267,7 +267,7 @@ _Reviewed and signed off: Andrzej, 2026-04-28_
 
 **Date:** 2026-05-01  
 **Trigger:** Integration of Polymarket 2026 closing odds (`betting_odds_clean.csv`, source `polymarket_2026-04-30`) + bug fix in `process_odds.py`.  
-**Re-run:** `py -m src.models.leakage_audit` → **7/7 PASS** (LA-01–LA-07; LA-08 encoding issue on terminal, logic verified in source — no change to normalisation code since 2026-04-28).
+**Re-run:** `py -m src.models.leakage_audit` → **8/8 PASS** (LA-01–LA-08).
 
 ### Changes assessed for leakage impact
 

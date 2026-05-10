@@ -10,7 +10,7 @@ The project estimates Grand Final top-10 probability, semi-final qualification p
 
 - Build a local machine-learning platform that produces probabilistic outcome predictions for Eurovision 2026.
 - Ship a Streamlit dashboard suitable for editorial and broadcast-planning use.
-- Keep the entire pipeline local-first — no paid cloud services for training, tracking, or hosting.
+- Keep the entire pipeline local-first - no paid cloud services for training, tracking, or hosting.
 - Make every prediction reproducible: pinned seed, DVC-tracked datasets, MLflow-tracked experiments, leakage-audit gate.
 - Deliver the work iteratively under a real SDLC: feature branches, sprint releases, automated test suite, code-audit reviews before merging to `main`.
 
@@ -19,8 +19,8 @@ The project estimates Grand Final top-10 probability, semi-final qualification p
 | KPI | Target | Stretch |
 | --- | --- | --- |
 | Grand Final top-10 accuracy in backtests | >= 70% | 80% |
-| CI-80 empirical coverage in backtests | >= 80% | — |
-| Leakage audit | 7/7 PASS after every odds or data refresh | — |
+| CI-80 empirical coverage in backtests | >= 80% | - |
+| Leakage audit | 8/8 PASS after every odds or data refresh | - |
 
 ### Achieved KPI results (rebuilt Sprint 12 with `odds_vs_history_delta` feature)
 
@@ -29,12 +29,13 @@ The project estimates Grand Final top-10 probability, semi-final qualification p
 | XGBoost | 73% | 89% |
 | LightGBM | 77% | 92% |
 | Ensemble on 2025 holdout | 70% | PASS |
-| Semi-final qualification (XGB / LGBM) | 96.7% | — |
+| Semi-final qualification (XGB / LGBM) | 96.7% | - |
 
 ### Operational invariants
 
 - Random seed: `42`.
 - Temporal isolation: no future-year data in any training fold.
+- Leakage gate: 8 automated LA checks must pass after odds or data refreshes.
 - Feature branch per user story; ask explicit approval before merging to `develop` or `main`, and again before push.
 - Build artifacts and dashboard exports under `build/` are not committed (see `.gitignore`).
 
@@ -142,14 +143,22 @@ The dashboard expects these files to exist:
 
 ## Model Summary
 
-The main prediction target is Grand Final top-10 placement. The system combines:
+The main prediction target is Grand Final top-10 placement. The modelling stack combines:
 
 - XGBoost classifier
 - LightGBM classifier
 - PyTorch MLP classifier
-- Weighted ensemble over model outputs
+- Weighted-ensemble experiments over model outputs
 - Bootstrap confidence intervals
 - SHAP explainability artifacts
+
+Current dashboard ranking is published from `reports/predictions_2026.json`.
+That payload uses XGBoost/LightGBM confidence outputs for display:
+`consensus_prob = mean(xgb_prob, lgbm_prob)` when both probabilities are
+available. Ensemble-weight experiments are tracked separately in
+`models/artefacts/ensemble_weights.json`; the current 2025 holdout-optimised
+record is `xgb=0.0, lgbm=0.2, nn=0.8`, but those weights are not directly
+applied by `scripts/build_predictions_json.py`.
 
 Semi-final qualification is modelled separately because it is a threshold problem: 10 acts qualify from each semi-final.
 
@@ -157,7 +166,7 @@ The dashboard also shows top-3 and winner views, but these are derived interpret
 
 ## Data And Tracking
 
-- DVC is used for selected datasets.
+- DVC is used for selected datasets and selected model artifacts through `.dvc` pointer files.
 - MLflow is configured for local experiment tracking.
 - `.env.example` documents expected local environment variables.
 - The project is designed to run locally without paid cloud services.
@@ -189,6 +198,8 @@ See `docs/sprint11_running_order_refresh.md` for operational details.
 ## Current Notes
 
 - Primary KPI: at least 70% top-10 finalist accuracy in backtests.
+- Current visible dashboard consensus uses XGB/LGBM confidence probabilities; weighted-ensemble experiments are tracked separately.
+- Latest documented full test suite status: 389/389 passing after the Sprint 12 rebuild.
 - Random seed: `42`.
 - Python 3.11+ is the intended runtime; the current local environment has also been exercised with Python 3.13.
 - Some browser autoplay policies can block dashboard audio until the user interacts with the page.

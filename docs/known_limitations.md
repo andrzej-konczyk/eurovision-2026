@@ -143,12 +143,12 @@ The genre pipeline uses Spotify as primary source and MusicBrainz as fallback. 1
 
 ---
 
-## KL-06 — Ensemble does not outperform best single model (open risk — RR-01)
+## KL-06 — Ensemble lift is holdout-dependent
 
 | Field | Value |
 |-------|-------|
 | **Affected component** | `src/models/ensemble.py`, `models/artefacts/ensemble_weights.json` |
-| **Status** | **Open risk** — logged in RR-01 |
+| **Status** | Partially mitigated; keep monitored |
 | **Logged** | 2026-04-29 |
 | **Story** | US-S5-02 |
 | **Severity** | Medium |
@@ -183,6 +183,26 @@ The 2025 holdout re-run reverses the single-model preference:
 - Equal XGB/LGBM compromise: 60% (6/10), FAIL
 
 Official `ensemble_weights.json` was therefore updated to **xgb=1.0, lgbm=0.0, nn=0.0** for US-S8-01. The equal blend was evaluated and rejected because it fails the 2025 KPI.
+
+### Update (2026-05-07, Sprint 12 rebuild)
+
+After adding `odds_vs_history_delta`, the 2025 holdout-optimised weighted
+ensemble changed to:
+
+- XGBoost standalone: 60% (6/10)
+- LightGBM standalone: 60% (6/10)
+- MLP standalone: 60% (6/10)
+- Best blend: **xgb=0.0, lgbm=0.2, nn=0.8** - 70% (7/10), PASS
+
+This resolves the immediate "single model only" concern for the latest holdout,
+but the limitation remains worth tracking: ensemble lift is not stable across
+every historical holdout and should continue to be validated after each feature
+or odds refresh.
+
+Dashboard implementation note: the visible 2026 `consensus_prob` in
+`reports/predictions_2026.json` is currently a mean of XGB and LGBM confidence
+outputs. The weighted XGB/LGBM/MLP artifact documents holdout-optimised ensemble
+selection, but is not directly applied by `scripts/build_predictions_json.py`.
 
 ### Mitigation paths
 
@@ -235,7 +255,7 @@ The 2026 ranking is therefore determined entirely by `avg_jury_3yr`, `avg_tele_3
 | Field | Value |
 |-------|-------|
 | **Affected component** | `src/models/ensemble.py`, LGBM Grand Final top-10 model |
-| **Status** | OPEN |
+| **Status** | Closed after Sprint 12 mitigation |
 | **Logged** | 2026-05-05 |
 | **Story** | US-S8-01 |
 | **Severity** | Medium |
@@ -258,10 +278,14 @@ Even the XGB-selected 2025 ensemble still misses Greece, Italy, and Switzerland.
 
 ### Mitigation
 
-Add `odds_vs_history_delta` in Sprint 9:
+Added `odds_vs_history_delta` in Sprint 12:
 
 ```text
-odds_vs_history_delta = normalized(implied_prob_close - avg_tele_3yr)
+odds_vs_history_delta = implied_prob_close - ((26 + 1 - avg_final_rank_3yr) / 26)
 ```
 
-The feature should give tree models an explicit signal for countries where the market underprices or overprices recent televote strength.
+The feature gives tree models an explicit signal for countries where the market
+underprices or overprices recent Grand Final history. Sprint 12 validation
+showed LGBM CV AUC improving from 0.636 to 0.685 (+4.9pp), Greece 2025 moving
+into the predicted top 10, and the 2022-2024 LGBM backtest average improving to
+77% top-10 accuracy.
