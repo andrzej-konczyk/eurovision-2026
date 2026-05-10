@@ -46,7 +46,7 @@ NAVIGATION_PAGES = [
     "Model Stats",
     "Semi Qualifiers",
     "Main Ranking",
-    "Tiers",
+    "Podium",
     "Narratives",
     "Voting Blocs",
     "Voting Network",
@@ -56,7 +56,7 @@ PAGE_CAPTIONS = {
     "Overview": "Current forecast snapshot, model freshness, leading contenders, and backtest health.",
     "Model Stats": "",
     "Main Ranking": "Full country ranking with confidence intervals and model agreement signals.",
-    "Tiers": "Top-3 position probabilities and winner concentration.",
+    "Podium": "Top-3 position probabilities and winner concentration.",
     "Semi Qualifiers": "Semi-final qualification probabilities by draw.",
     "Voting Blocs": "Regional bloc membership matrix used by feature engineering.",
     "Voting Network": "Historical jury affinity graph merged with current top-10 probabilities.",
@@ -636,6 +636,41 @@ div[data-testid="stAlert"] {
     border-radius: 10px;
     border-left: 4px solid var(--esc-magenta) !important;
 }
+
+@media (max-width: 640px) {
+    .block-container {
+        padding-left: 0.6rem !important;
+        padding-right: 0.6rem !important;
+        padding-top: 0.75rem !important;
+    }
+    h1 { font-size: 1.4rem !important; }
+    h2 { font-size: 1.1rem !important; }
+    h3 { font-size: 0.95rem !important; }
+    .country-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.75rem 0.9rem;
+        gap: 0.6rem;
+    }
+    .country-hero .hero-name {
+        font-size: 1.35rem !important;
+    }
+    .badge-pill {
+        font-size: 0.72rem !important;
+        padding: 0.18rem 0.52rem !important;
+    }
+    div[data-testid="stMetric"],
+    div[data-testid="metric-container"] {
+        padding: 0.6rem 0.7rem !important;
+    }
+    div[data-testid="stPlotlyChart"] {
+        overflow-x: auto !important;
+    }
+    div[data-testid="column"] {
+        min-width: 0;
+        overflow: hidden;
+    }
+}
 </style>
 """
     st.markdown(
@@ -743,6 +778,13 @@ def render_audio_player() -> None:
         font-weight: 900;
         cursor: pointer;
         box-shadow: 0 0 16px rgba(245,197,66,0.35);
+      }
+      @media (max-width: 640px) {
+        #esc-audio-dock {
+          top: auto !important;
+          bottom: 1.2rem !important;
+          right: 0.75rem !important;
+        }
       }
     `;
     doc.head.appendChild(style);
@@ -1813,7 +1855,14 @@ def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
         yaxis_title=None,
         height=820,
         margin={"l": 120, "r": 40, "t": 70, "b": 50},
-        legend_title_text="Safety badge",
+        legend={
+            "orientation": "h",
+            "yanchor": "top",
+            "y": -0.06,
+            "xanchor": "left",
+            "x": 0,
+            "font": {"size": 11},
+        },
         bargap=0.22,
         xaxis={"tickformat": ".0%", "range": [0, 1], "gridcolor": "rgba(123,94,167,0.18)", "tickfont": {"color": "#1A1464"}},
         yaxis={"tickfont": {"color": "#1A1464", "size": 13, "family": "Arial Black, Arial, sans-serif"}},
@@ -1930,17 +1979,23 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
     fig = go.Figure()
     for index, row in winners.iterrows():
         domain_width = 1.0 / max(top_n, 1)
-        x0 = index * domain_width + 0.03
-        x1 = (index + 1) * domain_width - 0.03
+        x0 = index * domain_width + 0.02
+        x1 = (index + 1) * domain_width - 0.02
         fig.add_trace(
             go.Indicator(
                 mode="gauge+number",
                 value=float(row["probability"]),
-                number={"valueformat": ".1%", "font": {"size": 24}},
-                title={"text": f"#{int(row['rank'])}<br>{row['country']}", "font": {"size": 16}},
-                domain={"x": [x0, x1], "y": [0.12, 0.86]},
+                number={"valueformat": ".1%", "font": {"size": 22}},
+                title={"text": f"#{int(row['rank'])} {row['country']}", "font": {"size": 15}},
+                domain={"x": [x0, x1], "y": [0.08, 0.9]},
                 gauge={
-                    "axis": {"range": [0.0, 1.0], "tickformat": ".0%", "tickcolor": "#1A1464"},
+                    "axis": {
+                        "range": [0.0, 1.0],
+                        "tickmode": "array",
+                        "tickvals": [0.0, 0.5, 1.0],
+                        "ticktext": ["", "50%", ""],
+                        "tickcolor": "#1A1464",
+                    },
                     "bar": {"color": "#E6007E"},
                     "bgcolor": "#ffffff",
                     "bordercolor": "#7B5EA7",
@@ -1954,8 +2009,8 @@ def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
         )
     fig.update_layout(
         title=f"Winner probability gauge: top {top_n}",
-        height=360,
-        margin={"l": 25, "r": 25, "t": 70, "b": 30},
+        height=300,
+        margin={"l": 25, "r": 25, "t": 50, "b": 20},
         font={"size": 14, "color": "#1A1464"},
         paper_bgcolor="#ffffff",
     )
@@ -2260,7 +2315,7 @@ def data_health_checks(data: dict[str, Any], load_time_s: float) -> pd.DataFrame
 
 
 def render_tiers(predictions_df: pd.DataFrame) -> None:
-    render_page_header("Tiers")
+    render_page_header("Podium")
     if predictions_df.empty:
         st.warning("No country predictions found in the predictions JSON.")
         return
@@ -2270,7 +2325,7 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
         st.warning("No top-3 position probabilities could be derived.")
         return
 
-    st.subheader("Tier 3: Top-3 Probability Heatmap")
+    st.subheader("Top-3 Probability Heatmap")
     st.plotly_chart(
         top3_heatmap(position_df, predictions_df),
         use_container_width=True,
@@ -2292,7 +2347,7 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
         "The three columns each sum to 100 % — probability is spread across all countries.",
     )
 
-    st.subheader("Tier 4: Winner Probability Gauge")
+    st.subheader("Winner Probability Gauge")
     st.plotly_chart(
         winner_gauge_figure(position_df),
         use_container_width=True,
@@ -2301,7 +2356,7 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
             "toImageButtonOptions": {
                 "format": "png",
                 "filename": "eurovision_2026_winner_gauge_top3",
-                "height": 560,
+                "height": 300,
                 "width": 1400,
                 "scale": 2,
             },
@@ -2429,6 +2484,13 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
     .ci-range { position: absolute; top: 0; height: 100%; border-radius: 999px; background: #2563eb; }
     .ci-label { color: #4b5563; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
     .missing-text { color: #6b7280; }
+    @media (max-width: 640px) {
+        .semi-table { table-layout: auto; }
+        .semi-table th:nth-child(5), .semi-table td:nth-child(5) { display: none; }
+        .semi-table th:nth-child(4), .semi-table td:nth-child(4) { width: auto; }
+        .semi-table th:nth-child(1), .semi-table td:nth-child(1) { width: 2rem; }
+        .semi-table th:nth-child(2), .semi-table td:nth-child(2) { width: 3rem; }
+    }
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
@@ -2628,7 +2690,7 @@ def main() -> None:
         render_model_stats(data)
     elif page == "Main Ranking":
         render_predictions(data["predictions"], predictions_df, data["narratives"], data["history"])
-    elif page == "Tiers":
+    elif page == "Podium":
         render_tiers(predictions_df)
     elif page == "Semi Qualifiers":
         render_semi_qualifiers(data["semi_predictions"])
