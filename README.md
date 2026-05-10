@@ -14,13 +14,6 @@ The project estimates Grand Final top-10 probability, semi-final qualification p
 - Make every prediction reproducible: pinned seed, DVC-tracked datasets, MLflow-tracked experiments, leakage-audit gate.
 - Deliver the work iteratively under a real SDLC: feature branches, sprint releases, automated test suite, code-audit reviews before merging to `main`.
 
-### Deadlines
-
-| Milestone | Date |
-| --- | --- |
-| MVP — Streamlit dashboard | 2026-06-30 |
-| Final predictions | 2026-09-30 |
-
 ### Primary KPI
 
 | KPI | Target | Stretch |
