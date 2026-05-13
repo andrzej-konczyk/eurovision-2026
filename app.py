@@ -493,6 +493,42 @@ div[data-testid="stExpander"] [data-testid="stMarkdownContainer"] li {
     color: #e2e8f0;
 }
 
+div[data-testid="stExpander"] div[data-testid="stCaptionContainer"] p {
+    color: rgba(226,232,240,0.88) !important;
+}
+
+.validation-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    color: #111827;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 0.92rem;
+}
+.validation-table th {
+    background: #f3f4f6;
+    color: #374151;
+    text-align: left;
+    font-weight: 800;
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid #d1d5db;
+}
+.validation-table td {
+    color: #111827;
+    padding: 0.52rem 0.7rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+.validation-table tr:last-child td {
+    border-bottom: 0;
+}
+.validation-table td:nth-child(3),
+.validation-table td:nth-child(4) {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+}
+
 div[data-testid="stDataFrame"] div[role="gridcell"],
 div[data-testid="stDataFrame"] div[role="columnheader"],
 div[data-testid="stDataFrame"] [role="cell"],
@@ -2753,6 +2789,16 @@ def render_backtest(backtest: dict[str, Any]) -> None:
         st.warning("No backtest metrics found in the backtest JSON.")
         return
 
+    _info_expander(
+        "What this backtest means",
+        "A backtest replays previous Eurovision years using the model pipeline and checks whether the "
+        "predicted Top-10 matched the actual Top-10. It was used to validate the modelling approach "
+        "before publishing 2026 predictions.\n\n"
+        "It is a historical diagnostic only. It does not directly change the current live probabilities. "
+        "The live 2026 dashboard is adjusted by known SF1 results, calibrated SF2 qualification "
+        "probabilities, and the latest rebuilt prediction artifacts.",
+    )
+
     st.dataframe(
         frame.sort_values(["year", "model"]),
         use_container_width=True,
@@ -2770,18 +2816,12 @@ def render_model_stats(data: dict[str, Any]) -> None:
     semi_backtest = data["semi_backtest"]
     semi_predictions = data["semi_predictions"]
     stats = aggregate_model_stats(backtest, semi_backtest)
-    gf_frame = backtest_frame(backtest)
-    semi_frame = semi_backtest_frame(semi_backtest)
 
     if stats.empty:
         st.warning("No model statistics found in the backtest artifacts.")
         return
 
     gf_best = best_metric_value(stats, "Grand Final Top-10", "accuracy")
-    gf_ci = best_metric_value(stats, "Grand Final Top-10", "ci80_coverage")
-    semi_best = best_metric_value(stats, "Semi-final qualification", "accuracy")
-    semi_ci = best_metric_value(stats, "Semi-final qualification", "ci80_coverage")
-    best_ci = max([value for value in [gf_ci, semi_ci] if value is not None], default=None)
     sf1_verification = semi_verification_frame(semi_predictions)
     if sf1_verification.empty:
         sf1_accuracy_label = "n/a"
@@ -2804,72 +2844,62 @@ def render_model_stats(data: dict[str, Any]) -> None:
     col2.metric("Live SF1 accuracy", sf1_accuracy_label, help="Actual 2026 SF1 Q/NQ calls after the first semi-final.")
     col3.metric("Live SF1 Q hit rate", sf1_hit_rate_label, help="Actual 2026 SF1 qualifiers included in the model's predicted qualifier set.")
     col4.metric("Live SF1 misses", sf1_misses_label, help="Wrong Q/NQ calls in the first semi-final.")
+    st.caption(
+        f"Historical backtests ({year_label}) are diagnostics only. They validated the model before the live run; "
+        "they do not directly adjust today's probabilities."
+    )
 
     _info_expander(
-        "How to interpret model accuracy",
-        "Grand Final accuracy measures how many actual Top-10 countries appeared in the model's predicted Top 10. "
-        "Semi-final accuracy measures how many actual qualifiers were included in each predicted qualifier set. "
-        "CI-80 coverage checks whether historical outcomes fell inside the model's 80 % confidence interval.\n\n"
-        "The top row separates **live 2026 SF1 verification** from historical backtests. Historical best/average "
-        "metrics remain useful diagnostics, but they are not the current 2026 semi-final result."
+        "Backtest role in the live model",
+        "A backtest replays past contests using only data that would have been available before each contest, "
+        "then compares the model's predicted Top-10 or semi-final qualifiers with the actual results. It was "
+        "used to validate the modelling approach, catch weak features, and decide whether the model was good "
+        "enough to publish.\n\n"
+        "Its current impact is indirect: it gives confidence that the method is reasonable, but it does not "
+        "change live 2026 probabilities. The live probabilities are updated by known SF1 results, calibrated "
+        "SF2 qualification probabilities, and the latest rebuilt prediction artifacts."
     )
     _info_expander(
         "Model target summary",
         TOP10_RATIONALE,
     )
 
-    st.subheader("Historical Backtest Summary")
-    st.caption(
-        f"Historical backtest years: {year_label}. Best historical semi accuracy: {format_percent(semi_best)}; "
-        f"best historical CI-80 coverage: {format_percent(best_ci)}. Live SF1 is shown separately above."
-    )
-    stats_display = stats.copy()
-    stats_display = stats_display[["scope", "model", "accuracy", "ci80_coverage"]]
-    for column in ["accuracy", "ci80_coverage"]:
-        if column in stats_display.columns:
-            stats_display[column] = stats_display[column].map(format_percent_rounded)
-    st.dataframe(
-        stats_display,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "accuracy": st.column_config.TextColumn("Avg accuracy"),
-            "ci80_coverage": st.column_config.TextColumn("Avg CI-80 coverage"),
-        },
-    )
-
-    gf_tab, semi_tab = st.tabs(["Grand Final Top-10", "Semi-final qualification"])
-    with gf_tab:
-        st.caption(str(backtest.get("note_hyperparams", "")))
-        gf_display = gf_frame.drop(columns=["top10_kpi", "ci80_kpi"], errors="ignore")
-        for column in ["top10_accuracy", "ci80_coverage"]:
-            if column in gf_display.columns:
-                gf_display[column] = gf_display[column].map(format_percent_rounded)
-        st.dataframe(
-            gf_display.sort_values(["year", "model"]) if not gf_display.empty else gf_display,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "top10_accuracy": st.column_config.TextColumn("Top-10 accuracy"),
-                "ci80_coverage": st.column_config.TextColumn("CI-80 coverage"),
-            },
+    with st.expander("Historical validation results", expanded=False):
+        st.caption(
+            "These are historical backtest results used to validate the method. They are not applied as a direct "
+            "multiplier or adjustment to the live 2026 probabilities."
         )
-    with semi_tab:
-        st.caption(str(semi_backtest.get("note_hyperparams", "")))
-        semi_display = semi_frame.drop(columns=["sf1_kpi", "sf2_kpi", "ci80_kpi"], errors="ignore")
-        for column in ["qual_accuracy_overall", "qual_accuracy_sf1", "qual_accuracy_sf2", "ci80_coverage"]:
-            if column in semi_display.columns:
-                semi_display[column] = semi_display[column].map(format_percent_rounded)
-        st.dataframe(
-            semi_display.sort_values(["year", "model"]) if not semi_display.empty else semi_display,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "qual_accuracy_overall": st.column_config.TextColumn("Overall accuracy"),
-                "qual_accuracy_sf1": st.column_config.TextColumn("SF1 accuracy"),
-                "qual_accuracy_sf2": st.column_config.TextColumn("SF2 accuracy"),
-                "ci80_coverage": st.column_config.TextColumn("CI-80 coverage"),
-            },
+        stats_display = stats.copy()
+        stats_display = stats_display[["scope", "model", "accuracy", "ci80_coverage"]]
+        for column in ["accuracy", "ci80_coverage"]:
+            if column in stats_display.columns:
+                stats_display[column] = stats_display[column].map(format_percent_rounded)
+        rows_html = "\n".join(
+            "<tr>"
+            f"<td>{escape(str(row.scope))}</td>"
+            f"<td>{escape(str(row.model))}</td>"
+            f"<td>{escape(str(row.accuracy))}</td>"
+            f"<td>{escape(str(row.ci80_coverage))}</td>"
+            "</tr>"
+            for row in stats_display.itertuples(index=False)
+        )
+        st.markdown(
+            f"""
+<table class="validation-table">
+  <thead>
+    <tr>
+      <th>Scope</th>
+      <th>Model</th>
+      <th>Avg accuracy</th>
+      <th>Avg CI-80 coverage</th>
+    </tr>
+  </thead>
+  <tbody>
+    {rows_html}
+  </tbody>
+</table>
+""",
+            unsafe_allow_html=True,
         )
 
 
