@@ -19,7 +19,27 @@ CONFIDENCE_XGB = ARTEFACTS_DIR / "confidence_xgb.csv"
 CONFIDENCE_LGBM = ARTEFACTS_DIR / "confidence_lgbm.csv"
 SURROGATE_JSON = REPORTS_DIR / "surrogate_2026.json"
 NARRATIVES_JSON = REPORTS_DIR / "narratives_2026.json"
+SEMI_PREDICTIONS_JSON = REPORTS_DIR / "semi_predictions_2026.json"
 OUTPUT_JSON = REPORTS_DIR / "predictions_2026.json"
+SF1_ACTUAL_QUALIFIERS = {
+    "Greece",
+    "Finland",
+    "Belgium",
+    "Sweden",
+    "Moldova",
+    "Israel",
+    "Serbia",
+    "Croatia",
+    "Lithuania",
+    "Poland",
+}
+SF1_ACTUAL_NON_QUALIFIERS = {
+    "Portugal",
+    "Georgia",
+    "Montenegro",
+    "Estonia",
+    "San Marino",
+}
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -40,10 +60,53 @@ def indexed_by_country(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return {row["country"]: row for row in rows}
 
 
+def qualification_context(country: str, semi_by_country: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    if country in SF1_ACTUAL_QUALIFIERS:
+        return {
+            "qualification_status": "SF1 qualified",
+            "sf_qualify_prob": 1.0,
+            "live_multiplier": 1.0,
+            "probability_basis": "known_qualified",
+        }
+    if country in SF1_ACTUAL_NON_QUALIFIERS:
+        return {
+            "qualification_status": "SF1 eliminated",
+            "sf_qualify_prob": 0.0,
+            "live_multiplier": 0.0,
+            "probability_basis": "known_eliminated",
+        }
+
+    semi = semi_by_country.get(country)
+    if not semi:
+        return {
+            "qualification_status": "Automatic finalist",
+            "sf_qualify_prob": 1.0,
+            "live_multiplier": 1.0,
+            "probability_basis": "automatic_finalist",
+        }
+
+    sf_num = int(semi.get("semi_final") or 0)
+    sf_prob = semi.get("prob_qualify")
+    if sf_num == 2 and sf_prob is not None:
+        return {
+            "qualification_status": "SF2 predicted Q" if bool(semi.get("predicted_qualifier")) else "SF2 pending",
+            "sf_qualify_prob": float(sf_prob),
+            "live_multiplier": float(sf_prob),
+            "probability_basis": "base_gf_prob_times_sf2_qualify_prob",
+        }
+    return {
+        "qualification_status": "Pending",
+        "sf_qualify_prob": sf_prob,
+        "live_multiplier": 1.0,
+        "probability_basis": "base_gf_prob",
+    }
+
+
 def build_predictions() -> dict[str, Any]:
     confidence_meta = read_json(CONFIDENCE_META)
     surrogate = read_json(SURROGATE_JSON)
     narratives = read_json(NARRATIVES_JSON)
+    semi_predictions = read_json(SEMI_PREDICTIONS_JSON) if SEMI_PREDICTIONS_JSON.exists() else {}
 
     xgb_rows = model_rows(CONFIDENCE_XGB)
     lgbm_rows = model_rows(CONFIDENCE_LGBM)
@@ -51,6 +114,7 @@ def build_predictions() -> dict[str, Any]:
     lgbm_by_country = indexed_by_country(lgbm_rows)
     surrogate_by_country = indexed_by_country(surrogate.get("countries", []))
     narrative_by_country = indexed_by_country(narratives.get("countries", []))
+    semi_by_country = indexed_by_country(semi_predictions.get("countries", []))
 
     countries: list[dict[str, Any]] = []
     for country in sorted(set(xgb_by_country) | set(lgbm_by_country)):
@@ -61,11 +125,16 @@ def build_predictions() -> dict[str, Any]:
         xgb_prob = xgb.get("prob_mean")
         lgbm_prob = lgbm.get("prob_mean")
         probs = [prob for prob in [xgb_prob, lgbm_prob] if prob is not None]
-        avg_prob = sum(probs) / len(probs) if probs else None
+        base_prob = sum(probs) / len(probs) if probs else None
+        qual = qualification_context(country, semi_by_country)
+        live_prob = None if base_prob is None else base_prob * float(qual["live_multiplier"])
         countries.append(
             {
                 "country": country,
-                "consensus_prob": avg_prob,
+                "base_consensus_prob": base_prob,
+                "consensus_prob": live_prob,
+                "live_consensus_prob": live_prob,
+                **qual,
                 "xgb_rank": xgb.get("rank"),
                 "xgb_prob": xgb_prob,
                 "xgb_ci80_lo": xgb.get("ci80_lo"),
@@ -107,12 +176,21 @@ def build_predictions() -> dict[str, Any]:
         "story": "US-S7-01",
         "generated_at": datetime.now(UTC).isoformat(),
         "target_year": confidence_meta.get("target_year", 2026),
+        "live_adjustment": {
+            "method": "post_sf1_unconditional_top10",
+            "note": (
+                "Base Grand Final Top-10 probabilities are adjusted for known qualification status: "
+                "SF1 eliminated countries are set to 0, known finalists keep base probability, "
+                "and unresolved SF2 countries are multiplied by calibrated semi-final qualification probability."
+            ),
+        },
         "source_files": {
             "confidence_meta": str(CONFIDENCE_META.relative_to(PROJECT_ROOT)),
             "xgb": str(CONFIDENCE_XGB.relative_to(PROJECT_ROOT)),
             "lgbm": str(CONFIDENCE_LGBM.relative_to(PROJECT_ROOT)),
             "surrogate": str(SURROGATE_JSON.relative_to(PROJECT_ROOT)),
             "narratives": str(NARRATIVES_JSON.relative_to(PROJECT_ROOT)),
+            "semi_predictions": str(SEMI_PREDICTIONS_JSON.relative_to(PROJECT_ROOT)),
         },
         "n_countries": len(countries),
         "models": {

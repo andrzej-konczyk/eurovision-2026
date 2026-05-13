@@ -40,6 +40,27 @@ BLOC_COOCCURRENCE_CSV = APP_ROOT / "data" / "features" / "bloc_cooccurrence.csv"
 GRAND_FINAL_AT_ISO = "2026-05-16T21:00:00+02:00"
 AUDIO_FILE = APP_ROOT / "dl.mp3"
 LOGO_FILE = APP_ROOT / "Eurovision_Song_Contest_2026_Logo.jpg"
+SF1_RESULT_DATE = "2026-05-12"
+SF1_RESULT_SOURCE = "https://www.eurovision.com/stories/eurovision-2026-first-semi-final-qualifiers-vienna/"
+SF1_ACTUAL_QUALIFIERS = {
+    "Greece",
+    "Finland",
+    "Belgium",
+    "Sweden",
+    "Moldova",
+    "Israel",
+    "Serbia",
+    "Croatia",
+    "Lithuania",
+    "Poland",
+}
+SF1_ACTUAL_NON_QUALIFIERS = {
+    "Portugal",
+    "Georgia",
+    "Montenegro",
+    "Estonia",
+    "San Marino",
+}
 
 NAVIGATION_PAGES = [
     "Overview",
@@ -92,10 +113,12 @@ SEMI_QUALIFIER_METHOD = (
     "using only features that are available before the semi-final result is known: qualification "
     "record, semi-final draw, running order, historical jury/televote strength, bloc signals, "
     "social/community scores, rule-era flags, and semi-final market probability where available.\n\n"
-    "For each 2026 semi-finalist, both models estimate **prob_qualify**. The displayed probability "
-    "is the average of the XGBoost and LightGBM estimates. A 1,000-run bootstrap retrains the "
-    "models on resampled historical data to produce the CI-80 interval, so a wider interval means "
-    "the qualification estimate is less stable.\n\n"
+    "For each 2026 semi-finalist, both models estimate **prob_qualify**. Raw bootstrap probabilities "
+    "are passed through a temporal out-of-fold logistic calibrator, then quota-calibrated so each "
+    "semi-final sums to 10 expected qualifiers. The displayed probability is the average of the "
+    "calibrated XGBoost and LightGBM estimates. A 1,000-run bootstrap retrains the models on "
+    "resampled historical data to produce the CI-80 interval, so a wider interval means the "
+    "qualification estimate is less stable.\n\n"
     "Countries are then ranked within their own semi-final by prob_qualify. Because Eurovision "
     "qualifies 10 acts from each semi-final, the top 10 ranked countries in SF1 and the top 10 "
     "ranked countries in SF2 are marked as predicted qualifiers. This is why the table focuses "
@@ -1109,6 +1132,114 @@ def countries_frame(predictions: dict[str, Any]) -> pd.DataFrame:
     return frame
 
 
+def semi_prediction_rows(semi_predictions: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = semi_predictions.get("countries", [])
+    return rows if isinstance(rows, list) else []
+
+
+def semi_prediction_by_country(semi_predictions: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {
+        str(row.get("country")): row
+        for row in semi_prediction_rows(semi_predictions)
+        if row.get("country")
+    }
+
+
+def actual_semi_status(country: str) -> str | None:
+    if country in SF1_ACTUAL_QUALIFIERS:
+        return "Qualified"
+    if country in SF1_ACTUAL_NON_QUALIFIERS:
+        return "Eliminated"
+    return None
+
+
+def qualification_status_label(country: str, semi_predictions: dict[str, Any]) -> str:
+    actual = actual_semi_status(country)
+    if actual == "Qualified":
+        return "SF1 qualified"
+    if actual == "Eliminated":
+        return "SF1 eliminated"
+
+    semi_row = semi_prediction_by_country(semi_predictions).get(country)
+    if not semi_row:
+        return "Automatic finalist"
+    semi_final = int(semi_row.get("semi_final") or 0)
+    if semi_final == 2:
+        return "SF2 predicted Q" if bool(semi_row.get("predicted_qualifier")) else "SF2 pending"
+    return "Pending"
+
+
+def apply_known_results_to_predictions(
+    predictions_df: pd.DataFrame,
+    semi_predictions: dict[str, Any],
+    apply_known_results: bool,
+) -> pd.DataFrame:
+    if predictions_df.empty:
+        return predictions_df
+
+    frame = predictions_df.copy()
+    frame["pre_result_rank"] = frame.get("rank")
+    frame["qualification_status"] = frame["country"].map(
+        lambda country: qualification_status_label(str(country), semi_predictions)
+    )
+    if apply_known_results:
+        frame = frame[frame["qualification_status"] != "SF1 eliminated"].copy()
+        frame = frame.sort_values("probability", ascending=False).reset_index(drop=True)
+        frame["rank"] = frame.index + 1
+    return frame
+
+
+def semi_verification_frame(semi_predictions: dict[str, Any]) -> pd.DataFrame:
+    rows = []
+    for row in semi_prediction_rows(semi_predictions):
+        country = str(row.get("country") or "")
+        actual = actual_semi_status(country)
+        if actual is None:
+            continue
+        predicted = "Qualified" if bool(row.get("predicted_qualifier")) else "Eliminated"
+        rows.append(
+            {
+                "country": country,
+                "rank_in_semi": row.get("rank_in_semi"),
+                "prob_qualify": safe_float(row.get("prob_qualify")),
+                "predicted": predicted,
+                "actual": actual,
+                "hit": predicted == actual,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def semi_final_impact_frame(
+    predictions_df: pd.DataFrame,
+    semi_predictions: dict[str, Any],
+    *,
+    semi_final: int = 2,
+) -> pd.DataFrame:
+    if predictions_df.empty:
+        return pd.DataFrame()
+
+    semi_rows = pd.DataFrame(semi_prediction_rows(semi_predictions))
+    if semi_rows.empty:
+        return pd.DataFrame()
+    semi_rows = semi_rows[pd.to_numeric(semi_rows["semi_final"], errors="coerce").eq(semi_final)].copy()
+    if semi_rows.empty:
+        return pd.DataFrame()
+
+    ranking = main_ranking_frame(predictions_df, n_places=len(predictions_df))
+    merged = semi_rows.merge(
+        ranking[["country", "rank", "probability", "badge"]],
+        on="country",
+        how="left",
+    )
+    merged["prob_qualify"] = pd.to_numeric(merged["prob_qualify"], errors="coerce")
+    merged["probability"] = pd.to_numeric(merged["probability"], errors="coerce")
+    merged["sf2_status"] = merged["predicted_qualifier"].map(lambda value: "Pred Q" if bool(value) else "At risk")
+    merged["top10_dependency"] = merged["rank"].le(10)
+    merged["impact_score"] = merged["probability"].fillna(0.0) * (1.0 - merged["prob_qualify"].fillna(0.0))
+    return merged.sort_values(["top10_dependency", "impact_score", "probability"], ascending=[False, False, False])
+
+
 def backtest_frame(backtest: dict[str, Any]) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for year, year_data in backtest.get("years", {}).items():
@@ -1724,6 +1855,7 @@ def render_predictions(
     visible_columns = [
         "rank",
         "country",
+        "qualification_status",
         "probability",
         "ci80_lo",
         "ci80_hi",
@@ -1732,24 +1864,37 @@ def render_predictions(
         "lgbm_prob",
         "model_consensus",
     ]
+    visible_columns = [column for column in visible_columns if column in ranking.columns]
+    ranking_display = ranking[visible_columns].copy()
+    percent_columns = [
+        "probability",
+        "ci80_lo",
+        "ci80_hi",
+        "xgb_prob",
+        "lgbm_prob",
+    ]
+    for column in percent_columns:
+        if column in ranking_display.columns:
+            ranking_display[column] = ranking_display[column] * 100.0
 
     st.dataframe(
-        ranking[visible_columns],
+        ranking_display,
         use_container_width=True,
         hide_index=True,
         column_config={
             "probability": st.column_config.ProgressColumn(
-                "prob_top10",
-                format="%.3f",
+                "Top-10 probability",
+                format="%.0f%%",
                 min_value=0.0,
-                max_value=1.0,
+                max_value=100.0,
             ),
+            "qualification_status": st.column_config.TextColumn("Qualification status"),
             "badge": st.column_config.TextColumn("Safety badge"),
             "model_consensus": st.column_config.TextColumn("XGB vs LGBM consensus"),
-            "xgb_prob": st.column_config.NumberColumn("XGB probability", format="%.3f"),
-            "lgbm_prob": st.column_config.NumberColumn("LGBM probability", format="%.3f"),
-            "ci80_lo": st.column_config.NumberColumn("CI-80 low", format="%.3f"),
-            "ci80_hi": st.column_config.NumberColumn("CI-80 high", format="%.3f"),
+            "xgb_prob": st.column_config.NumberColumn("XGB probability", format="%.0f%%"),
+            "lgbm_prob": st.column_config.NumberColumn("LGBM probability", format="%.0f%%"),
+            "ci80_lo": st.column_config.NumberColumn("CI-80 low", format="%.0f%%"),
+            "ci80_hi": st.column_config.NumberColumn("CI-80 high", format="%.0f%%"),
         },
     )
 
@@ -1850,7 +1995,7 @@ def ranking_plot(ranking: pd.DataFrame) -> go.Figure:
         )
     )
     fig.update_layout(
-        title="Ranking 1-35 by consensus prob_top10",
+        title=f"Ranking 1-{len(ranking)} by consensus prob_top10",
         xaxis_title="prob_top10 with CI-80",
         yaxis_title=None,
         height=820,
@@ -2412,7 +2557,7 @@ def render_ci_bar(lo: float | None, hi: float | None) -> str:
         '<div class="ci-track">'
         f'<div class="ci-range" style="left:{left:.1f}%;width:{width:.1f}%"></div>'
         "</div>"
-        f'<span class="ci-label">{lo:.2f}-{hi:.2f}</span>'
+        f'<span class="ci-label">{lo:.0%}-{hi:.0%}</span>'
     )
 
 
@@ -2423,11 +2568,20 @@ def render_semi_table(rows: list[dict[str, Any]]) -> str:
         lo = safe_float(row.get("ci80_lo"))
         hi = safe_float(row.get("ci80_hi"))
         band = probability_band(prob)
-        prob_text = "n/a" if prob is None else f"{prob:.1%}"
+        prob_text = "n/a" if prob is None else f"{prob:.0%}"
         country_name = str(row.get("country") or "Unknown")
         country = escape(country_name)
         flag = country_flag_img(country_name, width=26)
         rank = escape(str(row.get("rank_in_semi") or ""))
+        predicted = "Q" if bool(row.get("predicted_qualifier")) else "NQ"
+        actual_status = actual_semi_status(country_name)
+        actual = "Pending" if actual_status is None else ("Q" if actual_status == "Qualified" else "NQ")
+        if actual_status is None:
+            result_class = "pending"
+        elif predicted == actual:
+            result_class = "hit"
+        else:
+            result_class = "miss"
         table_rows.append(
             "<tr>"
             f'<td class="rank-cell">{rank}</td>'
@@ -2435,17 +2589,19 @@ def render_semi_table(rows: list[dict[str, Any]]) -> str:
             f"<td>{country}</td>"
             f'<td><span class="prob-pill {band}">{prob_text}</span></td>'
             f"<td>{render_ci_bar(lo, hi)}</td>"
+            f'<td><span class="result-pill predicted">{predicted}</span></td>'
+            f'<td><span class="result-pill {result_class}">{actual}</span></td>'
             "</tr>"
         )
     return (
         '<table class="semi-table">'
-        "<thead><tr><th>#</th><th>Flag</th><th>Country</th><th>prob_qualify</th><th>CI-80</th></tr></thead>"
+        "<thead><tr><th>#</th><th>Flag</th><th>Country</th><th>Qualify probability</th><th>CI-80</th><th>Pred</th><th>Actual</th></tr></thead>"
         f"<tbody>{''.join(table_rows)}</tbody>"
         "</table>"
     )
 
 
-def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
+def render_semi_qualifiers(semi_predictions: dict[str, Any], predictions_df: pd.DataFrame) -> None:
     render_page_header("Semi Qualifiers")
     _info_expander(
         "How to read the qualification table",
@@ -2463,6 +2619,33 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
         st.warning("No semi-final qualification predictions found.")
         return
 
+    verification = semi_verification_frame(semi_predictions)
+    if not verification.empty:
+        total = len(verification)
+        correct = int(verification["hit"].sum())
+        predicted_q = verification[verification["predicted"] == "Qualified"]
+        actual_q = verification[verification["actual"] == "Qualified"]
+        q_hits = int((predicted_q["actual"] == "Qualified").sum())
+        precision = q_hits / len(predicted_q) if len(predicted_q) else None
+        recall = q_hits / len(actual_q) if len(actual_q) else None
+        false_positives = predicted_q[predicted_q["actual"] != "Qualified"]["country"].tolist()
+        false_negatives = verification[
+            (verification["predicted"] != "Qualified") & (verification["actual"] == "Qualified")
+        ]["country"].tolist()
+
+        st.caption(f"SF1 official result source: Eurovision.com, {SF1_RESULT_DATE}.")
+        cols = st.columns(4)
+        cols[0].metric("SF1 accuracy", f"{correct}/{total}", help="All correct Q/NQ calls in the first semi-final.")
+        cols[1].metric("Qualifier precision", "n/a" if precision is None else f"{precision:.0%}")
+        cols[2].metric("Qualifier recall", "n/a" if recall is None else f"{recall:.0%}")
+        cols[3].metric("Misses", len(false_positives) + len(false_negatives))
+        if false_positives or false_negatives:
+            st.info(
+                "SF1 correction: false predicted qualifiers were "
+                f"**{', '.join(false_positives) or 'none'}**; unexpected qualifiers were "
+                f"**{', '.join(false_negatives) or 'none'}**."
+            )
+
     show_all = st.toggle("Show all semi-finalists", value=False)
     css = """
     <style>
@@ -2473,6 +2656,8 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
     .semi-table th:nth-child(2), .semi-table td:nth-child(2) { width: 4rem; }
     .semi-table th:nth-child(4), .semi-table td:nth-child(4) { width: 9rem; }
     .semi-table th:nth-child(5), .semi-table td:nth-child(5) { width: 16rem; }
+    .semi-table th:nth-child(6), .semi-table td:nth-child(6) { width: 4rem; }
+    .semi-table th:nth-child(7), .semi-table td:nth-child(7) { width: 5rem; }
     .rank-cell { color: #6b7280; font-variant-numeric: tabular-nums; }
     .flag-cell img { display: inline-block; }
     .prob-pill { display: inline-block; min-width: 4.7rem; text-align: center; border-radius: 6px; padding: 0.18rem 0.45rem; font-variant-numeric: tabular-nums; font-weight: 700; }
@@ -2480,6 +2665,11 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
     .prob-pill.medium { background: #fef3c7; color: #92400e; }
     .prob-pill.low { background: #fee2e2; color: #991b1b; }
     .prob-pill.missing { background: #f3f4f6; color: #6b7280; }
+    .result-pill { display: inline-block; min-width: 3.2rem; text-align: center; border-radius: 6px; padding: 0.18rem 0.45rem; font-weight: 800; font-size: 0.82rem; }
+    .result-pill.predicted { background: #eef2ff; color: #3730a3; }
+    .result-pill.hit { background: #dcfce7; color: #166534; }
+    .result-pill.miss { background: #fee2e2; color: #991b1b; }
+    .result-pill.pending { background: #f3f4f6; color: #6b7280; }
     .ci-track { position: relative; display: inline-block; width: 9rem; height: 0.6rem; margin-right: 0.65rem; border-radius: 999px; background: #e5e7eb; vertical-align: middle; }
     .ci-range { position: absolute; top: 0; height: 100%; border-radius: 999px; background: #2563eb; }
     .ci-label { color: #4b5563; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
@@ -2501,7 +2691,11 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any]) -> None:
             sf_rows = [
                 row for row in rows
                 if int(row.get("semi_final") or 0) == semi_final
-                and (show_all or bool(row.get("predicted_qualifier")))
+                and (
+                    show_all
+                    or bool(row.get("predicted_qualifier"))
+                    or actual_semi_status(str(row.get("country") or "")) == "Qualified"
+                )
             ]
             sf_rows = sorted(sf_rows, key=lambda row: row.get("rank_in_semi") or 999)
             st.markdown(render_semi_table(sf_rows), unsafe_allow_html=True)
@@ -2564,8 +2758,8 @@ def render_backtest(backtest: dict[str, Any]) -> None:
         use_container_width=True,
         hide_index=True,
         column_config={
-            "top10_accuracy": st.column_config.NumberColumn("Top-10 accuracy", format="%.3f"),
-            "ci80_coverage": st.column_config.NumberColumn("CI-80 coverage", format="%.3f"),
+            "top10_accuracy": st.column_config.NumberColumn("Top-10 accuracy", format="%.1%"),
+            "ci80_coverage": st.column_config.NumberColumn("CI-80 coverage", format="%.1%"),
         },
     )
 
@@ -2681,25 +2875,38 @@ def main() -> None:
     predictions_df = countries_frame(data["predictions"])
 
     page = render_sidebar(data, load_time_s)
+    apply_known_results = st.sidebar.toggle(
+        "Apply known SF1 results",
+        value=True,
+        help="Remove countries eliminated in the first semi-final from Grand Final-oriented views and recalculate displayed ranks.",
+    )
+    display_predictions_df = apply_known_results_to_predictions(
+        predictions_df,
+        data["semi_predictions"],
+        apply_known_results,
+    )
+    if apply_known_results and not predictions_df.empty:
+        removed_count = len(predictions_df) - len(display_predictions_df)
+        st.sidebar.caption(f"Known results applied: {removed_count} SF1 non-qualifiers removed.")
     render_audio_player()
     render_back_to_top()
     render_tab_confetti(page)
     if page == "Overview":
-        render_overview(data, predictions_df)
+        render_overview(data, display_predictions_df)
     elif page == "Model Stats":
         render_model_stats(data)
     elif page == "Main Ranking":
-        render_predictions(data["predictions"], predictions_df, data["narratives"], data["history"])
+        render_predictions(data["predictions"], display_predictions_df, data["narratives"], data["history"])
     elif page == "Podium":
-        render_tiers(predictions_df)
+        render_tiers(display_predictions_df)
     elif page == "Semi Qualifiers":
-        render_semi_qualifiers(data["semi_predictions"])
+        render_semi_qualifiers(data["semi_predictions"], display_predictions_df)
     elif page == "Voting Blocs":
         render_voting_blocs(data)
     elif page == "Voting Network":
-        render_voting_network(data, predictions_df)
+        render_voting_network(data, display_predictions_df)
     elif page == "Narratives":
-        render_narratives(data["narratives"], predictions_df)
+        render_narratives(data["narratives"], display_predictions_df)
     elif page == "Backtest":
         render_backtest(data["backtest"])
     else:

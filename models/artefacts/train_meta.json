@@ -1,8 +1,8 @@
 {
   "story": "US-S4-02",
-  "trained_at": "2026-05-07T20:52:25.576481+00:00",
+  "trained_at": "2026-05-13T16:14:14.167970+00:00",
   "dataset_path": "Dataset\\eurovision_2016_26_enriched.csv",
-  "dataset_hash": "f799cef221d00a9582fe56bf70eb57f6",
+  "dataset_hash": "9033493807e8433c9f0ba4c18a774bd3",
   "random_seed": 42,
   "target": "Top 10",
   "n_train_rows": 217,
