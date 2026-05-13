@@ -14,7 +14,9 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 import xgboost as xgb
+from sklearn.base import clone
 from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 
@@ -43,6 +45,7 @@ REPORTS_DIR = ROOT / "reports"
 OUTPUT_JSON = REPORTS_DIR / "semi_predictions_2026.json"
 TARGET_YEAR = 2026
 DEFAULT_N_BOOTSTRAP = 1000
+CALIBRATION_EPS = 1e-6
 
 COUNTRY_FLAGS = {
     "Albania": "🇦🇱",
@@ -112,6 +115,96 @@ def ranked_rows(frame: pd.DataFrame) -> list[dict[str, Any]]:
     return out.to_dict(orient="records")
 
 
+def _logit(values: np.ndarray) -> np.ndarray:
+    clipped = np.clip(values.astype(float), CALIBRATION_EPS, 1.0 - CALIBRATION_EPS)
+    return np.log(clipped / (1.0 - clipped)).reshape(-1, 1)
+
+
+def fit_probability_calibrator(
+    best_estimator: Pipeline,
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    groups: pd.Series,
+) -> tuple[LogisticRegression | None, dict[str, Any]]:
+    """Fit a monotonic Platt-style calibrator from temporal OOF predictions."""
+    cv = LeaveLastYearOut(min_train_years=2)
+    oof_proba: list[np.ndarray] = []
+    oof_y: list[np.ndarray] = []
+
+    for train_idx, valid_idx in cv.split(X_train, y_train, groups):
+        estimator = clone(best_estimator)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            estimator.fit(X_train.iloc[train_idx], y_train.iloc[train_idx])
+        oof_proba.append(estimator.predict_proba(X_train.iloc[valid_idx])[:, 1])
+        oof_y.append(y_train.iloc[valid_idx].to_numpy())
+
+    if not oof_proba:
+        return None, {"method": "identity", "reason": "no_oof_folds"}
+
+    raw = np.concatenate(oof_proba)
+    actual = np.concatenate(oof_y)
+    if len(np.unique(actual)) < 2:
+        return None, {"method": "identity", "reason": "single_class_oof"}
+
+    calibrator = LogisticRegression(solver="lbfgs")
+    calibrator.fit(_logit(raw), actual)
+    coefficient = float(calibrator.coef_[0][0])
+    intercept = float(calibrator.intercept_[0])
+    if coefficient <= 0:
+        return None, {
+            "method": "identity",
+            "reason": "non_monotonic_fit",
+            "coefficient": coefficient,
+            "intercept": intercept,
+        }
+
+    calibrated = calibrator.predict_proba(_logit(raw))[:, 1]
+    return calibrator, {
+        "method": "temporal_oof_logistic",
+        "n_oof_rows": int(len(raw)),
+        "raw_mean": float(np.mean(raw)),
+        "calibrated_mean": float(np.mean(calibrated)),
+        "actual_rate": float(np.mean(actual)),
+        "coefficient": coefficient,
+        "intercept": intercept,
+    }
+
+
+def apply_probability_calibrator(
+    proba_matrix: np.ndarray,
+    calibrator: LogisticRegression | None,
+) -> np.ndarray:
+    if calibrator is None:
+        return proba_matrix
+    flat = proba_matrix.reshape(-1)
+    calibrated = calibrator.predict_proba(_logit(flat))[:, 1]
+    return calibrated.reshape(proba_matrix.shape)
+
+
+def quota_calibrate_proba_matrix(
+    proba_matrix: np.ndarray,
+    semi_nums: list[int],
+    qualifiers_per_semi: int = QUALIFIERS_PER_SEMI,
+) -> np.ndarray:
+    """Constrain each bootstrap draw so expected qualifiers per semi equals the contest quota."""
+    calibrated = np.asarray(proba_matrix, dtype=float).copy()
+    semi_array = np.asarray(semi_nums)
+    for row_idx in range(calibrated.shape[0]):
+        for semi_final in sorted(set(semi_nums)):
+            mask = semi_array == semi_final
+            current_sum = float(np.nansum(calibrated[row_idx, mask]))
+            if current_sum <= 0:
+                calibrated[row_idx, mask] = qualifiers_per_semi / int(mask.sum())
+                continue
+            calibrated[row_idx, mask] = np.clip(
+                calibrated[row_idx, mask] * (qualifiers_per_semi / current_sum),
+                0.0,
+                1.0,
+            )
+    return calibrated
+
+
 def build_semi_predictions(n_bootstrap: int, seed: int) -> dict[str, Any]:
     df = pd.read_csv(ENRICHED_CSV, encoding="utf-8", low_memory=False)
     df.columns = df.columns.str.strip()
@@ -145,6 +238,7 @@ def build_semi_predictions(n_bootstrap: int, seed: int) -> dict[str, Any]:
 
     model_outputs: dict[str, pd.DataFrame] = {}
     best_params: dict[str, dict[str, Any]] = {}
+    calibration_meta: dict[str, dict[str, Any]] = {}
     models = [
         (
             "xgb",
@@ -171,6 +265,18 @@ def build_semi_predictions(n_bootstrap: int, seed: int) -> dict[str, Any]:
         gs = grid_search_single_process(clf, param_grid, X_train, y_train, groups)
         params = {key.replace("model__", ""): value for key, value in gs.best_params_.items()}
         best_params[model_name] = params
+        calibrator, calibration_meta[model_name] = fit_probability_calibrator(
+            gs.best_estimator_,
+            X_train,
+            y_train.reset_index(drop=True),
+            groups.reset_index(drop=True),
+        )
+        print(
+            f"[{model_name.upper()}] calibration "
+            f"{calibration_meta[model_name].get('method')} "
+            f"raw_mean={calibration_meta[model_name].get('raw_mean', float('nan')):.3f} "
+            f"cal_mean={calibration_meta[model_name].get('calibrated_mean', float('nan')):.3f}"
+        )
         print(f"[{model_name.upper()}] bootstrap n={n_bootstrap}")
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -183,6 +289,21 @@ def build_semi_predictions(n_bootstrap: int, seed: int) -> dict[str, Any]:
                 n_bootstrap=n_bootstrap,
                 seed=seed,
             )
+        proba_matrix = apply_probability_calibrator(proba_matrix, calibrator)
+        pre_quota_sum = {
+            f"sf{semi_final}": float(np.mean(np.sum(proba_matrix[:, np.asarray(semi_nums) == semi_final], axis=1)))
+            for semi_final in sorted(set(semi_nums))
+        }
+        proba_matrix = quota_calibrate_proba_matrix(proba_matrix, semi_nums)
+        calibration_meta[model_name]["quota_calibration"] = {
+            "method": "per_bootstrap_semi_sum_to_quota",
+            "qualifiers_per_semi": QUALIFIERS_PER_SEMI,
+            "mean_sum_before": pre_quota_sum,
+            "mean_sum_after": {
+                f"sf{semi_final}": float(np.mean(np.sum(proba_matrix[:, np.asarray(semi_nums) == semi_final], axis=1)))
+                for semi_final in sorted(set(semi_nums))
+            },
+        }
         ci_df = compute_ci(proba_matrix, countries)
         ci_df["semi_final"] = ci_df["country"].map(dict(zip(countries, semi_nums)))
         ci_df["running_order"] = ci_df["country"].map(dict(zip(countries, running_order)))
@@ -241,12 +362,22 @@ def build_semi_predictions(n_bootstrap: int, seed: int) -> dict[str, Any]:
         "models": {
             "xgb": {
                 "best_params": best_params["xgb"],
+                "calibration": calibration_meta["xgb"],
                 "countries": ranked_rows(model_outputs["xgb"]),
             },
             "lgbm": {
                 "best_params": best_params["lgbm"],
+                "calibration": calibration_meta["lgbm"],
                 "countries": ranked_rows(model_outputs["lgbm"]),
             },
+        },
+        "calibration": {
+            "method": "temporal_oof_logistic_plus_quota",
+            "note": (
+                "Bootstrap probabilities are passed through a monotonic logistic calibrator "
+                "fitted on historical leave-last-year-out predictions, then quota-calibrated so each "
+                "semi-final bootstrap draw sums to 10 expected qualifiers before CI summaries are computed."
+            ),
         },
         "countries": rows,
     }
