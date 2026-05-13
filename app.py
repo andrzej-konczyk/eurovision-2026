@@ -2768,6 +2768,7 @@ def render_model_stats(data: dict[str, Any]) -> None:
     render_page_header("Model Stats")
     backtest = data["backtest"]
     semi_backtest = data["semi_backtest"]
+    semi_predictions = data["semi_predictions"]
     stats = aggregate_model_stats(backtest, semi_backtest)
     gf_frame = backtest_frame(backtest)
     semi_frame = semi_backtest_frame(semi_backtest)
@@ -2781,29 +2782,47 @@ def render_model_stats(data: dict[str, Any]) -> None:
     semi_best = best_metric_value(stats, "Semi-final qualification", "accuracy")
     semi_ci = best_metric_value(stats, "Semi-final qualification", "ci80_coverage")
     best_ci = max([value for value in [gf_ci, semi_ci] if value is not None], default=None)
+    sf1_verification = semi_verification_frame(semi_predictions)
+    if sf1_verification.empty:
+        sf1_accuracy_label = "n/a"
+        sf1_hit_rate_label = "n/a"
+        sf1_misses_label = "n/a"
+    else:
+        sf1_total = len(sf1_verification)
+        sf1_correct = int(sf1_verification["hit"].sum())
+        sf1_predicted_q = sf1_verification[sf1_verification["predicted"] == "Qualified"]
+        sf1_actual_q = sf1_verification[sf1_verification["actual"] == "Qualified"]
+        sf1_q_hits = int((sf1_predicted_q["actual"] == "Qualified").sum())
+        sf1_accuracy_label = f"{sf1_correct}/{sf1_total}"
+        sf1_hit_rate_label = format_percent(sf1_q_hits / len(sf1_actual_q)) if len(sf1_actual_q) else "n/a"
+        sf1_misses_label = str(sf1_total - sf1_correct)
     years = backtest.get("backtest_years", [])
     year_label = f"{min(years)}-{max(years)}" if years else "n/a"
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Best GF Top-10 accuracy", format_percent(gf_best), help="Highest top-10 prediction accuracy achieved across backtested years.")
-    col2.metric("Best Semi accuracy", format_percent(semi_best), help="Best semi-final qualification accuracy in backtests.")
-    col3.metric("Best CI-80 coverage", format_percent(best_ci), help="Empirical coverage of the 80% confidence interval (target: ≥ 80%).")
-    col4.metric("Backtest years", year_label, help="Years used for out-of-sample model validation.")
+    col1.metric("Historical GF best", format_percent(gf_best), help="Highest Grand Final Top-10 accuracy in historical backtests.")
+    col2.metric("Live SF1 accuracy", sf1_accuracy_label, help="Actual 2026 SF1 Q/NQ calls after the first semi-final.")
+    col3.metric("Live SF1 Q hit rate", sf1_hit_rate_label, help="Actual 2026 SF1 qualifiers included in the model's predicted qualifier set.")
+    col4.metric("Live SF1 misses", sf1_misses_label, help="Wrong Q/NQ calls in the first semi-final.")
 
     _info_expander(
         "How to interpret model accuracy",
         "Grand Final accuracy measures how many actual Top-10 countries appeared in the model's predicted Top 10. "
         "Semi-final accuracy measures how many actual qualifiers were included in each predicted qualifier set. "
         "CI-80 coverage checks whether historical outcomes fell inside the model's 80 % confidence interval.\n\n"
-        "These are historical backtests, not guarantees for 2026. They show whether the modelling approach was "
-        "credible on past contests when each holdout year was treated as unknown."
+        "The top row separates **live 2026 SF1 verification** from historical backtests. Historical best/average "
+        "metrics remain useful diagnostics, but they are not the current 2026 semi-final result."
     )
     _info_expander(
         "Model target summary",
         TOP10_RATIONALE,
     )
 
-    st.subheader("Accuracy Summary")
+    st.subheader("Historical Backtest Summary")
+    st.caption(
+        f"Historical backtest years: {year_label}. Best historical semi accuracy: {format_percent(semi_best)}; "
+        f"best historical CI-80 coverage: {format_percent(best_ci)}. Live SF1 is shown separately above."
+    )
     stats_display = stats.copy()
     stats_display = stats_display[["scope", "model", "accuracy", "ci80_coverage"]]
     for column in ["accuracy", "ci80_coverage"]:
