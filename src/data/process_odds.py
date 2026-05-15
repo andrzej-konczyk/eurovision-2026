@@ -204,6 +204,32 @@ def _write_log(log_entry: str) -> None:
     print(f"Log updated: {LOG_MD.relative_to(ROOT)}")
 
 
+def merge_client_rows(df_primary: pd.DataFrame, df_client: pd.DataFrame) -> pd.DataFrame:
+    """Return primary odds with client rows overriding matches and appending new keys."""
+    merge_keys = ["year", "country"]
+    primary_keys = set(map(tuple, df_primary[merge_keys].to_numpy()))
+    client_new_rows = df_client[
+        ~df_client[merge_keys].apply(tuple, axis=1).isin(primary_keys)
+    ].copy()
+
+    merged = df_primary.merge(
+        df_client[merge_keys + ["odds_open", "odds_close", "implied_prob", "source"]],
+        on=merge_keys,
+        how="left",
+        suffixes=("", "_client"),
+    )
+    for col in ("odds_open", "odds_close", "implied_prob", "source"):
+        client_col = col + "_client"
+        if client_col in merged.columns:
+            mask = merged[client_col].notna()
+            merged.loc[mask, col] = merged.loc[mask, client_col]
+            merged.drop(columns=[client_col], inplace=True)
+
+    if not client_new_rows.empty:
+        merged = pd.concat([merged, client_new_rows], ignore_index=True)
+    return merged
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--client-file", type=Path, default=None,
@@ -219,17 +245,7 @@ def main() -> None:
         print(f"Ingesting client file: {args.client_file}")
         df_client, log_entry = ingest_client_file(args.client_file)
         # client rows override primary for matching (year, country)
-        merge_keys = ["year", "country"]
-        df_final = df_final.merge(
-            df_client[merge_keys + ["odds_open", "odds_close", "implied_prob", "source"]],
-            on=merge_keys, how="left", suffixes=("", "_client"),
-        )
-        for col in ("odds_open", "odds_close", "implied_prob", "source"):
-            client_col = col + "_client"
-            if client_col in df_final.columns:
-                mask = df_final[client_col].notna()
-                df_final.loc[mask, col] = df_final.loc[mask, client_col]
-                df_final.drop(columns=[client_col], inplace=True)
+        df_final = merge_client_rows(df_final, df_client)
         _write_log(log_entry)
 
     df_final.to_csv(OUT_CSV, index=False, encoding="utf-8")

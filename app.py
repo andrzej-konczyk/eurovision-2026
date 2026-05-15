@@ -42,6 +42,8 @@ AUDIO_FILE = APP_ROOT / "dl.mp3"
 LOGO_FILE = APP_ROOT / "Eurovision_Song_Contest_2026_Logo.jpg"
 SF1_RESULT_DATE = "2026-05-12"
 SF1_RESULT_SOURCE = "https://www.eurovision.com/stories/eurovision-2026-first-semi-final-qualifiers-vienna/"
+SF2_RESULT_DATE = "2026-05-14"
+SF2_RESULT_SOURCE = "https://www.eurovision.com/stories/eurovision-2026-the-second-semi-final-qualifiers/"
 SF1_ACTUAL_QUALIFIERS = {
     "Greece",
     "Finland",
@@ -61,6 +63,25 @@ SF1_ACTUAL_NON_QUALIFIERS = {
     "Estonia",
     "San Marino",
 }
+SF2_ACTUAL_QUALIFIERS = {
+    "Denmark",
+    "Australia",
+    "Bulgaria",
+    "Czech Republic",
+    "Ukraine",
+    "Albania",
+    "Malta",
+    "Cyprus",
+    "Romania",
+    "Norway",
+}
+SF2_ACTUAL_NON_QUALIFIERS = {
+    "Azerbaijan",
+    "Luxembourg",
+    "Armenia",
+    "Switzerland",
+    "Latvia",
+}
 
 NAVIGATION_PAGES = [
     "Overview",
@@ -77,7 +98,7 @@ PAGE_CAPTIONS = {
     "Overview": "Current forecast snapshot, model freshness, leading contenders, and backtest health.",
     "Model Stats": "",
     "Main Ranking": "Full country ranking with confidence intervals and model agreement signals.",
-    "Podium": "Top-3 position probabilities and winner concentration.",
+    "Podium": "Top-3 position probabilities and experimental winner signal.",
     "Semi Qualifiers": "Semi-final qualification probabilities by draw.",
     "Voting Blocs": "Regional bloc membership matrix used by feature engineering.",
     "Voting Network": "Historical jury affinity graph merged with current top-10 probabilities.",
@@ -105,6 +126,15 @@ TOP10_RATIONALE = (
     "view is useful, but it is derived from the Top-10 model and should be read as a relative "
     "favourites signal. The Top-10 target is therefore the primary accuracy target; Top-3 and winner views "
     "are secondary interpretations built on top of it."
+)
+
+WINNER_SIGNAL_METHOD = (
+    "The winner signal is an experimental layer derived from the primary Top-10 model. "
+    "It is not trained as a standalone winner classifier because historical winner samples are too sparse "
+    "for a stable binary target. The signal takes the derived P1 probability from the podium model, then "
+    "shows it beside each country's live Top-10 probability, CI-80 width, and current market implied "
+    "probability so the ranking can be read as relative favourite strength, not as a precise calibrated "
+    "win market."
 )
 
 SEMI_QUALIFIER_METHOD = (
@@ -1182,9 +1212,9 @@ def semi_prediction_by_country(semi_predictions: dict[str, Any]) -> dict[str, di
 
 
 def actual_semi_status(country: str) -> str | None:
-    if country in SF1_ACTUAL_QUALIFIERS:
+    if country in SF1_ACTUAL_QUALIFIERS or country in SF2_ACTUAL_QUALIFIERS:
         return "Qualified"
-    if country in SF1_ACTUAL_NON_QUALIFIERS:
+    if country in SF1_ACTUAL_NON_QUALIFIERS or country in SF2_ACTUAL_NON_QUALIFIERS:
         return "Eliminated"
     return None
 
@@ -1192,9 +1222,9 @@ def actual_semi_status(country: str) -> str | None:
 def qualification_status_label(country: str, semi_predictions: dict[str, Any]) -> str:
     actual = actual_semi_status(country)
     if actual == "Qualified":
-        return "SF1 qualified"
+        return "SF2 qualified" if country in SF2_ACTUAL_QUALIFIERS else "SF1 qualified"
     if actual == "Eliminated":
-        return "SF1 eliminated"
+        return "SF2 eliminated" if country in SF2_ACTUAL_NON_QUALIFIERS else "SF1 eliminated"
 
     semi_row = semi_prediction_by_country(semi_predictions).get(country)
     if not semi_row:
@@ -1219,7 +1249,7 @@ def apply_known_results_to_predictions(
         lambda country: qualification_status_label(str(country), semi_predictions)
     )
     if apply_known_results:
-        frame = frame[frame["qualification_status"] != "SF1 eliminated"].copy()
+        frame = frame[~frame["qualification_status"].isin(["SF1 eliminated", "SF2 eliminated"])].copy()
         frame = frame.sort_values("probability", ascending=False).reset_index(drop=True)
         frame["rank"] = frame.index + 1
     return frame
@@ -2155,6 +2185,77 @@ def winner_gauge_frame(position_df: pd.DataFrame, top_n: int = 3) -> pd.DataFram
     return winners
 
 
+def winner_signal_frame(
+    position_df: pd.DataFrame,
+    predictions_df: pd.DataFrame,
+    top_n: int = 10,
+) -> pd.DataFrame:
+    """Return a finalist-only experimental winner ranking derived from P1 mass."""
+    if position_df.empty or predictions_df.empty:
+        return pd.DataFrame(
+            columns=[
+                "winner_rank",
+                "country",
+                "winner_probability",
+                "top10_probability",
+                "market_probability",
+                "ci80_width",
+                "not_win_probability",
+                "signal_band",
+                "qualification_status",
+            ]
+        )
+
+    p1 = (
+        position_df[position_df["position"] == "P1"][["country", "probability"]]
+        .rename(columns={"probability": "winner_probability"})
+        .copy()
+    )
+    details = predictions_df.copy()
+    for column in [
+        "probability",
+        "market_implied_prob",
+        "xgb_ci80_lo",
+        "xgb_ci80_hi",
+        "lgbm_ci80_lo",
+        "lgbm_ci80_hi",
+    ]:
+        if column in details.columns:
+            details[column] = pd.to_numeric(details[column], errors="coerce")
+    details["ci80_lo"] = details[["xgb_ci80_lo", "lgbm_ci80_lo"]].mean(axis=1)
+    details["ci80_hi"] = details[["xgb_ci80_hi", "lgbm_ci80_hi"]].mean(axis=1)
+    details["ci80_width"] = (details["ci80_hi"] - details["ci80_lo"]).clip(lower=0.0)
+    merged = p1.merge(
+        details[["country", "probability", "market_implied_prob", "ci80_width", "qualification_status"]],
+        on="country",
+        how="left",
+    ).rename(columns={"probability": "top10_probability", "market_implied_prob": "market_probability"})
+    if "qualification_status" in merged.columns:
+        merged = merged[~merged["qualification_status"].astype(str).str.contains("eliminated", case=False, na=False)]
+    merged = merged[merged["top10_probability"].fillna(0.0) > 0.0]
+    merged = merged.sort_values("winner_probability", ascending=False).head(top_n).reset_index(drop=True)
+    merged.insert(0, "winner_rank", merged.index + 1)
+    merged["not_win_probability"] = (1.0 - merged["winner_probability"]).clip(lower=0.0, upper=1.0)
+    merged["signal_band"] = pd.cut(
+        merged["winner_probability"],
+        bins=[-0.001, 0.08, 0.18, 1.0],
+        labels=["Long shot", "Contender", "Front-runner"],
+    ).astype(str)
+    return merged[
+        [
+            "winner_rank",
+            "country",
+            "winner_probability",
+            "top10_probability",
+            "market_probability",
+            "ci80_width",
+            "not_win_probability",
+            "signal_band",
+            "qualification_status",
+        ]
+    ]
+
+
 def winner_gauge_figure(position_df: pd.DataFrame, top_n: int = 3) -> go.Figure:
     winners = winner_gauge_frame(position_df, top_n)
     fig = go.Figure()
@@ -2562,6 +2663,60 @@ def render_tiers(predictions_df: pd.DataFrame) -> None:
             "not winning. Use this as a relative signal, not a standalone forecast."
         )
 
+    st.subheader("Experimental Winner Signal")
+    _info_expander("How this winner signal is built", WINNER_SIGNAL_METHOD)
+    winner_signal = winner_signal_frame(position_df, predictions_df)
+    if winner_signal.empty:
+        st.warning("No winner signal rows could be derived.")
+    else:
+        leader = winner_signal.iloc[0]
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Winner signal leader", str(leader["country"]))
+        col2.metric("Derived P1", f"{float(leader['winner_probability']):.1%}")
+        market_value = safe_float(leader.get("market_probability"))
+        col3.metric("Market implied", "n/a" if market_value is None else f"{market_value:.1%}")
+
+        winner_signal_display = winner_signal.copy()
+        for column in [
+            "winner_probability",
+            "top10_probability",
+            "market_probability",
+            "ci80_width",
+            "not_win_probability",
+        ]:
+            winner_signal_display[column] = winner_signal_display[column] * 100.0
+        st.dataframe(
+            winner_signal_display,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "winner_rank": st.column_config.NumberColumn("#", width="small"),
+                "country": st.column_config.TextColumn("Country"),
+                "winner_probability": st.column_config.ProgressColumn(
+                    "Winner signal",
+                    format="%.1f%%",
+                    min_value=0.0,
+                    max_value=100.0,
+                ),
+                "top10_probability": st.column_config.ProgressColumn(
+                    "Top-10 probability",
+                    format="%.1f%%",
+                    min_value=0.0,
+                    max_value=100.0,
+                ),
+                "market_probability": st.column_config.ProgressColumn(
+                    "Market implied",
+                    format="%.1f%%",
+                    min_value=0.0,
+                    max_value=100.0,
+                ),
+                "ci80_width": st.column_config.NumberColumn("CI-80 width", format="%.1f%%"),
+                "not_win_probability": st.column_config.NumberColumn("Not-win risk", format="%.1f%%"),
+                "signal_band": st.column_config.TextColumn("Signal band"),
+                "qualification_status": st.column_config.TextColumn("Status"),
+            },
+        )
+
 
 def safe_float(value: Any) -> float | None:
     try:
@@ -2669,15 +2824,19 @@ def render_semi_qualifiers(semi_predictions: dict[str, Any], predictions_df: pd.
             (verification["predicted"] != "Qualified") & (verification["actual"] == "Qualified")
         ]["country"].tolist()
 
-        st.caption(f"SF1 official result source: Eurovision.com, {SF1_RESULT_DATE}.")
+        st.caption(
+            "Official result sources: "
+            f"[SF1 Eurovision.com]({SF1_RESULT_SOURCE}), {SF1_RESULT_DATE}; "
+            f"[SF2 Eurovision.com]({SF2_RESULT_SOURCE}), {SF2_RESULT_DATE}."
+        )
         cols = st.columns(4)
-        cols[0].metric("SF1 accuracy", f"{correct}/{total}", help="All correct Q/NQ calls in the first semi-final.")
+        cols[0].metric("SF accuracy", f"{correct}/{total}", help="All correct Q/NQ calls across both semi-finals.")
         cols[1].metric("Qualifier precision", "n/a" if precision is None else f"{precision:.0%}")
         cols[2].metric("Qualifier recall", "n/a" if recall is None else f"{recall:.0%}")
         cols[3].metric("Misses", len(false_positives) + len(false_negatives))
         if false_positives or false_negatives:
             st.info(
-                "SF1 correction: false predicted qualifiers were "
+                "Semi-final correction: false predicted qualifiers were "
                 f"**{', '.join(false_positives) or 'none'}**; unexpected qualifiers were "
                 f"**{', '.join(false_negatives) or 'none'}**."
             )
@@ -2795,8 +2954,8 @@ def render_backtest(backtest: dict[str, Any]) -> None:
         "predicted Top-10 matched the actual Top-10. It was used to validate the modelling approach "
         "before publishing 2026 predictions.\n\n"
         "It is a historical diagnostic only. It does not directly change the current live probabilities. "
-        "The live 2026 dashboard is adjusted by known SF1 results, calibrated SF2 qualification "
-        "probabilities, and the latest rebuilt prediction artifacts.",
+        "The live 2026 dashboard is adjusted by known semi-final results and the latest rebuilt "
+        "prediction artifacts.",
     )
 
     st.dataframe(
@@ -2841,9 +3000,9 @@ def render_model_stats(data: dict[str, Any]) -> None:
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Historical GF best", format_percent(gf_best), help="Highest Grand Final Top-10 accuracy in historical backtests.")
-    col2.metric("Live SF1 accuracy", sf1_accuracy_label, help="Actual 2026 SF1 Q/NQ calls after the first semi-final.")
-    col3.metric("Live SF1 Q hit rate", sf1_hit_rate_label, help="Actual 2026 SF1 qualifiers included in the model's predicted qualifier set.")
-    col4.metric("Live SF1 misses", sf1_misses_label, help="Wrong Q/NQ calls in the first semi-final.")
+    col2.metric("Live SF accuracy", sf1_accuracy_label, help="Actual 2026 semi-final Q/NQ calls after both semi-finals.")
+    col3.metric("Live SF Q hit rate", sf1_hit_rate_label, help="Actual 2026 semi-final qualifiers included in the model's predicted qualifier set.")
+    col4.metric("Live SF misses", sf1_misses_label, help="Wrong Q/NQ calls across both semi-finals.")
     st.caption(
         f"Historical backtests ({year_label}) are diagnostics only. They validated the model before the live run; "
         "they do not directly adjust today's probabilities."
@@ -2856,8 +3015,8 @@ def render_model_stats(data: dict[str, Any]) -> None:
         "used to validate the modelling approach, catch weak features, and decide whether the model was good "
         "enough to publish.\n\n"
         "Its current impact is indirect: it gives confidence that the method is reasonable, but it does not "
-        "change live 2026 probabilities. The live probabilities are updated by known SF1 results, calibrated "
-        "SF2 qualification probabilities, and the latest rebuilt prediction artifacts."
+        "change live 2026 probabilities. The live probabilities are updated by known semi-final results "
+        "and the latest rebuilt prediction artifacts."
     )
     _info_expander(
         "Model target summary",
@@ -2925,9 +3084,9 @@ def main() -> None:
 
     page = render_sidebar(data, load_time_s)
     apply_known_results = st.sidebar.toggle(
-        "Apply known SF1 results",
+        "Apply known semi-final results",
         value=True,
-        help="Remove countries eliminated in the first semi-final from Grand Final-oriented views and recalculate displayed ranks.",
+        help="Remove countries eliminated in the semi-finals from Grand Final-oriented views and recalculate displayed ranks.",
     )
     display_predictions_df = apply_known_results_to_predictions(
         predictions_df,
@@ -2936,7 +3095,7 @@ def main() -> None:
     )
     if apply_known_results and not predictions_df.empty:
         removed_count = len(predictions_df) - len(display_predictions_df)
-        st.sidebar.caption(f"Known results applied: {removed_count} SF1 non-qualifiers removed.")
+        st.sidebar.caption(f"Known results applied: {removed_count} semi-final non-qualifiers removed.")
     render_audio_player()
     render_back_to_top()
     render_tab_confetti(page)

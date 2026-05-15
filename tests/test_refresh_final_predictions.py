@@ -14,7 +14,7 @@ def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
     pd.DataFrame(rows).to_csv(path, index=False)
 
 
-def _finalist_rows(count: int = 26) -> list[dict[str, object]]:
+def _finalist_rows(count: int = 25) -> list[dict[str, object]]:
     return [
         {
             "Year": 2026,
@@ -26,31 +26,31 @@ def _finalist_rows(count: int = 26) -> list[dict[str, object]]:
     ]
 
 
-def test_validate_final_running_order_accepts_unique_26_country_sequence(tmp_path):
+def test_validate_final_running_order_accepts_unique_25_country_sequence(tmp_path):
     data_path = tmp_path / "enriched.csv"
     _write_csv(data_path, _finalist_rows())
 
     finalists = validate_final_running_order(data_path)
 
-    assert len(finalists) == 26
-    assert finalists["Running_Order_Final"].tolist() == list(range(1, 27))
+    assert len(finalists) == 25
+    assert finalists["Running_Order_Final"].tolist() == list(range(1, 26))
 
 
 def test_validate_final_running_order_rejects_incomplete_finalist_count(tmp_path):
     data_path = tmp_path / "enriched.csv"
-    _write_csv(data_path, _finalist_rows(25))
+    _write_csv(data_path, _finalist_rows(24))
 
-    with pytest.raises(ValueError, match="Expected 26 Grand Final rows"):
+    with pytest.raises(ValueError, match="Expected 25 Grand Final rows"):
         validate_final_running_order(data_path)
 
 
 def test_validate_final_running_order_rejects_duplicate_or_missing_positions(tmp_path):
     rows = _finalist_rows()
-    rows[-1]["Running_Order_Final"] = 25
+    rows[-1]["Running_Order_Final"] = 24
     data_path = tmp_path / "enriched.csv"
     _write_csv(data_path, rows)
 
-    with pytest.raises(ValueError, match="unique 1..26 sequence"):
+    with pytest.raises(ValueError, match="unique 1..25 sequence"):
         validate_final_running_order(data_path)
 
 

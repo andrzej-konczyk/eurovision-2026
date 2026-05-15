@@ -63,3 +63,7 @@ node_modules/
 project_status.md
 latest_logs/
 archived_logs/
+
+# Local runtime/test noise
+.pytest_tmp*/
+streamlit_*.log

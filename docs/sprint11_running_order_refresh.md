@@ -4,12 +4,12 @@ Operational checklist for the Eurovision 2026 Grand Final prediction refresh.
 
 ## Trigger 1: Grand Final Running Order Draw
 
-The final running order is normally known about one week before the Grand Final.
-Do not refresh final predictions until all 26 Grand Final countries are known.
+The final running order is normally known after the Second Semi-Final.
+Do not refresh final predictions until all 25 Grand Final countries are known.
 
 1. Update `Dataset/eurovision_2016_26_enriched.csv`.
-2. Set `Grand_Final_Ind=1` for all 26 Grand Final countries.
-3. Fill `Running_Order_Final` with a unique sequence `1..26`.
+2. Set `Grand_Final_Ind=1` for all 25 Grand Final countries.
+3. Fill `Running_Order_Final` with a unique sequence `1..25`.
 4. Leave non-finalists with `Grand_Final_Ind=0` and blank `Running_Order_Final`.
 5. Validate without running the model pipeline:
 
@@ -63,8 +63,8 @@ Then it refreshes train, confidence intervals, narratives, and
 
 ## Safety Gates
 
-- The script fails if 2026 has anything other than 26 Grand Final rows.
+- The script fails if 2026 has anything other than 25 Grand Final rows.
 - The script fails if any finalist is missing `Running_Order_Final`.
-- The script fails if `Running_Order_Final` is not a unique `1..26` sequence.
+- The script fails if `Running_Order_Final` is not a unique `1..25` sequence.
 - The default mode is dry-run; use `--run` only after reviewing the CSV changes.
 
