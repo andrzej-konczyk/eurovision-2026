@@ -20,6 +20,7 @@ CONFIDENCE_LGBM = ARTEFACTS_DIR / "confidence_lgbm.csv"
 SURROGATE_JSON = REPORTS_DIR / "surrogate_2026.json"
 NARRATIVES_JSON = REPORTS_DIR / "narratives_2026.json"
 SEMI_PREDICTIONS_JSON = REPORTS_DIR / "semi_predictions_2026.json"
+BETTING_ODDS_CSV = PROJECT_ROOT / "Dataset" / "betting_odds_clean.csv"
 OUTPUT_JSON = REPORTS_DIR / "predictions_2026.json"
 SF1_ACTUAL_QUALIFIERS = {
     "Greece",
@@ -39,6 +40,25 @@ SF1_ACTUAL_NON_QUALIFIERS = {
     "Montenegro",
     "Estonia",
     "San Marino",
+}
+SF2_ACTUAL_QUALIFIERS = {
+    "Denmark",
+    "Australia",
+    "Bulgaria",
+    "Czech Republic",
+    "Ukraine",
+    "Albania",
+    "Malta",
+    "Cyprus",
+    "Romania",
+    "Norway",
+}
+SF2_ACTUAL_NON_QUALIFIERS = {
+    "Azerbaijan",
+    "Luxembourg",
+    "Armenia",
+    "Switzerland",
+    "Latvia",
 }
 
 
@@ -60,6 +80,26 @@ def indexed_by_country(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return {row["country"]: row for row in rows}
 
 
+def market_odds_by_country(target_year: int) -> dict[str, dict[str, Any]]:
+    if not BETTING_ODDS_CSV.exists():
+        return {}
+    frame = pd.read_csv(BETTING_ODDS_CSV)
+    required = {"year", "country", "odds_close", "implied_prob", "source"}
+    if not required.issubset(frame.columns):
+        return {}
+    target = frame[pd.to_numeric(frame["year"], errors="coerce").eq(target_year)].copy()
+    if target.empty:
+        return {}
+    return {
+        str(row["country"]): {
+            "market_odds_close": None if pd.isna(row["odds_close"]) else float(row["odds_close"]),
+            "market_implied_prob": None if pd.isna(row["implied_prob"]) else float(row["implied_prob"]),
+            "market_source": row.get("source"),
+        }
+        for _, row in target.iterrows()
+    }
+
+
 def qualification_context(country: str, semi_by_country: dict[str, dict[str, Any]]) -> dict[str, Any]:
     if country in SF1_ACTUAL_QUALIFIERS:
         return {
@@ -71,6 +111,20 @@ def qualification_context(country: str, semi_by_country: dict[str, dict[str, Any
     if country in SF1_ACTUAL_NON_QUALIFIERS:
         return {
             "qualification_status": "SF1 eliminated",
+            "sf_qualify_prob": 0.0,
+            "live_multiplier": 0.0,
+            "probability_basis": "known_eliminated",
+        }
+    if country in SF2_ACTUAL_QUALIFIERS:
+        return {
+            "qualification_status": "SF2 qualified",
+            "sf_qualify_prob": 1.0,
+            "live_multiplier": 1.0,
+            "probability_basis": "known_qualified",
+        }
+    if country in SF2_ACTUAL_NON_QUALIFIERS:
+        return {
+            "qualification_status": "SF2 eliminated",
             "sf_qualify_prob": 0.0,
             "live_multiplier": 0.0,
             "probability_basis": "known_eliminated",
@@ -104,6 +158,7 @@ def qualification_context(country: str, semi_by_country: dict[str, dict[str, Any
 
 def build_predictions() -> dict[str, Any]:
     confidence_meta = read_json(CONFIDENCE_META)
+    target_year = int(confidence_meta.get("target_year", 2026))
     surrogate = read_json(SURROGATE_JSON)
     narratives = read_json(NARRATIVES_JSON)
     semi_predictions = read_json(SEMI_PREDICTIONS_JSON) if SEMI_PREDICTIONS_JSON.exists() else {}
@@ -115,6 +170,7 @@ def build_predictions() -> dict[str, Any]:
     surrogate_by_country = indexed_by_country(surrogate.get("countries", []))
     narrative_by_country = indexed_by_country(narratives.get("countries", []))
     semi_by_country = indexed_by_country(semi_predictions.get("countries", []))
+    market_by_country = market_odds_by_country(target_year)
 
     countries: list[dict[str, Any]] = []
     for country in sorted(set(xgb_by_country) | set(lgbm_by_country)):
@@ -127,6 +183,7 @@ def build_predictions() -> dict[str, Any]:
         probs = [prob for prob in [xgb_prob, lgbm_prob] if prob is not None]
         base_prob = sum(probs) / len(probs) if probs else None
         qual = qualification_context(country, semi_by_country)
+        market = market_by_country.get(country, {})
         live_prob = None if base_prob is None else base_prob * float(qual["live_multiplier"])
         countries.append(
             {
@@ -153,6 +210,9 @@ def build_predictions() -> dict[str, Any]:
                 "surrogate_prob": surrogate_row.get("surrogate_prob"),
                 "narrative_prob": narrative_row.get("probability"),
                 "narrative_prediction": narrative_row.get("prediction"),
+                "market_odds_close": market.get("market_odds_close"),
+                "market_implied_prob": market.get("market_implied_prob"),
+                "market_source": market.get("market_source"),
             }
         )
 
@@ -175,13 +235,12 @@ def build_predictions() -> dict[str, Any]:
     return {
         "story": "US-S7-01",
         "generated_at": datetime.now(UTC).isoformat(),
-        "target_year": confidence_meta.get("target_year", 2026),
+        "target_year": target_year,
         "live_adjustment": {
-            "method": "post_sf1_unconditional_top10",
+            "method": "post_semifinals_unconditional_top10",
             "note": (
                 "Base Grand Final Top-10 probabilities are adjusted for known qualification status: "
-                "SF1 eliminated countries are set to 0, known finalists keep base probability, "
-                "and unresolved SF2 countries are multiplied by calibrated semi-final qualification probability."
+                "eliminated semi-final countries are set to 0 and known finalists keep base probability."
             ),
         },
         "source_files": {
@@ -191,6 +250,7 @@ def build_predictions() -> dict[str, Any]:
             "surrogate": str(SURROGATE_JSON.relative_to(PROJECT_ROOT)),
             "narratives": str(NARRATIVES_JSON.relative_to(PROJECT_ROOT)),
             "semi_predictions": str(SEMI_PREDICTIONS_JSON.relative_to(PROJECT_ROOT)),
+            "betting_odds": str(BETTING_ODDS_CSV.relative_to(PROJECT_ROOT)),
         },
         "n_countries": len(countries),
         "models": {

@@ -17,7 +17,7 @@ import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA = PROJECT_ROOT / "Dataset" / "eurovision_2016_26_enriched.csv"
-EXPECTED_GF_COUNTRIES = 26
+EXPECTED_GF_COUNTRIES = 25
 TARGET_YEAR = 2026
 
 
@@ -57,7 +57,7 @@ def validate_final_running_order(
         missing_positions = sorted(expected_order.difference(actual_order))
         extra_positions = sorted(actual_order.difference(expected_order))
         raise ValueError(
-            "Running_Order_Final must be a unique 1..26 sequence. "
+            f"Running_Order_Final must be a unique 1..{expected_count} sequence. "
             f"duplicates={duplicates}; missing={missing_positions}; extra={extra_positions}"
         )
 

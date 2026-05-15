@@ -55,3 +55,14 @@ def test_winner_gauge_uses_top_three_candidates(predictions_df):
     for trace in fig.data:
         assert list(trace.gauge.axis.tickvals) == [0.0, 0.5, 1.0]
         assert list(trace.gauge.axis.ticktext) == ["", "50%", ""]
+
+
+def test_winner_signal_excludes_eliminated_countries(predictions_df):
+    position_df = app.position_probability_frame(predictions_df)
+    signal = app.winner_signal_frame(position_df, predictions_df)
+
+    assert len(signal) == 10
+    assert signal["winner_rank"].tolist() == list(range(1, 11))
+    assert signal["winner_probability"].is_monotonic_decreasing
+    assert {"market_probability", "not_win_probability", "signal_band"}.issubset(signal.columns)
+    assert not signal["qualification_status"].str.contains("eliminated", case=False).any()
